@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Copyright (C) 2023 IUT Laval - Le Mans Université.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301  USA
+-->
+<config
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns='http://www.ehcache.org/v3'
+    xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core.xsd">
+
+    <persistence directory="/var/spring-ehcache/cache" />
+    
+    <cache-template name="defaultExplorateurIUTCaches"> 
+        <key-type>org.springframework.cache.interceptor.SimpleKey</key-type>
+        <expiry>
+            <ttl unit="hours">24</ttl> 
+        </expiry>
+        <resources>
+            <heap unit="entries">2</heap>
+            <offheap unit="MB">10</offheap>
+            <disk persistent="true" unit="MB">20</disk>
+        </resources>
+    </cache-template>
+    
+    <cache-template name="smallExplorateurIUTCaches"> 
+        <key-type>org.springframework.cache.interceptor.SimpleKey</key-type>
+        <expiry>
+            <ttl unit="hours">24</ttl> 
+        </expiry>
+        <resources>
+            <heap unit="entries">1</heap>
+            <offheap unit="MB">1</offheap>
+            <disk persistent="true" unit="MB">2</disk>
+        </resources>
+    </cache-template>
+    
+    <cache alias="butSummaries" uses-template="defaultExplorateurIUTCaches"/>
+    <cache alias="filiereInformations" uses-template="defaultExplorateurIUTCaches"/>
+    <cache alias="iutSummaries" uses-template="defaultExplorateurIUTCaches"/>
+    <cache alias="cacheEtag" uses-template="smallExplorateurIUTCaches"/>
+</config>
+

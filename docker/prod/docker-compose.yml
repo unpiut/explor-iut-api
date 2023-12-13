@@ -1,0 +1,63 @@
+version: '3.8'
+
+name: 'exploiut-prod'
+
+services:
+  nosqldatabase:
+    image: mongo:6.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: exploit-usr
+      MONGO_INITDB_ROOT_PASSWORD: A9v6R4p2EtYF3r5HVUhZQe
+      MONGO_INITDB_DATABASE: exploiut-db
+    volumes:
+      - data:/data/db
+    networks:
+      - db-net
+    restart: always
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  api-server:
+    image: maven:3.9.5-amazoncorretto-21
+    depends_on:
+      nosqldatabase:
+        condition: service_healthy
+    restart: always
+    working_dir: /usr/src/app
+    configs:
+      - source: spring
+        target: /root/application.properties
+        mode: 0440
+      - source: ehcache
+        target: /root/ehcache.xml
+        mode: 0440
+    volumes:
+      - ../../:/usr/src/app
+      - api-maven-cache:/root/.m2
+      - api-build-cache:/usr/src/app/target
+      - api-server-cache:/var/spring-ehcache
+      - /my-path/data.xlsx:/root/data.xlsx:ro
+    networks:
+      - db-net
+    ports:
+      - 127.0.0.1:8080:8080
+    command: mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=/root/application.properties
+
+volumes:
+  data:
+  api-maven-cache:
+  api-build-cache:
+  api-server-cache:
+
+networks:
+  db-net:
+
+configs:
+  spring:
+    file: api-prod.properties
+  ehcache:
+    file: ehcache-prod.xml
