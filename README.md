@@ -47,6 +47,7 @@ Un IUT pouvant être répartit sur plusieurs sites (lieux) l'unité ici est le s
   "site": String, site (lieux) de l'IUT. À noter que certain IUT n'ont qu'un seul site, qui peut dans ce cas ne pas être nommé (valeur non existante ou nulle dans ce cas).
   "address": String, adresse postale du site d'IUT.
   "tel": String, numéro de téléphone de l'accueil général de l'IUT (le plus souvent le service de scolarité ou le secrétariat principal).
+  "mel": String, adresse mél de contact principale de l'IUT.
   "urlWeb": String, adresse du site web de l'IUT.
   "location": { Coordonnées GeoJSON de l'IUT.
     "x": Double, latitude des coordonnées GPS de l'IUT.

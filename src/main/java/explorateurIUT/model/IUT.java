@@ -20,6 +20,7 @@ package explorateurIUT.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import explorateurIUT.model.views.IUTViews;
+import jakarta.validation.constraints.Email;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +56,10 @@ public class IUT {
     private String tel;
 
     @JsonView(IUTViews.Details.class)
+    @Email
+    private String mel;
+
+    @JsonView(IUTViews.Details.class)
     private String urlWeb;
 
     @JsonView(IUTViews.Normal.class)
@@ -73,11 +78,12 @@ public class IUT {
         this.nom = nom;
     }
 
-    public IUT(String nom, String site, String address, String tel, String urlWeb, GeoJsonPoint location) {
+    public IUT(String nom, String site, String address, String tel, String mel, String urlWeb, GeoJsonPoint location) {
         this.nom = nom;
         this.site = site;
         this.address = address;
         this.tel = tel;
+        this.mel = mel;
         this.urlWeb = urlWeb;
         this.location = location;
     }
@@ -120,6 +126,14 @@ public class IUT {
 
     public void setTel(String tel) {
         this.tel = tel;
+    }
+
+    public String getMel() {
+        return mel;
+    }
+
+    public void setMel(String mel) {
+        this.mel = mel;
     }
 
     public String getUrlWeb() {
