@@ -49,6 +49,9 @@ public class IUT {
     @JsonView(IUTViews.Normal.class)
     private String site;
 
+    @JsonView(IUTViews.Normal.class)
+    private String region;
+
     @JsonView(IUTViews.Details.class)
     private String address;
 
@@ -78,9 +81,10 @@ public class IUT {
         this.nom = nom;
     }
 
-    public IUT(String nom, String site, String address, String tel, String mel, String urlWeb, GeoJsonPoint location) {
+    public IUT(String nom, String site, String region, String address, String tel, String mel, String urlWeb, GeoJsonPoint location) {
         this.nom = nom;
         this.site = site;
+        this.region = region;
         this.address = address;
         this.tel = tel;
         this.mel = mel;
@@ -110,6 +114,14 @@ public class IUT {
 
     public void setSite(String site) {
         this.site = site;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
     }
 
     public String getAddress() {

@@ -137,14 +137,21 @@ public class ExcelDataExtractor {
                             currentIUT.setVille(rawValue);
                         }
                     }
-                    case 2 -> { // IUT Info (tel, adr, contact, url, coordinates over 1 or 2 lines)
+                    case 2 -> { // IUT Région
+                        if (currentIUT == null) {
+                            LOG.warn("IUT Region cell with no current IUT: " + cell.getAddress().formatAsR1C1String());
+                        } else {
+                            currentIUT.setRegion(rawValue);
+                        }
+                    }
+                    case 3 -> { // IUT Info (tel, adr, contact, url, coordinates over 1 or 2 lines)
                         if (currentIUT == null) {
                             LOG.warn("IUT info cell with no current IUT: " + cell.getAddress().formatAsR1C1String());
                         } else {
                             this.setIUTInfo(rawValue, currentIUT);
                         }
                     }
-                    case 3 -> { // new Departement (code)
+                    case 4 -> { // new Departement (code)
                         if (currentIUT == null) {
                             LOG.warn("New departement cell with no current IUT: " + cell.getAddress().formatAsR1C1String());
                         } else {
@@ -155,14 +162,14 @@ public class ExcelDataExtractor {
                             currentAnneeAlt = null;
                         }
                     }
-                    case 4 -> { // Departmeent Info (mel, tel, contact, url)
+                    case 5 -> { // Departmeent Info (mel, tel, contact, url)
                         if (currentDept == null) {
                             LOG.warn("IUT info cell with no current IUT: " + cell.getAddress().formatAsR1C1String());
                         } else {
                             this.setDeptInfo(rawValue, currentDept);
                         }
                     }
-                    case 5 -> { // new Diploma (code)
+                    case 6 -> { // new Diploma (code)
                         if (currentDept == null) {
                             LOG.warn("New diplome cell with no current dept: " + cell.getAddress().formatAsR1C1String());
                         } else {
@@ -172,7 +179,7 @@ public class ExcelDataExtractor {
                             currentAnneeAlt = null;
                         }
                     }
-                    case 6 -> { // parcours
+                    case 7 -> { // parcours
                         if (currentDiplome == null) {
                             LOG.warn("New parcours cell with no current diplome: " + cell.getAddress().formatAsR1C1String() + " parc: " + rawValue);
                         } else {
@@ -181,7 +188,7 @@ public class ExcelDataExtractor {
                             // currentAnneeAlt = null; On n'efface pas une année courant en changement de parcours pour accepter les représentations comprimées
                         }
                     }
-                    case 7 -> { // new year alt
+                    case 8 -> { // new year alt
                         if (currentParcours == null) {
                             LOG.warn("New year alt cell with no current parcours: " + cell.getAddress().formatAsR1C1String());
                         } else {
@@ -194,7 +201,7 @@ public class ExcelDataExtractor {
                             }
                         }
                     }
-                    case 8 -> { // year alt info (mel, tel, contact, urlCal):
+                    case 9 -> { // year alt info (mel, tel, contact, urlCal):
                         if (currentAnneeAlt == null) {
                             LOG.warn("IUT annee alt info cell with no current anne alt: " + cell.getAddress().formatAsR1C1String());
                         } else {
@@ -205,7 +212,7 @@ public class ExcelDataExtractor {
                         LOG.debug("Outside scope cell of adress: " + cell.getAddress().formatAsR1C1String());
                 }
                 // Si on a atteind la 8ème colonne, on break la boucle de parcours des colonnes
-                if (columnIdx >= 8) {
+                if (columnIdx >= 9) {
                     break;
                 }
             }

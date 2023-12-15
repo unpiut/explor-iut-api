@@ -32,6 +32,8 @@ public interface IUTSummary {
     String getNom();
 
     String getSite();
+    
+    String getRegion();
 
     GeoJsonPoint getLocation();
 

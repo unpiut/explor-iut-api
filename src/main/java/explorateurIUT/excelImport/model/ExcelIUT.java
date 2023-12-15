@@ -34,6 +34,7 @@ public class ExcelIUT {
     private final String nom;
     private final List<ExcelDepartement> departements;
     private String ville;
+    private String region;
     private String tel;
     private String adresse;
     private String contact;
@@ -68,6 +69,21 @@ public class ExcelIUT {
             LOG.warn("Overiding ville. old: " + this.ville + " | new: " + ville);
         }
         this.ville = ville;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        if (region == null) {
+            LOG.warn("Setting null region: do nothing");
+            return;
+        }
+        if (this.region != null) {
+            LOG.warn("Overiding region. old: " + this.region + " | new: " + region);
+        }
+        this.region = region;
     }
 
     public String getTel() {

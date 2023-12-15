@@ -23,6 +23,7 @@ Tableau de résumés des IUT et de leurs parcours
     "id": String, identifiant du site d'IUT.
     "nom": String, nom de l'IUT. Peut être commun à différent IUT quand un IUT est répartit sur plusieurs sites (lieux).
     "site": String, site (lieux) de l'IUT. À noter que certain IUT n'ont qu'un seul site, qui peut dans ce cas ne pas être nommé (valeur non existante ou nulle dans ce cas).
+    "region": String, région de l'IUT.
     "location": {Coordonnées GeoJSON de l'IUT.
       "x": Double, latitude des coordonnées GPS de l'IUT.
       "y": Double, longitude des coordonnées GPS de l'IUT.
@@ -111,6 +112,7 @@ Tableau de résumés des IUT et de leurs parcours. Si all-depts a été activé 
     "id": String, identifiant du site d'IUT.
     "nom": String, nom de l'IUT. Peut être commun à différent IUT quand un IUT est répartit sur plusieurs sites (lieux).
     "site": String, site (lieux) de l'IUT. À noter que certain IUT n'ont qu'un seul site, qui peut dans ce cas ne pas être nommé (valeur non existante ou nulle dans ce cas).
+    "region": String, région de l'IUT.
     "location": {Coordonnées GeoJSON de l'IUT.
       "x": Double, latitude des coordonnées GPS de l'IUT.
       "y": Double, longitude des coordonnées GPS de l'IUT.

@@ -45,6 +45,7 @@ Un IUT pouvant être répartit sur plusieurs sites (lieux) l'unité ici est le s
   "id": String, identifiant du site d'IUT.
   "nom": String, nom de l'IUT. Peut être commun à différent IUT quand un IUT est répartit sur plusieurs sites (lieux).
   "site": String, site (lieux) de l'IUT. À noter que certain IUT n'ont qu'un seul site, qui peut dans ce cas ne pas être nommé (valeur non existante ou nulle dans ce cas).
+  "region": String, région de l'IUT.
   "address": String, adresse postale du site d'IUT.
   "tel": String, numéro de téléphone de l'accueil général de l'IUT (le plus souvent le service de scolarité ou le secrétariat principal).
   "mel": String, adresse mél de contact principale de l'IUT.

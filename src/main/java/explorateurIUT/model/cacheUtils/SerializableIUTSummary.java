@@ -33,12 +33,15 @@ public class SerializableIUTSummary implements Serializable, IUTSummary {
     private final String id;
     private final String nom;
     private final String site;
+    private final String region;
     private final GeoJsonPoint location;
     private final List<DepartementSummary> departements;
 
-    public SerializableIUTSummary(String id, String nom, String site, GeoJsonPoint location, List<DepartementSummary> departements) {
+    public SerializableIUTSummary(String id, String nom, String site, String region,
+            GeoJsonPoint location, List<DepartementSummary> departements) {
         this.id = id;
         this.nom = nom;
+        this.region = region;
         this.site = site;
         this.location = location;
         this.departements = departements;
@@ -59,6 +62,10 @@ public class SerializableIUTSummary implements Serializable, IUTSummary {
         return this.site;
     }
 
+    public String getRegion() {
+        return region;
+    }
+
     @Override
     public GeoJsonPoint getLocation() {
         return this.location;
@@ -70,7 +77,7 @@ public class SerializableIUTSummary implements Serializable, IUTSummary {
     }
 
     public static IUTSummary fromIUTSummary(IUTSummary iut) {
-        return new SerializableIUTSummary(iut.getId(), iut.getNom(), iut.getSite(), iut.getLocation(),
+        return new SerializableIUTSummary(iut.getId(), iut.getNom(), iut.getSite(), iut.getRegion(), iut.getLocation(),
                 iut.getDepartements().stream().map(SerializableDepartementSummary::fromDepartementSummary).toList());
     }
 }

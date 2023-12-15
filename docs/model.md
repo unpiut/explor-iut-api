@@ -3,6 +3,7 @@
   _id
   nom: String,
   site: String,
+  region: String,
   addresse: String,
   tel: String+pattern,
   mel: String+pattern,

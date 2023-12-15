@@ -138,7 +138,7 @@ public class ExcelToMongoLoader {
         if (iut.getCoorGpsLat() != null && iut.getCoorGpsLon() != null) {
             gpsCoor = new GeoJsonPoint(iut.getCoorGpsLat(), iut.getCoorGpsLon());
         }
-        return new IUT(iut.getNom(), iut.getVille(), iut.getAdresse(), iut.getTel(), iut.getMel(), iut.getUrl(), gpsCoor);
+        return new IUT(iut.getNom(), iut.getVille(), iut.getRegion(), iut.getAdresse(), iut.getTel(), iut.getMel(), iut.getUrl(), gpsCoor);
     }
 
     private static Departement deptFromExcel(IUT iut, ExcelDepartement dept) {

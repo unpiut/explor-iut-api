@@ -192,7 +192,7 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
                     new Distance(radiusKm, Metrics.KILOMETERS)));
         }
         Query q = Query.query(c);
-        q.fields().include("nom", "site", "location");
+        q.fields().include("nom", "site", "region", "location");
         return this.mongoTemplate.stream(q, IUTSummaryImpl.class, getCollectionNameFromDocument(IUT.class));
     }
 
@@ -237,6 +237,7 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         private String id;
         private String nom;
         private String site;
+        private String region;
         private GeoJsonPoint location;
         private final List<DepartementSummary> departements = new ArrayList<>();
 
@@ -253,6 +254,10 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         @Override
         public String getSite() {
             return this.site;
+        }
+
+        public String getRegion() {
+            return region;
         }
 
         @Override
