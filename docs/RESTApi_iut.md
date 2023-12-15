@@ -84,6 +84,7 @@ __[GET] /api/v1/iut__
 
 _Tous les paramètres ci-dessous sont optionnel, mais au moins un des filtre doit être renseigné. Autrement le comportement sera celui de l'obtention des Résumés de IUT sans filtrage._
 
+- __region__: nom de région d'appartenance de l'IUT (tient compte de la casse). Paramètre répétable jusqu'à 20 occurences. Si plusieurs régions sont fournies, le service filtre les IUT qui à l'une d'entre elles (OU logique inclusif).
 - __job__ : nom de métier qui doit être cible d'au moins un parcours d'une formation de l'IUT (tient compte de la casse). Paramètre répétable jusqu'à 20 occurences. Si plusieurs métiers sont fournis, le service filtre les formation qui mènent à au moins un des métiers donnés (OU logique inclusif).
 - __but__: filtrage par formation (code de BUT) proposé par l'IUT (tient compte de la casse). Paramètre répétable jusqu'à 20 occurences. Si plusieurs formations sont fournis, le service filtre les IUT qui proposent au moins une des formation données (OU logique inclusif). Ce paramètre est incompatible avec le paramètre block-but.
 - __lat__: filtrage par proximité géographique. Latitude du centre du cercle de la zone de filtrage. Paramètre non répétable. Ce paramètre impose l'utilisation du paramètre lon pour rendre le filtrage par proximité géographique fonctionnel.

@@ -62,12 +62,13 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
     }
 
     /*
-    x freeTextQuery -> coll  ParcoursBUT
+    freeTextQuery -> coll  ParcoursBUT
     latitude+longitude+radius -> coll IUT
-    x buts -> coll BUT (_id) puis Departement->IUT
-    x blockButs -> coll BUT (_id) puis ParcoursBUT (_id) puis coll Parcoursdepts->Departement->IUT
-    x jobs -> collec ParcoursBUT (_id) puis ParcoursDep->Departement->IUT
+    region -> coll IUT
+    buts -> coll BUT (_id) puis Departement->IUT
+    jobs -> collec ParcoursBUT (_id) puis ParcoursDep->Departement->IUT
     includeAllDepts -> si oui, reprendra tous les éléments des IUT
+    blockOnly -> si oui, uniquement les formation dont au moins 1 parcours est ouvert à l'alternance
     
     Processus :
     1. requête BUT(_id) si buts -> filterButObjectIds
@@ -78,7 +79,7 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         si includeAllDepts: récup tous DepartementSummary pour chaque iut_id et les ratacher au IUTSummary
         sinon récup tous DepartementSummary pour chaque departement_id de parcoursDepts et les ratacher au IUTSummary
     sinon:
-        construire HashMap<iut_id, IUTSummary> avec GPSZone?
+        construire HashMap<iut_id, IUTSummary> avec GPSZone? et region?
         récup tous DepartementSummary de chaque iut de la map et les ratacher au IUTSummary
     
     return  HashMap<iut_id, IUTSummary>.values()
@@ -111,9 +112,12 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         if (parcoursDeptIds != null) {
             iutSummaryStream = this.loadIUTSummaries(
                     parcoursDeptIds.stream().map(ParcoursDeptIds::getIut).collect(Collectors.toSet()),
+                    filter.getRegions(),
                     filter.getLatitude(), filter.getLongitude(), filter.getRadiusKm());
         } else {
-            iutSummaryStream = this.loadIUTSummaries(null, filter.getLatitude(), filter.getLongitude(), filter.getRadiusKm());
+            iutSummaryStream = this.loadIUTSummaries(null,
+                    filter.getRegions(),
+                    filter.getLatitude(), filter.getLongitude(), filter.getRadiusKm());
         }
         final Map<ObjectId, IUTSummaryImpl> iutSummaryById = iutSummaryStream.collect(Collectors.toMap((iutS) -> new ObjectId(iutS.getId()), Function.identity()));
         LOG.debug("iutSummaryById computed: " + iutSummaryById);
@@ -182,10 +186,13 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         return this.mongoTemplate.stream(q, ParcoursDeptIds.class, getCollectionNameFromDocument(ParcoursDept.class));
     }
 
-    private Stream<IUTSummaryImpl> loadIUTSummaries(Collection<ObjectId> iutIds, Double latitude, Double longitude, Double radiusKm) {
+    private Stream<IUTSummaryImpl> loadIUTSummaries(Collection<ObjectId> iutIds, Collection<String> regions, Double latitude, Double longitude, Double radiusKm) {
         Criteria c = new Criteria();
         if (iutIds != null) {
             c = c.and("id").in(iutIds);
+        }
+        if (regions != null) {
+            c = c.and("region").in(regions);
         }
         if (latitude != null) {
             c = c.and("location").withinSphere(new Circle(new Point(latitude, longitude),

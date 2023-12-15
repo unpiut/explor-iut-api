@@ -37,6 +37,7 @@ public class IUTFormationFilter {
     private Double latitude;
     private Double longitude;
     private Double radiusKm;
+    private List<String> regions;
     private List<String> buts;
     private List<String> jobs;
     private boolean includeAllDepts;
@@ -59,6 +60,10 @@ public class IUTFormationFilter {
 
     public Double getRadiusKm() {
         return radiusKm;
+    }
+
+    public List<String> getRegions() {
+        return regions;
     }
 
     public List<String> getButs() {
@@ -97,6 +102,14 @@ public class IUTFormationFilter {
                 throw new IllegalArgumentException("Un rayon de zone géographique de filtrage doit être strictement positif.");
             }
         }
+        if (this.regions != null) {
+            if (this.regions.isEmpty()) {
+                throw new IllegalArgumentException("Une liste de région fournie ne doit pas être vide");
+            }
+            if (this.regions.size() > MAX_FILTER_LIST_SIZE) {
+                throw new IllegalArgumentException("Une liste de région fournie ne doit pas contenir plus de " + MAX_FILTER_LIST_SIZE + " occurences.");
+            }
+        }
         if (this.buts != null) {
             if (this.buts.isEmpty()) {
                 throw new IllegalArgumentException("Une liste de BUT fournie ne doit pas être vide");
@@ -113,8 +126,8 @@ public class IUTFormationFilter {
                 throw new IllegalArgumentException("Une liste de métiers fournie ne doit pas contenir plus de " + MAX_FILTER_LIST_SIZE + " métiers.");
             }
         }
-        if (this.freeTextQuery == null && this.latitude == null && this.buts == null
-                && this.jobs == null && this.blockOnly == false) {
+        if (this.freeTextQuery == null && this.latitude == null && this.regions == null 
+                && this.buts == null && this.jobs == null && this.blockOnly == false) {
             throw new IllegalArgumentException("Un filtre doit au moins contenir un élément de filtrage");
         }
     }
@@ -146,6 +159,22 @@ public class IUTFormationFilter {
                 this.filter.radiusKm = DEFAULT_RADIUS_KM;
             } else {
                 this.filter.radiusKm = radiusKm;
+            }
+            return this;
+        }
+
+        public Builder withRegions(List<String> regions) {
+            this.checkNotBuiltYet();
+            if (regions == null) {
+                this.filter.regions = null;
+            } else {
+                LOG.debug("Add regions to filter");
+                this.filter.regions = regions.stream()
+                        .filter(r -> r != null && !r.isBlank())
+                        .map(r -> r.trim()).toList();
+                if (this.filter.regions.isEmpty()) {
+                    this.filter.regions = null;
+                }
             }
             return this;
         }
