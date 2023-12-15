@@ -38,9 +38,9 @@ public class IUTFormationFilter {
     private Double longitude;
     private Double radiusKm;
     private List<String> buts;
-    private List<String> blockButs;
     private List<String> jobs;
     private boolean includeAllDepts;
+    private boolean blockOnly;
 
     public IUTFormationFilter() {
     }
@@ -65,10 +65,6 @@ public class IUTFormationFilter {
         return buts;
     }
 
-    public List<String> getBlockButs() {
-        return blockButs;
-    }
-
     public List<String> getJobs() {
         return jobs;
     }
@@ -77,9 +73,13 @@ public class IUTFormationFilter {
         return includeAllDepts;
     }
 
+    public boolean isBlockOnly() {
+        return blockOnly;
+    }
+
     @Override
     public String toString() {
-        return "IUTFormationFilter{" + "freeTextQuery=" + freeTextQuery + ", latitude=" + latitude + ", longitude=" + longitude + ", radiusKm=" + radiusKm + ", buts=" + buts + ", blockButs=" + blockButs + ", jobs=" + jobs + ", includeAllDepts=" + includeAllDepts + '}';
+        return "IUTFormationFilter{" + "freeTextQuery=" + freeTextQuery + ", latitude=" + latitude + ", longitude=" + longitude + ", radiusKm=" + radiusKm + ", buts=" + buts + ", jobs=" + jobs + ", includeAllDepts=" + includeAllDepts + ", blockOnly=" + blockOnly + '}';
     }
 
     protected void validate() throws IllegalArgumentException {
@@ -97,23 +97,12 @@ public class IUTFormationFilter {
                 throw new IllegalArgumentException("Un rayon de zone géographique de filtrage doit être strictement positif.");
             }
         }
-        if (this.buts != null && this.blockButs != null) {
-            throw new IllegalArgumentException("Une liste de BUT ne peut pas être fournie conjointement avec une liste de BUT ouverts à l'alternance.");
-        }
         if (this.buts != null) {
             if (this.buts.isEmpty()) {
                 throw new IllegalArgumentException("Une liste de BUT fournie ne doit pas être vide");
             }
             if (this.buts.size() > MAX_FILTER_LIST_SIZE) {
                 throw new IllegalArgumentException("Une liste de BUT fournie ne doit pas contenir plus de " + MAX_FILTER_LIST_SIZE + " occurences.");
-            }
-        }
-        if (this.blockButs != null) {
-            if (this.blockButs.isEmpty()) {
-                throw new IllegalArgumentException("Une liste de BUT ouverts à l'alternance fournie ne doit pas être vide");
-            }
-            if (this.blockButs.size() > MAX_FILTER_LIST_SIZE) {
-                throw new IllegalArgumentException("Une liste de BUT ouverts à l'alternance fournie ne doit pas contenir plus de " + MAX_FILTER_LIST_SIZE + " occurences.");
             }
         }
         if (this.jobs != null) {
@@ -125,7 +114,7 @@ public class IUTFormationFilter {
             }
         }
         if (this.freeTextQuery == null && this.latitude == null && this.buts == null
-                && this.blockButs == null && this.jobs == null) {
+                && this.jobs == null && this.blockOnly == false) {
             throw new IllegalArgumentException("Un filtre doit au moins contenir un élément de filtrage");
         }
     }
@@ -177,22 +166,6 @@ public class IUTFormationFilter {
             return this;
         }
 
-        public Builder withBlockButs(List<String> buts) {
-            this.checkNotBuiltYet();
-            if (buts == null) {
-                this.filter.blockButs = null;
-            } else {
-                LOG.debug("Add block-buts to filter");
-                this.filter.blockButs = buts.stream()
-                        .filter(b -> b != null && !b.isBlank())
-                        .map(b -> b.trim()).toList();
-                if (this.filter.blockButs.isEmpty()) {
-                    this.filter.blockButs = null;
-                }
-            }
-            return this;
-        }
-
         public Builder withJobs(List<String> jobs) {
             this.checkNotBuiltYet();
             if (jobs == null) {
@@ -213,6 +186,13 @@ public class IUTFormationFilter {
             this.checkNotBuiltYet();
             LOG.debug("Add includeAllDepts to filter: " + includeAllDepts);
             this.filter.includeAllDepts = includeAllDepts;
+            return this;
+        }
+
+        public Builder withBlockOnly(boolean blockOnly) {
+            this.checkNotBuiltYet();
+            LOG.debug("Set blockOnly to filter: " + blockOnly);
+            this.filter.blockOnly = blockOnly;
             return this;
         }
 

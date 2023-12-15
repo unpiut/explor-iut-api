@@ -70,9 +70,9 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
     includeAllDepts -> si oui, reprendra tous les éléments des IUT
     
     Processus :
-    1. requête BUT(_id) si buts ou blockButs -> filterButObjectIds
+    1. requête BUT(_id) si buts -> filterButObjectIds
     2. requête ParcoursBUT(_id) avec filterButObjectIds:in? && freeTextQuery:text?  && jobs:in? -> filterParcoursBUT
-    3. requête ParcoursDept(iut_id, departement_id) avec filterParcoursBUT:in? && blockBut?alternance:notEmpty -> parcoursDepts
+    3. requête ParcoursDept(iut_id, departement_id) avec filterParcoursBUT:in? && block -> parcoursDepts
     4. si parcoursDepts:
         construire HashMap<iut_id, IUTSummary> de tous les iut_id de parcoursDepts avec GPSZone?
         si includeAllDepts: récup tous DepartementSummary pour chaque iut_id et les ratacher au IUTSummary
@@ -86,10 +86,10 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
     @Override
     public Collection<IUTSummary> streamSummariesByFilter(IUTFormationFilter filter) {
         LOG.debug("Start filtering IUT on filter: ");
-        // requête BUT(_id) si buts ou blockButs -> filterButObjectIds
+        // requête BUT(_id) si buts -> filterButObjectIds
         List<ObjectId> filterButIds = null;
-        if (filter.getButs() != null || filter.getBlockButs() != null) {
-            filterButIds = this.loadButIds(filter.getButs() != null ? filter.getButs() : filter.getBlockButs()).toList();
+        if (filter.getButs() != null) {
+            filterButIds = this.loadButIds(filter.getButs()).toList();
             LOG.debug("filterButIds computed: " + filterButIds);
         }
         // requête ParcoursBUT(_id) avec filterButObjectIds:in? && freeTextQuery:text?  && jobs:in? -> filterParcoursBUTids
@@ -99,10 +99,10 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
             filterParcoursBUTids = this.loadParcoursButIds(filterButIds, filter.getFreeTextQuery(), filter.getJobs()).toList();
             LOG.debug("filterParcoursBUTids computed: " + filterParcoursBUTids);
         }
-        // requête ParcoursDept(iut_id, departement_id) avec filterParcoursBUT:in? && blockBut?alternance:notEmpty -> parcoursDepts
+        // requête ParcoursDept(iut_id, departement_id) avec filterParcoursBUT:in? && blockBut?alternance:notEmpty &&blockOnly -> parcoursDepts
         List<ParcoursDeptIds> parcoursDeptIds = null;
         if (filterParcoursBUTids != null) {
-            parcoursDeptIds = this.loadParcoursDeptIds(filterParcoursBUTids, filter.getBlockButs() != null).toList();
+            parcoursDeptIds = this.loadParcoursDeptIds(filterParcoursBUTids, filter.isBlockOnly()).toList();
             LOG.debug("parcoursDeptIds computed: " + parcoursDeptIds);
         }
 

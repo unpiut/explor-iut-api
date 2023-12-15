@@ -29,8 +29,11 @@ import explorateurIUT.model.cacheUtils.SerializableIUTSummary;
 import explorateurIUT.model.projections.BUTSummary;
 import explorateurIUT.model.projections.IUTSummary;
 import jakarta.validation.ConstraintViolationException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -119,8 +122,18 @@ public class BUTIUTServiceImpl implements BUTService, IUTService {
         }
     }
 
-    private static boolean convertAllDeptParams(String rawParam) {
+    private static boolean convertBoolParams(String rawParam) {
         return !(rawParam == null || rawParam.equalsIgnoreCase("no") || rawParam.equalsIgnoreCase("false") || rawParam.equals("0"));
+    }
+    
+    private static final Set<String> ALLOWED_FILTER_Q_PARAMS = new HashSet<>(Arrays.asList("job", "but", "q", "lat", "lon", "rad", "all-depts", "block-only"));
+    
+    private void checkParamsAccepted(MultiValueMap<String, String> params, String exMessage) {
+        for (String pName: params.keySet()) {
+            if (!ALLOWED_FILTER_Q_PARAMS.contains(pName)) {
+                throw new IllegalArgumentException(exMessage + " (" + pName + ")");
+            }
+        }
     }
 
     @Override
@@ -134,14 +147,18 @@ public class BUTIUTServiceImpl implements BUTService, IUTService {
         block-but: multipled, each trimed, not blanck
         job: multiple, each trimed, not blanck
         all-depts: unique, true if not equals to 0, false, no (case ignored) false otherwise
+        block-only: unique, true if not equals to 0, false, no (case ignored) false otherwise 
          */
+        // Check all params are allowed
+        checkParamsAccepted(params, "Paramètre de recherche invalide");
         // Start checking params unicity
         checkUniqueParamPresence(params, "q", "Une seule recherche textuelle doit être fournie au maximum");
         checkUniqueParamPresence(params, "lat", "Une seule latitude de zone géographique de filtrage doit être fournie au maximum");
         checkUniqueParamPresence(params, "lon", "Une seule longitude de zone géographique de filtrage textuelle doit être fournie au maximum");
         checkUniqueParamPresence(params, "rad", "Un seule rayon de zone géographique de filtrage textuelle doit être fournie au maximum");
         checkUniqueParamPresence(params, "all-depts", "Un seul indicateur d'inclusion de tous les départements doit être fourni au maximum");
-
+        checkUniqueParamPresence(params, "block-only", "Un seul indicateur d'exclusion des formation fermée à l'alternance");
+        
         final IUTFormationFilter.Builder builder = new IUTFormationFilter.Builder();
 
         builder.withFreeTextQuery(params.getFirst("q"));
@@ -150,10 +167,9 @@ public class BUTIUTServiceImpl implements BUTService, IUTService {
                 checkAndConvertRawParamToDoubleOrNull(params.getFirst("lon"), "Valeur numérique de longitude invalide."),
                 checkAndConvertRawParamToDoubleOrNull(params.getFirst("rad"), "Valeur numérique de rayon invalide."));
         builder.withButs(params.get("but"));
-        builder.withBlockButs(params.get("block-but"));
         builder.withJobs(params.get("job"));
-        builder.withIncludeAllDepts(convertAllDeptParams(params.getFirst("all-depts")));
-
+        builder.withIncludeAllDepts(convertBoolParams(params.getFirst("all-depts")));
+        builder.withBlockOnly(convertBoolParams(params.getFirst("block-only")));
         return builder.build();
     }
 
