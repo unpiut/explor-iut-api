@@ -28,17 +28,57 @@ import java.util.regex.Pattern;
 public class EmailFormater {
 
     private final static Pattern EMAIL_PATTERN = Pattern.compile("(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])", Pattern.CASE_INSENSITIVE);
+    private final static Pattern EMAIL_PATTERN_ALT = Pattern.compile("^(.+?)\\s+\\[à\\]\\s+(.+?)$");
+    private final static Pattern EMAIL_PATTERN_URL = Pattern.compile("^mailto:(?!\\?to=)?(?:([^<,\\?&]+(?!<))|[^<]+<([^>]+)>)(?:&.*)?");
 
     public static String matchesAndRetrieve(String text) {
         if (text == null) {
             return null;
         }
         final String trimedText = text.trim();
-        final Matcher m = EMAIL_PATTERN.matcher(trimedText);
+        String candidate = matchAndRetrieveStandardPattern(trimedText);
+        if (candidate != null) {
+            return candidate;
+        }
+        candidate = matchAndRetrieveAlternativePattern(trimedText);
+        if (candidate != null) {
+            return candidate;
+        }
+        candidate = matchAndRetrieveURLStyleMail(trimedText);
+        if (candidate != null) {
+            return candidate;
+        }
+        return null;
+    }
+
+    private static String matchAndRetrieveStandardPattern(String text) {
+        final Matcher m = EMAIL_PATTERN.matcher(text);
         if (!m.matches()) {
             return null;
         }
-        return trimedText;
+        return text;
+    }
+
+    private static String matchAndRetrieveAlternativePattern(String text) {
+        final Matcher m = EMAIL_PATTERN_ALT.matcher(text);
+        if (!m.matches()) {
+            return null;
+        }
+        if (m.group(1) == null || m.group(2) == null) {
+            return null;
+        }
+        return String.format("%s@%s", m.group(1), m.group(2));
+    }
+
+    private static String matchAndRetrieveURLStyleMail(String text) {
+        final Matcher m = EMAIL_PATTERN_URL.matcher(text);
+        if (!m.matches()) {
+            return null;
+        }
+        if (m.group(1) != null) {
+            return m.group(1);
+        }
+        return m.group(2);
     }
 
 }

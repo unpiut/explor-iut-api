@@ -37,6 +37,7 @@ public class ExcelIUT {
     private String tel;
     private String adresse;
     private String contact;
+    private String mel;
     private String url;
     private Double coorGpsLat;
     private Double coorGpsLon;
@@ -64,7 +65,7 @@ public class ExcelIUT {
             return;
         }
         if (this.ville != null) {
-            LOG.warn("Overiding ville. old: " + this.ville);
+            LOG.warn("Overiding ville. old: " + this.ville + " | new: " + ville);
         }
         this.ville = ville;
     }
@@ -79,7 +80,7 @@ public class ExcelIUT {
             return;
         }
         if (this.tel != null) {
-            LOG.warn("Overriding tel");
+            LOG.warn("Overriding tel. Old: " + this.tel + " | new: " + tel);
         }
         this.tel = tel;
     }
@@ -94,7 +95,7 @@ public class ExcelIUT {
             return;
         }
         if (this.adresse != null) {
-            LOG.warn("Overriding adresse");
+            LOG.warn("Overriding adresse. Old: " + this.adresse + " | new: " + adresse);
         }
         this.adresse = adresse;
     }
@@ -112,6 +113,21 @@ public class ExcelIUT {
             LOG.warn("Overriding contact. Old: " + this.contact + " | New: " + contact);
         }
         this.contact = contact;
+    }
+
+    public String getMel() {
+        return mel;
+    }
+
+    public void setMel(String mel) {
+        if (mel == null) {
+            LOG.warn("Setting null mel: do nothing");
+            return;
+        }
+        if (this.mel != null) {
+            LOG.warn("Overriding mel. Old: " + this.mel + " | New: " + mel);
+        }
+        this.mel = mel;
     }
 
     public String getUrl() {
@@ -139,7 +155,7 @@ public class ExcelIUT {
             return;
         }
         if (this.coorGpsLat != null) {
-            LOG.warn("Overriding coorGpsLat");
+            LOG.warn("Overriding coorGpsLat. Old: " + this.coorGpsLat + " | new: " + coorGpsLat);
         }
         this.coorGpsLat = coorGpsLat;
     }
@@ -154,7 +170,7 @@ public class ExcelIUT {
             return;
         }
         if (this.coorGpsLon != null) {
-            LOG.warn("Overriding coorGpsLon");
+            LOG.warn("Overriding coorGpsLon. Old: " + this.coorGpsLon + " | new: " + coorGpsLon);
         }
         this.coorGpsLon = coorGpsLon;
     }

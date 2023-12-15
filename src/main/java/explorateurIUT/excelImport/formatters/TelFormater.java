@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  */
 public class TelFormater {
 
-    private final static Pattern TEL_PATTERN = Pattern.compile("^\\s*0?[^\\d]*(\\d)[^\\d]*(\\d)[^\\d]*(\\d)[^\\d]*(\\d)[^\\d]*(\\d)[^\\d]*(\\d)[^\\d]*(\\d)[^\\d]*(\\d)[^\\d]*(\\d)[^\\d]*$", Pattern.CASE_INSENSITIVE);
+    private final static Pattern TEL_PATTERN = Pattern.compile("^\\s*0?(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)\\s*$", Pattern.CASE_INSENSITIVE);
 
     public static String matchesAndRetrieve(String text) {
         if (text == null) {

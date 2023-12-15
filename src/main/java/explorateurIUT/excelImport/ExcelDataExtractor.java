@@ -109,7 +109,13 @@ public class ExcelDataExtractor {
                 if (rawValue == null || rawValue.isBlank()) {
                     continue;
                 }
-                switch (cell.getAddress().getColumn()) {
+                rawValue = rawValue.trim();
+                //Skipp cell if content is comment or belonging to black list
+                if (isComment(rawValue)) {
+                    continue;
+                }
+                final int columnIdx = cell.getAddress().getColumn();
+                switch (columnIdx) {
                     case 0 -> { // new IUT (name)
                         if (currentIUT != null) {
                             iutInfoConsummer.accept(currentIUT);
@@ -144,6 +150,9 @@ public class ExcelDataExtractor {
                         } else {
                             currentDept = new ExcelDepartement(rawValue);
                             currentIUT.getDepartements().add(currentDept);
+                            currentDiplome = null;
+                            currentParcours = null;
+                            currentAnneeAlt = null;
                         }
                     }
                     case 4 -> { // Departmeent Info (mel, tel, contact, url)
@@ -159,14 +168,17 @@ public class ExcelDataExtractor {
                         } else {
                             currentDiplome = new ExcelDiplomeDept(rawValue);
                             currentDept.getDiplomes().add(currentDiplome);
+                            currentParcours = null;
+                            currentAnneeAlt = null;
                         }
                     }
                     case 6 -> { // parcours
                         if (currentDiplome == null) {
-                            LOG.warn("New parcours cell with no current diplome: " + cell.getAddress().formatAsR1C1String());
+                            LOG.warn("New parcours cell with no current diplome: " + cell.getAddress().formatAsR1C1String() + " parc: " + rawValue);
                         } else {
                             currentParcours = new ExcelParcoursDeptDip(rawValue);
                             currentDiplome.getParcours().add(currentParcours);
+                            // currentAnneeAlt = null; On n'efface pas une année courant en changement de parcours pour accepter les représentations comprimées
                         }
                     }
                     case 7 -> { // new year alt
@@ -191,7 +203,10 @@ public class ExcelDataExtractor {
                     }
                     default ->
                         LOG.debug("Outside scope cell of adress: " + cell.getAddress().formatAsR1C1String());
-
+                }
+                // Si on a atteind la 8ème colonne, on break la boucle de parcours des colonnes
+                if (columnIdx >= 8) {
+                    break;
                 }
             }
         }
@@ -201,28 +216,25 @@ public class ExcelDataExtractor {
         }
     }
 
-    // (tel, adr, contact, url, coordinates over 1 or 2 lines)
+    // (tel, adr, mel, contact, url, coordinates over 1 or 2 lines)
     private void setIUTInfo(String rawValue, ExcelIUT iut) {
         if (rawValue == null) {
             return;
         }
-        // Test in order : Tel, url, GPS 2 coordinates, GPS 1 coordinate, adr, contact
+        // Test in order : Tel, GPS 2 coordinates, GPS 1 coordinate, mel, url, adr, contact
         String val = TelFormater.matchesAndRetrieve(rawValue);
         if (val != null) {
             iut.setTel(val);
             return;
         }
-        val = UrlFormater.matchesAndRetrieve(rawValue);
-        if (val != null) {
-            iut.setUrl(val);
-            return;
-        }
+
         List<Double> gps2coors = GPSDoubleCoordinateFormater.matchesAndRetrieve(rawValue);
         if (gps2coors != null) {
             iut.setCoorGpsLat(gps2coors.get(0));
             iut.setCoorGpsLon(gps2coors.get(1));
             return;
         }
+
         Double gpsCoor = GPSCoordinateFormater.matchesAndRetrieve(rawValue);
         if (gpsCoor != null) {
             if (iut.getCoorGpsLat() == null) {
@@ -232,6 +244,19 @@ public class ExcelDataExtractor {
             }
             return;
         }
+
+        val = EmailFormater.matchesAndRetrieve(rawValue);
+        if (val != null) {
+            iut.setMel(val);
+            return;
+        }
+
+        val = UrlFormater.matchesAndRetrieve(rawValue);
+        if (val != null) {
+            iut.setUrl(val);
+            return;
+        }
+
         val = BasicStringFormater.matchesAndRetrieve(rawValue);
         if (val != null) {
             if (iut.getAdresse() == null) {
@@ -326,6 +351,7 @@ public class ExcelDataExtractor {
                 if (rawValue == null || rawValue.isBlank()) {
                     continue;
                 }
+                rawValue = rawValue.trim();
                 switch (cell.getAddress().getColumn()) {
                     case 0 -> { // BUT Code, new BUT
                         if (currentBut != null) {
@@ -333,27 +359,27 @@ public class ExcelDataExtractor {
                             currentBut = null;
                         }
                         LOG.debug("Create new BUT of name " + rawValue);
-                        currentBut = new ExcelBUT(rawValue.trim());
+                        currentBut = new ExcelBUT(rawValue);
                     }
                     case 1 -> { // BUT Name
                         if (currentBut == null) {
                             LOG.warn("New BUT name cell with no current BUT: " + cell.getAddress().formatAsR1C1String());
                         } else {
-                            currentBut.setNom(rawValue.trim());
+                            currentBut.setNom(rawValue);
                         }
                     }
                     case 2 -> { // BUT filiere metier
                         if (currentBut == null) {
                             LOG.warn("New BUT filiere metier cell with no current BUT: " + cell.getAddress().formatAsR1C1String());
                         } else {
-                            currentBut.setFiliere(rawValue.trim());
+                            currentBut.setFiliere(rawValue);
                         }
                     }
                     case 3 -> { // BUT parcours
                         if (currentBut == null) {
                             LOG.warn("New BUT filiere metier cell with no current BUT: " + cell.getAddress().formatAsR1C1String());
                         } else {
-                            currentParcours = new ExcelParcoursBUT(rawValue.trim());
+                            currentParcours = new ExcelParcoursBUT(rawValue);
                             currentBut.getParcours().add(currentParcours);
                         }
                     }
@@ -361,7 +387,7 @@ public class ExcelDataExtractor {
                         if (currentParcours == null) {
                             LOG.warn("New Parcours nom cell with no current parcours: " + cell.getAddress().formatAsR1C1String());
                         } else {
-                            currentParcours.setNom(rawValue.trim());
+                            currentParcours.setNom(rawValue);
                         }
                     }
                     case 5 -> { // Parcours mot-clé
@@ -382,14 +408,14 @@ public class ExcelDataExtractor {
                         if (currentBut == null) {
                             LOG.warn("New BUT description cell with no current BUT: " + cell.getAddress().formatAsR1C1String());
                         } else {
-                            currentBut.setDescription(rawValue.trim());
+                            currentBut.setDescription(rawValue);
                         }
                     }
                     case 8 -> { // BUT URL
                         if (currentBut == null) {
                             LOG.warn("New BUT url cell with no current BUT: " + cell.getAddress().formatAsR1C1String());
                         } else {
-                            currentBut.setUrlFiche(rawValue.trim());
+                            currentBut.setUrlFiche(rawValue);
                         }
                     }
                     default ->
@@ -446,5 +472,9 @@ public class ExcelDataExtractor {
                 return null;
             }
         }
+    }
+
+    private static boolean isComment(String value) {
+        return value.startsWith("#") || value.startsWith("/");
     }
 }

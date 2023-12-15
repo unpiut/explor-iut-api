@@ -20,12 +20,16 @@ package explorateurIUT.excelImport.formatters;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  *
  * @author Remi Venant
  */
 public class UrlFormater {
+
+    private static final Log LOG = LogFactory.getLog(UrlFormater.class);
 
     public static String matchesAndRetrieve(String text) {
         if (text == null) {
@@ -35,6 +39,9 @@ public class UrlFormater {
             URI u = new URI(text);
             return u.toASCIIString();
         } catch (URISyntaxException ex) {
+            if (text.startsWith("http")) {
+                LOG.warn("Error while parsing text to url starting with http: " + ex.getMessage());
+            }
             return null;
         }
     }

@@ -53,7 +53,7 @@ public class ExcelAnneeAlt {
             return;
         }
         if (this.mel != null) {
-            LOG.warn("Overiding mel");
+            LOG.warn("Overiding mel. Old: " + this.mel + " | new: " + mel);
         }
         this.mel = mel;
     }
@@ -68,7 +68,7 @@ public class ExcelAnneeAlt {
             return;
         }
         if (this.tel != null) {
-            LOG.warn("Overiding tel");
+            LOG.warn("Overiding tel. Old: " + this.tel + " | new: " + tel);
         }
         this.tel = tel;
     }
@@ -98,7 +98,7 @@ public class ExcelAnneeAlt {
             return;
         }
         if (this.urlCal != null) {
-            LOG.warn("Overiding urlCal");
+            LOG.warn("Overiding urlCal. Old: " + this.urlCal + " | new: " + urlCal);
         }
         this.urlCal = urlCal;
     }

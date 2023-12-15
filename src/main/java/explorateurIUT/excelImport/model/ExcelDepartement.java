@@ -61,7 +61,7 @@ public class ExcelDepartement {
             return;
         }
         if (this.contact != null) {
-            LOG.warn("Overiding contact");
+            LOG.warn("Overiding contact. Old: " + this.contact + " | new: " + contact);
         }
         this.contact = contact;
     }
@@ -76,7 +76,7 @@ public class ExcelDepartement {
             return;
         }
         if (this.mel != null) {
-            LOG.warn("Overiding mel");
+            LOG.warn("Overiding mel. Old: " + this.mel + " | new: " + mel);
         }
         this.mel = mel;
     }
@@ -91,7 +91,7 @@ public class ExcelDepartement {
             return;
         }
         if (this.tel != null) {
-            LOG.warn("Overiding tel");
+            LOG.warn("Overiding tel. Old: " + this.tel + " | new: " + tel);
         }
         this.tel = tel;
     }
@@ -106,7 +106,7 @@ public class ExcelDepartement {
             return;
         }
         if (this.url != null) {
-            LOG.warn("Overiding url");
+            LOG.warn("Overiding url. Old: " + this.url + " | new: " + url);
         }
         this.url = url;
     }
