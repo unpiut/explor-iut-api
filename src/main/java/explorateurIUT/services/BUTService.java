@@ -40,7 +40,7 @@ public interface BUTService {
     ) throws ConstraintViolationException, NoSuchElementException;
 
     BUT findBUTByCode(
-            @NotNull @Pattern(regexp = "\\w{2,20}", flags = Pattern.Flag.CASE_INSENSITIVE) String butCode
+            @NotNull @Pattern(regexp = "[-\\w]{2,20}", flags = Pattern.Flag.CASE_INSENSITIVE) String butCode
     ) throws ConstraintViolationException, NoSuchElementException;
 
     List<FiliereInfo> getFiliereInformations();

@@ -73,9 +73,9 @@ public class BUTController {
                 .cacheControl(CacheControl.noStore())
                 .body(this.butSvc.findBUT(butId));
     }
-    
+
     @JsonView(BUTViews.Details.class)
-    @GetMapping("by-code/{butCode:\\w{2,20}}")
+    @GetMapping("by-code/{butCode:[-\\w]{2,20}}")
     public ResponseEntity<BUT> getBUTDetailsByCode(@PathVariable String butCode) {
         return ResponseEntity
                 .ok()
