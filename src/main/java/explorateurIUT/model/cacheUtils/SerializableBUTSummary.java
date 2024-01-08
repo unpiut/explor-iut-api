@@ -31,12 +31,14 @@ public class SerializableBUTSummary implements Serializable, BUTSummary {
 
     private final String id;
     private final String code;
+    private final String nom;
     private final String filiere;
     private final List<ParcoursBUTSummary> parcours;
 
-    public SerializableBUTSummary(String id, String code, String filiere, List<ParcoursBUTSummary> parcours) {
+    public SerializableBUTSummary(String id, String code, String nom, String filiere, List<ParcoursBUTSummary> parcours) {
         this.id = id;
         this.code = code;
+        this.nom = nom;
         this.filiere = filiere;
         this.parcours = parcours;
     }
@@ -52,6 +54,11 @@ public class SerializableBUTSummary implements Serializable, BUTSummary {
     }
 
     @Override
+    public String getNom() {
+        return nom;
+    }
+
+    @Override
     public String getFiliere() {
         return this.filiere;
     }
@@ -62,7 +69,8 @@ public class SerializableBUTSummary implements Serializable, BUTSummary {
     }
 
     public static BUTSummary fromBUTSummary(BUTSummary butSummary) {
-        return new SerializableBUTSummary(butSummary.getId(), butSummary.getCode(), butSummary.getFiliere(),
+        return new SerializableBUTSummary(butSummary.getId(), butSummary.getCode(),
+                butSummary.getNom(), butSummary.getFiliere(),
                 butSummary.getParcours().stream()
                         .map(SerializableParcoursBUTSummary::fromParcoursBUTSummary)
                         .toList());

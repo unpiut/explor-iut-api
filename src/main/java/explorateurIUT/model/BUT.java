@@ -45,6 +45,9 @@ public class BUT {
     private String code;
 
     @JsonView(BUTViews.Normal.class)
+    private String nom;
+
+    @JsonView(BUTViews.Normal.class)
     private String filiere;
 
     @JsonView(BUTViews.Details.class)
@@ -65,8 +68,9 @@ public class BUT {
         this.code = code;
     }
 
-    public BUT(String code, String filiere, String description, String urlFiche) {
+    public BUT(String code, String nom, String filiere, String description, String urlFiche) {
         this.code = code;
+        this.nom = nom;
         this.filiere = filiere;
         this.description = description;
         this.urlFiche = urlFiche;
@@ -86,6 +90,14 @@ public class BUT {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
     }
 
     public String getFiliere() {
@@ -144,7 +156,7 @@ public class BUT {
 
     @Override
     public String toString() {
-        return "BUT{" + "id=" + id + ", code=" + code + '}';
+        return "BUT{" + "id=" + id + ", code=" + code + ", nom=" + nom + '}';
     }
 
 }

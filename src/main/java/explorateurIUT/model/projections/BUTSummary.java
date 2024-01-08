@@ -27,6 +27,8 @@ import java.util.List;
 public interface BUTSummary {
 
     String getId();
+    
+    String getNom();
 
     String getCode();
 
