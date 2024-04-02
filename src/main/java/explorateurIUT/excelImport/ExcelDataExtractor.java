@@ -48,6 +48,7 @@ import static org.apache.poi.ss.usermodel.CellType.ERROR;
 import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
 import static org.apache.poi.ss.usermodel.CellType.STRING;
 import static org.apache.poi.ss.usermodel.CellType._NONE;
+import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -451,6 +452,17 @@ public class ExcelDataExtractor {
     }
 
     private static String extractCellValue(Cell cell) {
+        // Extract hyperlink if any
+        Hyperlink hyperlink = cell.getHyperlink();
+        if (hyperlink != null ) {
+            String linkAddr = hyperlink.getAddress();
+            if (linkAddr != null) {
+                linkAddr = linkAddr.trim();
+                if (!linkAddr.isBlank()) {
+                    return linkAddr;
+                }
+            }
+        }
         switch (cell.getCellType()) {
             case STRING -> {
                 return cell.getStringCellValue();
