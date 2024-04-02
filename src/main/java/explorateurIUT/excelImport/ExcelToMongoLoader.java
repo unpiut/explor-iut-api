@@ -126,7 +126,7 @@ public class ExcelToMongoLoader {
     }
 
     private static BUT butFromExcel(ExcelBUT but) {
-        return new BUT(but.getCode(), but.getNom(), but.getFiliere(), but.getDescription(), but.getUrlFiche());
+        return new BUT(but.getCode(), but.getNom(), but.getFiliere(), but.getDescription(), but.getUrlFiche(), but.getUrlFiche(), but.getUniversMetiers());
     }
 
     private static ParcoursBUT parcoursFromExcel(BUT but, ExcelParcoursBUT parcours) {

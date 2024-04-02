@@ -425,6 +425,20 @@ public class ExcelDataExtractor {
                             currentBut.setUrlFiche(rawValue);
                         }
                     }
+                    case 9 -> { // Lien france compétence
+                        if (currentBut == null) {
+                            LOG.warn("New BUT lien france compétence cell with no current BUT: " + cell.getAddress().formatAsR1C1String());
+                        } else {
+                            currentBut.setUrlFranceCompetence(rawValue);
+                        }
+                    }
+                    case 10 -> { // Univers métiers
+                        if (currentBut == null) {
+                            LOG.warn("New BUT univers métiers cell with no current BUT: " + cell.getAddress().formatAsR1C1String());
+                        } else {
+                            currentBut.setUniversMetiers(rawValue);
+                        }
+                    }
                     default ->
                         LOG.debug("Outside scope cell of adress: " + cell.getAddress().formatAsR1C1String());
                 }

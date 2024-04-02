@@ -57,6 +57,12 @@ public class BUT {
     private String urlFiche;
 
     @JsonView(BUTViews.Details.class)
+    private String urlFranceCompetence;
+
+    @JsonView(BUTViews.Details.class)
+    private String universMetiers;
+
+    @JsonView(BUTViews.Details.class)
     @ReadOnlyProperty
     @DocumentReference(lookup = "{'but':?#{#self._id} }", lazy = true)
     private List<ParcoursBUT> parcours;
@@ -68,12 +74,14 @@ public class BUT {
         this.code = code;
     }
 
-    public BUT(String code, String nom, String filiere, String description, String urlFiche) {
+    public BUT(String code, String nom, String filiere, String description, String urlFiche, String urlFranceCompetence, String universMetiers) {
         this.code = code;
         this.nom = nom;
         this.filiere = filiere;
         this.description = description;
         this.urlFiche = urlFiche;
+        this.urlFranceCompetence = urlFranceCompetence;
+        this.universMetiers = universMetiers;
     }
 
     public String getId() {
@@ -122,6 +130,22 @@ public class BUT {
 
     public void setUrlFiche(String urlFiche) {
         this.urlFiche = urlFiche;
+    }
+
+    public String getUrlFranceCompetence() {
+        return urlFranceCompetence;
+    }
+
+    public void setUrlFranceCompetence(String urlFranceCompetence) {
+        this.urlFranceCompetence = urlFranceCompetence;
+    }
+
+    public String getUniversMetiers() {
+        return universMetiers;
+    }
+
+    public void setUniversMetiers(String universMetiers) {
+        this.universMetiers = universMetiers;
     }
 
     public List<ParcoursBUT> getParcours() {

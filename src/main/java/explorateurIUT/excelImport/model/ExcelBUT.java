@@ -37,6 +37,8 @@ public class ExcelBUT {
     private String filiere;
     private String description;
     private String urlFiche;
+    private String urlFranceCompetence;
+    private String universMetiers;
 
     public ExcelBUT(String code) {
         this.code = code;
@@ -111,6 +113,36 @@ public class ExcelBUT {
         this.urlFiche = urlFiche;
     }
 
+    public String getUrlFranceCompetence() {
+        return urlFranceCompetence;
+    }
+
+    public void setUrlFranceCompetence(String urlFranceCompetence) {
+        if (urlFranceCompetence == null) {
+            LOG.warn("Setting null urlFranceCompetence: do nothing");
+            return;
+        }
+        if (this.urlFranceCompetence != null) {
+            LOG.warn("Overiding urlFranceCompetence. old: " + this.urlFranceCompetence);
+        }
+        this.urlFranceCompetence = urlFranceCompetence;
+    }
+
+    public String getUniversMetiers() {
+        return universMetiers;
+    }
+
+    public void setUniversMetiers(String universMetiers) {
+        if (universMetiers == null) {
+            LOG.warn("Setting null universMetiers: do nothing");
+            return;
+        }
+        if (this.universMetiers != null) {
+            LOG.warn("Overiding universMetiers. old: " + this.universMetiers);
+        }
+        this.universMetiers = universMetiers;
+    }
+
     public void format(StringBuilder sb, String padding, int nbPads) {
         String pad = padding.repeat(nbPads);
         sb.append(pad).append("BUT ").append(code).append(System.lineSeparator());
@@ -118,6 +150,8 @@ public class ExcelBUT {
         sb.append(pad).append("- filiere : ").append(filiere).append(System.lineSeparator());
         sb.append(pad).append("- description : ").append(description).append(System.lineSeparator());
         sb.append(pad).append("- urlFiche : ").append(urlFiche).append(System.lineSeparator());
+        sb.append(pad).append("- urlFranceCompetence : ").append(urlFranceCompetence).append(System.lineSeparator());
+        sb.append(pad).append("- universMetier : ").append(universMetiers).append(System.lineSeparator());
         sb.append(pad).append("- parcours : ").append(System.lineSeparator());
         for (ExcelParcoursBUT parcours : this.parcours) {
             parcours.format(sb, padding, nbPads + 1);

@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 /**
@@ -87,7 +88,9 @@ public class BUTRepositoryImpl implements BUTRepositoryCustom {
 
     private Stream<MetiersParcours> streamParcoursForMetiers() {
         Query q = new Query();
+        Criteria c = Criteria.where("metiers").ne(null);
         q.fields().exclude("_id").include("but", "metiers");
+        q.addCriteria(c);
         return this.mongoTemplate.stream(q, MetiersParcours.class, getCollectionNameFromDocument(ParcoursBUT.class));
     }
 

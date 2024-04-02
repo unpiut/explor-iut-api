@@ -27,12 +27,14 @@ import java.util.List;
 public interface BUTSummary {
 
     String getId();
-    
+
     String getNom();
 
     String getCode();
 
     String getFiliere();
+
+    String getUniversMetiers();
 
     List<ParcoursBUTSummary> getParcours();
 }
