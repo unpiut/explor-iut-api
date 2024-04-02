@@ -18,6 +18,8 @@
  */
 package explorateurIUT.model.projections;
 
+import java.util.List;
+
 /**
  *
  * @author Remi Venant
@@ -29,5 +31,7 @@ public interface ParcoursBUTSummary {
     String getCode();
 
     String getNom();
+
+    List<String> getMetiers();
 
 }
