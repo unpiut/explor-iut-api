@@ -39,6 +39,10 @@
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.ehcache</groupId>
             <artifactId>ehcache</artifactId>
             <classifier>jakarta</classifier>
@@ -70,6 +74,12 @@
             <artifactId>de.flapdoodle.embed.mongo.spring3x</artifactId>
             <scope>test</scope>
             <version>4.12.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kirviq</groupId>
+            <artifactId>dumbster</artifactId>
+            <version>1.7.1</version>
+            <scope>test</scope>
         </dependency>
         
     </dependencies>
