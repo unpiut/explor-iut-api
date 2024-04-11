@@ -138,7 +138,6 @@ public class BUTIUTServiceImpl implements BUTService, IUTService {
         rad: unique, double, stricly positive,
         region: multiple, each trimed, not blanck
         but: multiple, each trimed, not blanck
-        block-but: multipled, each trimed, not blanck
         all-depts: unique, true if not equals to 0, false, no (case ignored) false otherwise
          */
         // Check all params are allowed
