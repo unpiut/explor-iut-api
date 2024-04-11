@@ -18,13 +18,13 @@
  */
 package explorateurIUT;
 
+import explorateurIUT.excelImport.AppDataProperties;
 import explorateurIUT.excelImport.ExcelDataExtractor;
 import explorateurIUT.excelImport.ExcelToMongoLoader;
 import explorateurIUT.services.CacheManagementService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -40,7 +40,7 @@ public class DataLoader implements CommandLineRunner {
 
     private static final Log LOG = LogFactory.getLog(DataLoader.class);
 
-    private final String excelFilePath;
+    private final AppDataProperties appDataProperties;
 
     private final MongoTemplate mongoTemplate;
 
@@ -50,10 +50,10 @@ public class DataLoader implements CommandLineRunner {
     public DataLoader(
             MongoTemplate mongoTemplate,
             CacheManagementService cacheMgmtSvc,
-            @Value("${app.data.file-path}") String excelFilePath) {
+            AppDataProperties appDataProperties) {
         this.mongoTemplate = mongoTemplate;
         this.cacheMgmtSvc = cacheMgmtSvc;
-        this.excelFilePath = excelFilePath;
+        this.appDataProperties = appDataProperties;
     }
 
     @Override
@@ -67,19 +67,8 @@ public class DataLoader implements CommandLineRunner {
         loader.clearDb();
 
         LOG.info("Start ETL...");
-        ExcelDataExtractor excelDataLoader = new ExcelDataExtractor(excelFilePath);
+        ExcelDataExtractor excelDataLoader = new ExcelDataExtractor(appDataProperties);
         excelDataLoader.extractInfoFromExcelFile(loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer());
-//        excelDataLoader.extractInfoFromExcelFile(
-//                (iut) -> {
-////                    StringBuilder sb = new StringBuilder();
-////                    iut.format(sb, "\t", 0);
-////                    System.out.println(sb.toString());
-//                },
-//                (but) -> {
-//                    StringBuilder sb = new StringBuilder();
-//                    but.format(sb, "\t", 0);
-//                    System.out.println(sb.toString());
-//                });
         LOG.info("ETL end.");
 
         LOG.info("Clear cache");

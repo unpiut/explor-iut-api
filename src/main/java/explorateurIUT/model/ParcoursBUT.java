@@ -21,10 +21,11 @@ package explorateurIUT.model;
 import com.fasterxml.jackson.annotation.JsonView;
 import explorateurIUT.model.views.BUTViews;
 import explorateurIUT.model.views.DefaultView;
-import java.util.List;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
@@ -40,24 +41,18 @@ public class ParcoursBUT {
     private String id;
 
     @JsonView(DefaultView.Never.class)
+    @NotNull
     @DocumentReference(lazy = true)
     private BUT but;
 
     @JsonView(BUTViews.Normal.class)
+    @NotBlank
     @Indexed(unique = true)
     private String code;
 
     @JsonView(BUTViews.Normal.class)
-    @TextIndexed(weight = 3.0f)
+    @NotBlank
     private String nom;
-
-    @JsonView(DefaultView.Never.class)
-    @TextIndexed(weight = 1.0f)
-    private String motsCles;
-
-    @JsonView(BUTViews.Details.class)
-    @TextIndexed(weight = 2.0f)
-    private List<String> metiers;
 
     protected ParcoursBUT() {
     }
@@ -67,12 +62,10 @@ public class ParcoursBUT {
         this.code = code;
     }
 
-    public ParcoursBUT(BUT but, String code, String nom, String motsCles, List<String> metiers) {
+    public ParcoursBUT(BUT but, String code, String nom) {
         this.but = but;
         this.code = code;
         this.nom = nom;
-        this.motsCles = motsCles;
-        this.metiers = metiers;
     }
 
     public String getId() {
@@ -107,20 +100,26 @@ public class ParcoursBUT {
         this.nom = nom;
     }
 
-    public String getMotsCles() {
-        return motsCles;
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode(this.id);
+        return hash;
     }
 
-    public void setMotsCles(String motsCles) {
-        this.motsCles = motsCles;
-    }
-
-    public List<String> getMetiers() {
-        return metiers;
-    }
-
-    public void setMetiers(List<String> metiers) {
-        this.metiers = metiers;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ParcoursBUT other = (ParcoursBUT) obj;
+        return Objects.equals(this.id, other.id);
     }
 
 }

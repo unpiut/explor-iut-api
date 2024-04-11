@@ -20,7 +20,6 @@ package explorateurIUT.model.cacheUtils;
 
 import explorateurIUT.model.projections.ParcoursBUTSummary;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  *
@@ -31,13 +30,11 @@ public class SerializableParcoursBUTSummary implements Serializable, ParcoursBUT
     private final String id;
     private final String code;
     private final String nom;
-    private final List<String> metiers;
 
-    public SerializableParcoursBUTSummary(String id, String code, String nom, List<String> metiers) {
+    public SerializableParcoursBUTSummary(String id, String code, String nom) {
         this.id = id;
         this.code = code;
         this.nom = nom;
-        this.metiers = metiers;
     }
 
     @Override
@@ -55,13 +52,8 @@ public class SerializableParcoursBUTSummary implements Serializable, ParcoursBUT
         return this.nom;
     }
 
-    @Override
-    public List<String> getMetiers() {
-        return metiers;
-    }
-
     public static ParcoursBUTSummary fromParcoursBUTSummary(ParcoursBUTSummary parcoursBut) {
-        return new SerializableParcoursBUTSummary(parcoursBut.getId(), parcoursBut.getCode(), parcoursBut.getNom(), parcoursBut.getMetiers());
+        return new SerializableParcoursBUTSummary(parcoursBut.getId(), parcoursBut.getCode(), parcoursBut.getNom());
     }
 
 }

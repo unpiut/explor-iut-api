@@ -27,7 +27,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
  *
  * @author Remi Venant
  */
-public interface BUTRepository extends MongoRepository<BUT, String>, BUTRepositoryCustom {
+public interface BUTRepository extends MongoRepository<BUT, String> {
 
     Stream<BUTSummary> streamSummariesBy();
 

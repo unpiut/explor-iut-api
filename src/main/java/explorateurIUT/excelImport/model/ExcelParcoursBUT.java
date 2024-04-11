@@ -18,8 +18,6 @@
  */
 package explorateurIUT.excelImport.model;
 
-import java.util.List;
-import java.util.Objects;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -33,8 +31,6 @@ public class ExcelParcoursBUT {
 
     private final String code;
     private String nom;
-    private String motsCles;
-    private List<String> metiers;
 
     public ExcelParcoursBUT(String code) {
         this.code = code;
@@ -59,42 +55,10 @@ public class ExcelParcoursBUT {
         this.nom = nom;
     }
 
-    public String getMotsCles() {
-        return motsCles;
-    }
-
-    public void setMotsCles(String motsCles) {
-        if (motsCles == null) {
-            LOG.warn("Setting null motsCles: do nothing");
-            return;
-        }
-        if (this.motsCles != null) {
-            LOG.warn("Overiding motsCles. old: " + this.motsCles);
-        }
-        this.motsCles = motsCles;
-    }
-
-    public List<String> getMetiers() {
-        return metiers;
-    }
-
-    public void setMetiers(List<String> metiers) {
-        if (metiers == null) {
-            LOG.warn("Setting null metiers: do nothing");
-            return;
-        }
-        if (this.metiers != null) {
-            LOG.warn("Overiding metiers. old: " + this.metiers);
-        }
-        this.metiers = metiers;
-    }
-
     public void format(StringBuilder sb, String padding, int nbPads) {
         String pad = padding.repeat(nbPads);
         sb.append(pad).append("PARCOURS ").append(code).append(System.lineSeparator());
         sb.append(pad).append("- nom : ").append(nom).append(System.lineSeparator());
-        sb.append(pad).append("- mots-cles : ").append(motsCles).append(System.lineSeparator());
-        sb.append(pad).append("- metiers : ").append(Objects.toString(metiers)).append(System.lineSeparator());
     }
 
 }

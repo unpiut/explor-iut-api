@@ -18,6 +18,7 @@
  */
 package explorateurIUT.model.cacheUtils;
 
+import explorateurIUT.model.ButAndParcoursDispenses;
 import explorateurIUT.model.projections.DepartementSummary;
 import java.io.Serializable;
 import java.util.Set;
@@ -30,12 +31,12 @@ public class SerializableDepartementSummary implements Serializable, Departement
 
     private final String id;
     private final String code;
-    private final Set<String> codesButDispenses;
+    private final Set<ButAndParcoursDispenses> butDispenses;
 
-    public SerializableDepartementSummary(String id, String code, Set<String> codesButDispenses) {
+    public SerializableDepartementSummary(String id, String code, Set<ButAndParcoursDispenses> butDispenses) {
         this.id = id;
         this.code = code;
-        this.codesButDispenses = codesButDispenses;
+        this.butDispenses = butDispenses;
     }
 
     @Override
@@ -49,11 +50,11 @@ public class SerializableDepartementSummary implements Serializable, Departement
     }
 
     @Override
-    public Set<String> getCodesButDispenses() {
-        return this.codesButDispenses;
+    public Set<ButAndParcoursDispenses> getButDispenses() {
+        return this.butDispenses;
     }
 
     public static DepartementSummary fromDepartementSummary(DepartementSummary dept) {
-        return new SerializableDepartementSummary(dept.getId(), dept.getCode(), dept.getCodesButDispenses());
+        return new SerializableDepartementSummary(dept.getId(), dept.getCode(), dept.getButDispenses());
     }
 }

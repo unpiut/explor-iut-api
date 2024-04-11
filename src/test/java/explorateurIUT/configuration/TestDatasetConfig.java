@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 IUT Laval - Le Mans Université.
+ * Copyright (C) 2024 IUT Laval - Le Mans Université.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,15 +16,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package explorateurIUT.model;
+package explorateurIUT.configuration;
 
-import java.util.List;
+import explorateurIUT.model.TestDatasetGenerator;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 /**
  *
  * @author Remi Venant
  */
-public interface BUTRepositoryCustom {
+@TestConfiguration
+public class TestDatasetConfig {
 
-    List<FiliereInfo> findMetiersByFiliere();
+    @Bean
+    public TestDatasetGenerator testDatasetGenerator(MongoTemplate mongoTemplate) {
+        return new TestDatasetGenerator(mongoTemplate);
+    }
 }

@@ -19,7 +19,6 @@
 package explorateurIUT.services;
 
 import explorateurIUT.model.BUT;
-import explorateurIUT.model.FiliereInfo;
 import explorateurIUT.model.projections.BUTSummary;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
@@ -42,6 +41,4 @@ public interface BUTService {
     BUT findBUTByCode(
             @NotNull @Pattern(regexp = "[-\\w]{2,20}", flags = Pattern.Flag.CASE_INSENSITIVE) String butCode
     ) throws ConstraintViolationException, NoSuchElementException;
-
-    List<FiliereInfo> getFiliereInformations();
 }

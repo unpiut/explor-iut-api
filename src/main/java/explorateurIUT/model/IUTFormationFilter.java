@@ -39,9 +39,7 @@ public class IUTFormationFilter {
     private Double radiusKm;
     private List<String> regions;
     private List<String> buts;
-    private List<String> jobs;
     private boolean includeAllDepts;
-    private boolean blockOnly;
 
     public IUTFormationFilter() {
     }
@@ -70,21 +68,13 @@ public class IUTFormationFilter {
         return buts;
     }
 
-    public List<String> getJobs() {
-        return jobs;
-    }
-
     public boolean isIncludeAllDepts() {
         return includeAllDepts;
     }
 
-    public boolean isBlockOnly() {
-        return blockOnly;
-    }
-
     @Override
     public String toString() {
-        return "IUTFormationFilter{" + "freeTextQuery=" + freeTextQuery + ", latitude=" + latitude + ", longitude=" + longitude + ", radiusKm=" + radiusKm + ", buts=" + buts + ", jobs=" + jobs + ", includeAllDepts=" + includeAllDepts + ", blockOnly=" + blockOnly + '}';
+        return "IUTFormationFilter{" + "freeTextQuery=" + freeTextQuery + ", latitude=" + latitude + ", longitude=" + longitude + ", radiusKm=" + radiusKm + ", buts=" + buts + ", includeAllDepts=" + includeAllDepts + '}';
     }
 
     protected void validate() throws IllegalArgumentException {
@@ -118,18 +108,14 @@ public class IUTFormationFilter {
                 throw new IllegalArgumentException("Une liste de BUT fournie ne doit pas contenir plus de " + MAX_FILTER_LIST_SIZE + " occurences.");
             }
         }
-        if (this.jobs != null) {
-            if (this.jobs.isEmpty()) {
-                throw new IllegalArgumentException("Une liste de métiers fournie ne doit pas être vide");
-            }
-            if (this.jobs.size() > MAX_FILTER_LIST_SIZE) {
-                throw new IllegalArgumentException("Une liste de métiers fournie ne doit pas contenir plus de " + MAX_FILTER_LIST_SIZE + " métiers.");
-            }
-        }
-        if (this.freeTextQuery == null && this.latitude == null && this.regions == null 
-                && this.buts == null && this.jobs == null && this.blockOnly == false) {
+        if (this.freeTextQuery == null && this.latitude == null && this.regions == null
+                && this.buts == null) {
             throw new IllegalArgumentException("Un filtre doit au moins contenir un élément de filtrage");
         }
+    }
+
+    public static Builder createBuilder() {
+        return new Builder();
     }
 
     public static class Builder {
@@ -195,33 +181,10 @@ public class IUTFormationFilter {
             return this;
         }
 
-        public Builder withJobs(List<String> jobs) {
-            this.checkNotBuiltYet();
-            if (jobs == null) {
-                this.filter.jobs = null;
-            } else {
-                LOG.debug("Add jobs to filter");
-                this.filter.jobs = jobs.stream()
-                        .filter(j -> j != null && !j.isBlank())
-                        .map(j -> j.trim()).toList();
-                if (this.filter.jobs.isEmpty()) {
-                    this.filter.jobs = null;
-                }
-            }
-            return this;
-        }
-
         public Builder withIncludeAllDepts(boolean includeAllDepts) {
             this.checkNotBuiltYet();
             LOG.debug("Add includeAllDepts to filter: " + includeAllDepts);
             this.filter.includeAllDepts = includeAllDepts;
-            return this;
-        }
-
-        public Builder withBlockOnly(boolean blockOnly) {
-            this.checkNotBuiltYet();
-            LOG.debug("Set blockOnly to filter: " + blockOnly);
-            this.filter.blockOnly = blockOnly;
             return this;
         }
 

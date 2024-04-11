@@ -19,8 +19,11 @@
 package explorateurIUT.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import explorateurIUT.model.views.DefaultView;
 import explorateurIUT.model.views.IUTViews;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -44,9 +47,11 @@ public class IUT {
     private String id;
 
     @JsonView(IUTViews.Normal.class)
+    @NotBlank
     private String nom;
 
     @JsonView(IUTViews.Normal.class)
+    @NotBlank
     private String site;
 
     @JsonView(IUTViews.Normal.class)
@@ -55,7 +60,7 @@ public class IUT {
     @JsonView(IUTViews.Details.class)
     private String address;
 
-    @JsonView(IUTViews.Details.class)
+    @JsonView(DefaultView.Never.class)
     private String tel;
 
     @JsonView(IUTViews.Details.class)
@@ -66,6 +71,7 @@ public class IUT {
     private String urlWeb;
 
     @JsonView(IUTViews.Normal.class)
+    @NotNull
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
     private GeoJsonPoint location;
 

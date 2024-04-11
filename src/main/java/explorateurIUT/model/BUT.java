@@ -20,12 +20,14 @@ package explorateurIUT.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import explorateurIUT.model.views.BUTViews;
+import jakarta.validation.constraints.NotBlank;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.ReadOnlyProperty;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DocumentReference;
 
@@ -41,16 +43,28 @@ public class BUT {
     private String id;
 
     @JsonView(BUTViews.Normal.class)
+    @NotBlank
     @Indexed(unique = true)
+    @TextIndexed(weight = 3.0f)
     private String code;
 
     @JsonView(BUTViews.Normal.class)
+    @NotBlank
+    @TextIndexed(weight = 2.0f)
     private String nom;
 
     @JsonView(BUTViews.Normal.class)
+    @NotBlank
+    @TextIndexed(weight = 2.0f)
     private String filiere;
 
     @JsonView(BUTViews.Details.class)
+    @NotBlank
+    @TextIndexed(weight = 1.0f)
+    private String metiers;
+
+    @JsonView(BUTViews.Details.class)
+    @NotBlank
     private String description;
 
     @JsonView(BUTViews.Details.class)
@@ -59,7 +73,9 @@ public class BUT {
     @JsonView(BUTViews.Details.class)
     private String urlFranceCompetence;
 
-    @JsonView(BUTViews.Details.class)
+    @JsonView(BUTViews.Normal.class)
+    @NotBlank
+    @TextIndexed(weight = 1.0f)
     private String universMetiers;
 
     @JsonView(BUTViews.Details.class)
@@ -74,10 +90,11 @@ public class BUT {
         this.code = code;
     }
 
-    public BUT(String code, String nom, String filiere, String description, String urlFiche, String urlFranceCompetence, String universMetiers) {
+    public BUT(String code, String nom, String filiere, String metiers, String description, String urlFiche, String urlFranceCompetence, String universMetiers) {
         this.code = code;
         this.nom = nom;
         this.filiere = filiere;
+        this.metiers = metiers;
         this.description = description;
         this.urlFiche = urlFiche;
         this.urlFranceCompetence = urlFranceCompetence;
@@ -114,6 +131,14 @@ public class BUT {
 
     public void setFiliere(String filiere) {
         this.filiere = filiere;
+    }
+
+    public String getMetiers() {
+        return metiers;
+    }
+
+    public void setMetiers(String metiers) {
+        this.metiers = metiers;
     }
 
     public String getDescription() {
