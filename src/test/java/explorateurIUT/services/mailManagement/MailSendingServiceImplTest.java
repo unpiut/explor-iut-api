@@ -74,7 +74,7 @@ public class MailSendingServiceImplTest {
     }
 
     /**
-     * Test of sendMail method, of class MailSendingServiceImpl.
+     * Test of sendMailToIUT method, of class MailSendingServiceImpl.
      */
     @Test
     public void testSendMail() throws Exception {
@@ -90,7 +90,7 @@ public class MailSendingServiceImplTest {
         List<String> recipients = List.of("recipient1@mail.com", "recipient2@mail.com");
 
         LOG.info("Send mail");
-        mailSendingSvc.sendMail(recipients, replyTo, subject, body, null);
+        mailSendingSvc.sendMailToIUT(recipients, replyTo, subject, body, null);
         LOG.info("Check if mail received");
         assertThat(server.getReceivedEmails()).hasSize(1);
         LOG.info("Assess mail info");
@@ -117,7 +117,7 @@ public class MailSendingServiceImplTest {
         List<String> recipients = List.of("recipient1@mail.com", "recipient2@mail.com");
 
         LOG.info("Send mail");
-        mailSendingSvc.sendMail(recipients, replyTo, subject, body, null);
+        mailSendingSvc.sendMailToIUT(recipients, replyTo, subject, body, null);
         LOG.info("Check if mail received");
         assertThat(server.getReceivedEmails()).hasSize(1);
         LOG.info("Assess mail info");

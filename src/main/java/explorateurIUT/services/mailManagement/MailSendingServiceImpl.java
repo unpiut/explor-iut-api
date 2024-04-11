@@ -22,7 +22,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.ValidationException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.apache.commons.logging.Log;
@@ -58,7 +57,7 @@ public class MailSendingServiceImpl implements MailSendingService {
     }
 
     @Override
-    public void sendMail(Collection<String> recipients, String replyTo, String subject, String body, List<GridFsResource> attachements) throws ValidationException, MailException, MessagingException {
+    public void sendMailToIUT(Collection<String> recipients, String replyTo, String subject, String body, List<GridFsResource> attachements) throws ValidationException, MailException, MessagingException {
         try {
             String[] recipientsArray;;
             if (this.mailSendingProperties.getTestingMailAddress() != null) {
@@ -68,18 +67,32 @@ public class MailSendingServiceImpl implements MailSendingService {
                 recipientsArray = recipients.toArray(recipientsArray);
             }
 
-            final MimeMessage message = this.createRawMessage(recipientsArray, replyTo, subject, body, attachements);
+            final MimeMessage message = this.createRawMessageForIUT(recipientsArray, replyTo, subject, body, attachements);
             this.mailSender.send(message);
         } catch (MessagingException ex) {
-            LOG.error("Unable to create student absence mail.", ex);
+            LOG.error("Unable to create mail for IUT.", ex);
             throw ex;
         } catch (MailException ex) {
-            LOG.error("Unable to send  student absence mail.", ex);
+            LOG.error("Unable to send mail for IUT.", ex);
             throw ex;
         }
     }
 
-    private MimeMessage createRawMessage(String[] recipients, String replyTo, String subject,
+    @Override
+    public void sendMailToContact(String recipient, String subject, String body) throws ValidationException, MailException, MessagingException {
+        try {
+            final MimeMessage message = this.createRawMessageForContact(recipient, subject, body);
+            this.mailSender.send(message);
+        } catch (MessagingException ex) {
+            LOG.error("Unable to create mail for contact.", ex);
+            throw ex;
+        } catch (MailException ex) {
+            LOG.error("Unable to send mail for contact.", ex);
+            throw ex;
+        }
+    }
+
+    private MimeMessage createRawMessageForIUT(String[] recipients, String replyTo, String subject,
             String body, List<GridFsResource> attachements) throws MessagingException {
         final MimeMessage message = this.mailSender.createMimeMessage();
         final MimeMessageHelper helper = new MimeMessageHelper(message);
@@ -99,7 +112,6 @@ public class MailSendingServiceImpl implements MailSendingService {
                 helper.setBcc(recipients);
             }
         }
-        LOG.debug("We have set the recipients: " + Arrays.toString(recipients));
 
         helper.setFrom(this.mailSendingProperties.getFromAddress());
         helper.setReplyTo(replyTo);
@@ -119,4 +131,16 @@ public class MailSendingServiceImpl implements MailSendingService {
         return message;
     }
 
+    private MimeMessage createRawMessageForContact(String recipient, String subject, String body) throws MessagingException {
+        final MimeMessage message = this.mailSender.createMimeMessage();
+        final MimeMessageHelper helper = new MimeMessageHelper(message);
+
+        helper.setTo(recipient);
+        helper.setFrom(this.mailSendingProperties.getFromAddress());
+        helper.setReplyTo(this.mailSendingProperties.getNoReplyAddress() != null ? this.mailSendingProperties.getNoReplyAddress() : this.mailSendingProperties.getFromAddress());
+        helper.setSubject(subject);
+        helper.setText(body, false); // set text as plain text
+
+        return message;
+    }
 }

@@ -37,6 +37,9 @@ public class MailSendingProperties {
     @Email
     private String fromAddress;
 
+    @Email
+    private String noReplyAddress;
+
     @Pattern(regexp = "^(to|b?cc)$")
     private String sendingType = "bcc"; // to, cc, bcc
 
@@ -55,6 +58,14 @@ public class MailSendingProperties {
 
     public void setFromAddress(String fromAddress) {
         this.fromAddress = fromAddress;
+    }
+
+    public String getNoReplyAddress() {
+        return noReplyAddress;
+    }
+
+    public void setNoReplyAddress(String noReplyAddress) {
+        this.noReplyAddress = noReplyAddress;
     }
 
     public String getSendingType() {

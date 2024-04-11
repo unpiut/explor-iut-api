@@ -36,20 +36,34 @@ import org.springframework.mail.MailException;
 public interface MailSendingService {
 
     /**
-     * Send a mail to several reciepient
-     * @param recipients
-     * @param replyTo
-     * @param subject
-     * @param body
-     * @param attachements
-     * @throws ValidationException
-     * @throws MailException
-     * @throws MessagingException 
+     * Send a mail to several IUT reciepients.
+     *
+     * @param recipients mail addresses of IUTs
+     * @param replyTo mail address of contact
+     * @param subject mail subject
+     * @param body mail body
+     * @param attachements possible attachment (can be null)
+     * @throws ValidationException if given parameters are invalid
+     * @throws MailException if unable to send mail
+     * @throws MessagingException if unable to create mail message
      */
-    void sendMail(@NotEmpty Collection<@NotNull @Email String> recipients, 
-            @NotNull @Email String replyTo, 
-            @NotBlank String subject, 
-            @NotBlank String body, 
+    void sendMailToIUT(@NotEmpty Collection<@NotNull @Email String> recipients,
+            @NotNull @Email String replyTo,
+            @NotBlank String subject,
+            @NotBlank String body,
             List<@NotNull GridFsResource> attachements) throws ValidationException, MailException, MessagingException;
+
+    /**
+     * Send a mail to a particular contact.
+     *
+     * @param recipient mail address of contact
+     * @param subject mail subject
+     * @param body mail body
+     * @throws ValidationException if given parameters are invalid
+     * @throws MailException if unable to send mail
+     * @throws MessagingException if unable to create mail message
+     */
+    void sendMailToContact(@NotNull @Email String recipient, @NotBlank String subject,
+            @NotBlank String body) throws ValidationException, MailException, MessagingException;
 
 }
