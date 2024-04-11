@@ -19,7 +19,6 @@
 package explorateurIUT.model;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import explorateurIUT.model.views.DefaultView;
 import explorateurIUT.model.views.IUTViews;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -60,7 +59,7 @@ public class IUT {
     @JsonView(IUTViews.Details.class)
     private String address;
 
-    @JsonView(DefaultView.Never.class)
+    @JsonView(IUTViews.Details.class)
     private String tel;
 
     @JsonView(IUTViews.Details.class)
