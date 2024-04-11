@@ -18,8 +18,11 @@
  */
 package explorateurIUT.excelImport.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -32,96 +35,44 @@ public class ExcelDepartement {
     private static final Log LOG = LogFactory.getLog(ExcelDepartement.class);
 
     private final String code;
-    private final List<ExcelDiplomeDept> diplomes;
-    private String mel;
-    private String tel;
-    private String url;
-    private String contact;
+    private final Map<String, Set<String>> parcoursByDiplomes;
 
     public ExcelDepartement(String code) {
         this.code = code;
-        this.diplomes = new ArrayList<>();
+        this.parcoursByDiplomes = new HashMap<>();
     }
 
     public String getCode() {
         return code;
     }
 
-    public List<ExcelDiplomeDept> getDiplomes() {
-        return diplomes;
+    public Map<String, Set<String>> getParcoursByDiplomes() {
+        return Collections.unmodifiableMap(parcoursByDiplomes);
     }
 
-    public String getContact() {
-        return contact;
-    }
-
-    public void setContact(String contact) {
-        if (contact == null) {
-            LOG.warn("Setting null contact: do nothing");
-            return;
-        }
-        if (this.contact != null) {
-            LOG.warn("Overiding contact. Old: " + this.contact + " | new: " + contact);
-        }
-        this.contact = contact;
-    }
-
-    public String getMel() {
-        return mel;
-    }
-
-    public void setMel(String mel) {
-        if (mel == null) {
-            LOG.warn("Setting null mel: do nothing");
-            return;
-        }
-        if (this.mel != null) {
-            LOG.warn("Overiding mel. Old: " + this.mel + " | new: " + mel);
-        }
-        this.mel = mel;
-    }
-
-    public String getTel() {
-        return tel;
-    }
-
-    public void setTel(String tel) {
-        if (tel == null) {
-            LOG.warn("Setting null tel: do nothing");
-            return;
-        }
-        if (this.tel != null) {
-            LOG.warn("Overiding tel. Old: " + this.tel + " | new: " + tel);
-        }
-        this.tel = tel;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        if (url == null) {
-            LOG.warn("Setting null url: do nothing");
-            return;
-        }
-        if (this.url != null) {
-            LOG.warn("Overiding url. Old: " + this.url + " | new: " + url);
-        }
-        this.url = url;
+    public void addParcours(String codeDiplome, String codeParcours) {
+        this.parcoursByDiplomes.compute(codeDiplome, (k, v) -> {
+            if (v != null) {
+                if (!v.add(codeParcours)) {
+                    LOG.warn("Adding duplicate Diplome-Parcours : " + codeDiplome + " - " + codeParcours);
+                }
+                return v;
+            } else {
+                HashSet<String> parcours = new HashSet<>();
+                parcours.add(codeParcours);
+                return parcours;
+            }
+        });
     }
 
     public void format(StringBuilder sb, String padding, int nbPads) {
         String pad = padding.repeat(nbPads);
         sb.append(pad).append("Dept ").append(code).append(System.lineSeparator());
-        sb.append(pad).append("- mel : ").append(mel).append(System.lineSeparator());
-        sb.append(pad).append("- tel : ").append(tel).append(System.lineSeparator());
-        sb.append(pad).append("- url : ").append(url).append(System.lineSeparator());
-        sb.append(pad).append("- contact : ").append(contact).append(System.lineSeparator());
         sb.append(pad).append("- parcours : ").append(System.lineSeparator());
-        for (ExcelDiplomeDept d : this.diplomes) {
-            d.format(sb, padding, nbPads + 1);
-        }
+        final String parcoursPad = padding.repeat(nbPads);
+        this.parcoursByDiplomes.forEach((codeDiplome, codesParcours) -> {
+            sb.append(parcoursPad).append("- ").append(codeDiplome).append(" : ").append(codesParcours.toString());
+        });
     }
 
 }

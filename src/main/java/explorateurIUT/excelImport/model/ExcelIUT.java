@@ -32,8 +32,8 @@ public class ExcelIUT {
     private static final Log LOG = LogFactory.getLog(ExcelIUT.class);
 
     private final String nom;
-    private final List<ExcelDepartement> departements;
-    private String ville;
+    private String site;
+    private final List<ExcelDepartement> departements = new ArrayList<>();
     private String region;
     private String tel;
     private String adresse;
@@ -45,30 +45,29 @@ public class ExcelIUT {
 
     public ExcelIUT(String nom) {
         this.nom = nom;
-        this.departements = new ArrayList<>();
     }
 
     public String getNom() {
         return nom;
     }
 
-    public List<ExcelDepartement> getDepartements() {
-        return departements;
+    public String getSite() {
+        return site;
     }
 
-    public String getVille() {
-        return ville;
-    }
-
-    public void setVille(String ville) {
-        if (ville == null) {
+    public void setSite(String site) {
+        if (site == null) {
             LOG.warn("Setting null ville: do nothing");
             return;
         }
-        if (this.ville != null) {
-            LOG.warn("Overiding ville. old: " + this.ville + " | new: " + ville);
+        if (this.site != null) {
+            LOG.warn("Overiding ville. old: " + this.site + " | new: " + site);
         }
-        this.ville = ville;
+        this.site = site;
+    }
+
+    public List<ExcelDepartement> getDepartements() {
+        return departements;
     }
 
     public String getRegion() {
@@ -194,7 +193,7 @@ public class ExcelIUT {
     public void format(StringBuilder sb, String padding, int nbPads) {
         String pad = padding.repeat(nbPads);
         sb.append(pad).append("IUT ").append(nom).append(System.lineSeparator());
-        sb.append(pad).append("- ville : ").append(ville).append(System.lineSeparator());
+        sb.append(pad).append("- ville : ").append(site).append(System.lineSeparator());
         sb.append(pad).append("- tel : ").append(tel).append(System.lineSeparator());
         sb.append(pad).append("- adresse : ").append(adresse).append(System.lineSeparator());
         sb.append(pad).append("- url : ").append(url).append(System.lineSeparator());

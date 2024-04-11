@@ -18,16 +18,11 @@
  */
 package explorateurIUT.controllers;
 
-import explorateurIUT.model.FiliereInfo;
 import explorateurIUT.services.BUTService;
 import explorateurIUT.services.EtagAccessService;
-import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,15 +44,5 @@ public class MetiersController {
     public MetiersController(BUTService butSvc, EtagAccessService etagAccessSvc) {
         this.butSvc = butSvc;
         this.etagAccessSvc = etagAccessSvc;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<FiliereInfo>> getMetiersByFiliere() {
-        final List<FiliereInfo> filiereInfo = this.butSvc.getFiliereInformations();
-        return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.maxAge(this.etagAccessSvc.getCacheEtagDuration()))
-                .eTag(this.etagAccessSvc.getCacheEtag())
-                .body(filiereInfo);
     }
 }

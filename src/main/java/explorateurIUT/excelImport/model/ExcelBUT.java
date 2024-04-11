@@ -36,6 +36,7 @@ public class ExcelBUT {
     private String nom;
     private String filiere;
     private String description;
+    private String metiers;
     private String urlFiche;
     private String urlFranceCompetence;
     private String universMetiers;
@@ -81,6 +82,21 @@ public class ExcelBUT {
             LOG.warn("Overiding filiere. old: " + this.filiere);
         }
         this.filiere = filiere;
+    }
+
+    public String getMetiers() {
+        return metiers;
+    }
+
+    public void setMetiers(String metiers) {
+        if (metiers == null) {
+            LOG.warn("Setting null metiers: do nothing");
+            return;
+        }
+        if (this.metiers != null) {
+            LOG.warn("Overiding metiers. old: " + this.metiers);
+        }
+        this.metiers = metiers;
     }
 
     public String getDescription() {

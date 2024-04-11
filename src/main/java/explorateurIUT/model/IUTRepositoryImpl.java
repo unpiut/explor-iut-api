@@ -23,6 +23,7 @@ import explorateurIUT.model.projections.DepartementSummary;
 import explorateurIUT.model.projections.IUTSummary;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +45,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.data.mongodb.core.query.TextQuery;
-import org.springframework.data.mongodb.core.schema.JsonSchemaObject;
 
 /**
  *
@@ -62,72 +62,56 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
     }
 
     /*
-    freeTextQuery -> coll  ParcoursBUT
+    buts -> coll BUT (_id) puis Departement->IUT
+    freeTextQuery -> coll  BUT
     latitude+longitude+radius -> coll IUT
     region -> coll IUT
-    buts -> coll BUT (_id) puis Departement->IUT
-    jobs -> collec ParcoursBUT (_id) puis ParcoursDep->Departement->IUT
     includeAllDepts -> si oui, reprendra tous les éléments des IUT
-    blockOnly -> si oui, uniquement les formation dont au moins 1 parcours est ouvert à l'alternance
     
     Processus :
-    1. requête BUT(_id) si buts -> filterButObjectIds
-    2. requête ParcoursBUT(_id) avec filterButObjectIds:in? && freeTextQuery:text?  && jobs:in? -> filterParcoursBUT
-    3. requête ParcoursDept(iut_id, departement_id) avec filterParcoursBUT:in? && block -> parcoursDepts
-    4. si parcoursDepts:
-        construire HashMap<iut_id, IUTSummary> de tous les iut_id de parcoursDepts avec GPSZone?
-        si includeAllDepts: récup tous DepartementSummary pour chaque iut_id et les ratacher au IUTSummary
-        sinon récup tous DepartementSummary pour chaque departement_id de parcoursDepts et les ratacher au IUTSummary
-    sinon:
-        construire HashMap<iut_id, IUTSummary> avec GPSZone? et region?
-        récup tous DepartementSummary de chaque iut de la map et les ratacher au IUTSummary
+    1. requête BUT(_id, code) si buts ou freeTextQuery:text?  -> filterButs
+    2. requête Deps(iut_id, _id) avec filterParcoursBUT:in? -> filteredDepts
+    3: construire HashMap<iut_id, IUTSummary> de tous les iut_id de filteredDepts? avec regions? et GPSZone?
+    4: si includeAllDepts: récup tous les DepartementSummary pour chaque iut_id sinon récup 
+        tous DepartementSummary pour chaque dept de depts 
+    5: rattacher deptSummaries aux IUTSummary
     
-    return  HashMap<iut_id, IUTSummary>.values()
+    returner collection de IUTSummary
      */
     @Override
     public Collection<IUTSummary> streamSummariesByFilter(IUTFormationFilter filter) {
         LOG.debug("Start filtering IUT on filter: ");
-        // requête BUT(_id) si buts -> filterButObjectIds
-        List<ObjectId> filterButIds = null;
-        if (filter.getButs() != null) {
-            filterButIds = this.loadButIds(filter.getButs()).toList();
-            LOG.debug("filterButIds computed: " + filterButIds);
+        // requête BUT(_id, code) si buts ou freeTextQuery:text?  -> filterButs
+        List<ButInfo> filteredButs = null;
+        if (filter.getButs() != null || filter.getFreeTextQuery() != null) {
+            filteredButs = this.loadButs(filter.getButs(), filter.getFreeTextQuery()).toList();
+            LOG.debug("filterButs computed: " + filteredButs.size());
+            if (filteredButs.isEmpty()) { // if filtered but required but non match, stop here
+                return Collections.EMPTY_LIST;
+            }
         }
-        // requête ParcoursBUT(_id) avec filterButObjectIds:in? && freeTextQuery:text?  && jobs:in? -> filterParcoursBUTids
-        List<ObjectId> filterParcoursBUTids = null;
-        if (filterButIds != null || filter.getFreeTextQuery() != null || filter.getJobs() != null) {
-            // On limite au 20 premier résultats
-            filterParcoursBUTids = this.loadParcoursButIds(filterButIds, filter.getFreeTextQuery(), filter.getJobs()).toList();
-            LOG.debug("filterParcoursBUTids computed: " + filterParcoursBUTids);
-        }
-        // requête ParcoursDept(iut_id, departement_id) avec filterParcoursBUT:in? && blockBut?alternance:notEmpty &&blockOnly -> parcoursDepts
-        List<ParcoursDeptIds> parcoursDeptIds = null;
-        if (filterParcoursBUTids != null) {
-            parcoursDeptIds = this.loadParcoursDeptIds(filterParcoursBUTids, filter.isBlockOnly()).toList();
-            LOG.debug("parcoursDeptIds computed: " + parcoursDeptIds);
+        // requête Deps(iut_id, _id) avec filterParcoursBUT:in? -> filteredDepts
+        List<DeptInfo> filteredDepts = this.loadDepts(filteredButs).toList();
+        LOG.debug("filterButs depts: " + filteredDepts.size());
+        if (filteredDepts.isEmpty()) { // if filtered depts empty, stop here
+            return Collections.EMPTY_LIST;
         }
 
-        // construction HashMap<iut_id, IUTSummary> selon présence parcoursDepts
-        Stream<IUTSummaryImpl> iutSummaryStream;
-        if (parcoursDeptIds != null) {
-            iutSummaryStream = this.loadIUTSummaries(
-                    parcoursDeptIds.stream().map(ParcoursDeptIds::getIut).collect(Collectors.toSet()),
-                    filter.getRegions(),
-                    filter.getLatitude(), filter.getLongitude(), filter.getRadiusKm());
-        } else {
-            iutSummaryStream = this.loadIUTSummaries(null,
-                    filter.getRegions(),
-                    filter.getLatitude(), filter.getLongitude(), filter.getRadiusKm());
-        }
+        // construire HashMap<iut_id, IUTSummary> de tous les iut_id de filteredDepts? avec regions? et GPSZone?
+        Set<ObjectId> filteredDeptIutIds = filteredDepts.stream().map(DeptInfo::getIut).collect(Collectors.toSet());
+        Stream<IUTSummaryImpl> iutSummaryStream = this.loadIUTSummaries(filteredDeptIutIds,
+                filter.getRegions(),
+                filter.getLatitude(), filter.getLongitude(), filter.getRadiusKm());
+
         final Map<ObjectId, IUTSummaryImpl> iutSummaryById = iutSummaryStream.collect(Collectors.toMap((iutS) -> new ObjectId(iutS.getId()), Function.identity()));
-        LOG.debug("iutSummaryById computed: " + iutSummaryById);
+        LOG.debug("iutSummaryById computed: " + iutSummaryById.size());
 
-        // Récupération liste DepartementSummary selon presence parcoursDepts et indicateur includeAllDepts
+        // si includeAllDepts: récup tous les DepartementSummary pour chaque iut_id sinon récup tous DepartementSummary pour chaque dept de depts
         Stream<DepartementSummaryImpl> deptSummaryStream;
-        if (parcoursDeptIds != null && !filter.isIncludeAllDepts()) {
-            deptSummaryStream = this.loadDeptSummaries(parcoursDeptIds.stream().map(ParcoursDeptIds::getDepartement).toList(), null);
-        } else {
+        if (filter.isIncludeAllDepts()) {
             deptSummaryStream = this.loadDeptSummaries(null, iutSummaryById.keySet());
+        } else {
+            deptSummaryStream = this.loadDeptSummaries(filteredDepts.stream().map(DeptInfo::getId).toList(), null);
         }
 
         // Ratacher DepartementSummary aux IUTSummary
@@ -142,20 +126,10 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         return iutSummaryById.values().stream().map(IUTSummary.class::cast).toList();
     }
 
-    private Stream<ObjectId> loadButIds(Collection<String> buts) {
-        Criteria c = Criteria.where("code").in(buts);
-        Query q = Query.query(c);
-        q.fields().include("id");
-        return this.mongoTemplate.stream(q, BUT.class).map(BUT::getId).map(ObjectId::new);
-    }
-
-    private Stream<ObjectId> loadParcoursButIds(Collection<ObjectId> butIds, String freeTextQuery, Collection<String> jobs) {
+    private Stream<ButInfo> loadButs(Collection<String> buts, String freeTextQuery) {
         Criteria c = new Criteria();
-        if (butIds != null) {
-            c = c.and("but").in(butIds);
-        }
-        if (jobs != null) {
-            c = c.and("metiers").in(jobs);
+        if (buts != null) {
+            c = c.and("code").in(buts);
         }
         Query query;
         if (freeTextQuery != null) {
@@ -169,21 +143,19 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         } else {
             query = Query.query(c);
         }
-        query.fields().include("id");
-        return this.mongoTemplate.stream(query, ParcoursBUT.class).map(ParcoursBUT::getId).map(ObjectId::new);
+        query.fields().include("id", "code");
+        return this.mongoTemplate.stream(query, ButInfo.class, getCollectionNameFromDocument(BUT.class));
     }
 
-    private Stream<ParcoursDeptIds> loadParcoursDeptIds(Collection<ObjectId> parcoursButIds, boolean blockOnly) {
+    private Stream<DeptInfo> loadDepts(Collection<ButInfo> fileteredButs) {
         Criteria c = new Criteria();
-        if (parcoursButIds != null) {
-            c = c.and("parcoursBUT").in(parcoursButIds);
+        if (fileteredButs != null) {
+            c = c.and("butDispenses")
+                    .elemMatch(Criteria.where("codeBut").in(fileteredButs.stream().map(ButInfo::getCode).toList()));
         }
-        if (blockOnly) {
-            c = c.and("alternances").exists(true).type(JsonSchemaObject.Type.ARRAY).ne(List.of());
-        }
-        Query q = Query.query(c);
-        q.fields().include("iut", "departement");
-        return this.mongoTemplate.stream(q, ParcoursDeptIds.class, getCollectionNameFromDocument(ParcoursDept.class));
+        Query query = Query.query(c);
+        query.fields().include("id", "iut");
+        return this.mongoTemplate.stream(query, DeptInfo.class, getCollectionNameFromDocument(Departement.class));
     }
 
     private Stream<IUTSummaryImpl> loadIUTSummaries(Collection<ObjectId> iutIds, Collection<String> regions, Double latitude, Double longitude, Double radiusKm) {
@@ -195,7 +167,7 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
             c = c.and("region").in(regions);
         }
         if (latitude != null) {
-            c = c.and("location").withinSphere(new Circle(new Point(latitude, longitude),
+            c = c.and("location").withinSphere(new Circle(new Point(longitude, latitude),
                     new Distance(radiusKm, Metrics.KILOMETERS)));
         }
         Query q = Query.query(c);
@@ -216,10 +188,46 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         return this.mongoTemplate.stream(q, DepartementSummaryImpl.class, getCollectionNameFromDocument(Departement.class));
     }
 
-    private static class ParcoursDeptIds {
+    private static class ButInfo {
 
+        private ObjectId id;
+        private String code;
+
+        public ButInfo() {
+        }
+
+        public ObjectId getId() {
+            return id;
+        }
+
+        public void setId(ObjectId id) {
+            this.id = id;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+    }
+
+    private static class DeptInfo {
+
+        private ObjectId id;
         private ObjectId iut;
-        private ObjectId departement;
+
+        public DeptInfo() {
+        }
+
+        public ObjectId getId() {
+            return id;
+        }
+
+        public void setId(ObjectId id) {
+            this.id = id;
+        }
 
         public ObjectId getIut() {
             return iut;
@@ -227,14 +235,6 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
 
         public void setIut(ObjectId iut) {
             this.iut = iut;
-        }
-
-        public ObjectId getDepartement() {
-            return departement;
-        }
-
-        public void setDepartement(ObjectId departement) {
-            this.departement = departement;
         }
 
     }
@@ -263,6 +263,7 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
             return this.site;
         }
 
+        @Override
         public String getRegion() {
             return region;
         }
@@ -296,13 +297,18 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         public void setLocation(GeoJsonPoint location) {
             this.location = location;
         }
+
+        public void setRegion(String region) {
+            this.region = region;
+        }
+
     }
 
     private static class DepartementSummaryImpl implements DepartementSummary {
 
         private String id;
         private String code;
-        private Set<String> codesButDispenses;
+        private Set<ButAndParcoursDispenses> butDispenses;
 
         @JsonIgnore
         private ObjectId iut;
@@ -318,8 +324,8 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
         }
 
         @Override
-        public Set<String> getCodesButDispenses() {
-            return this.codesButDispenses;
+        public Set<ButAndParcoursDispenses> getButDispenses() {
+            return this.butDispenses;
         }
 
         public void setId(String id) {
@@ -330,8 +336,8 @@ public class IUTRepositoryImpl implements IUTRepositoryCustom {
             this.code = code;
         }
 
-        public void setCodesButDispenses(Set<String> codesButDispenses) {
-            this.codesButDispenses = codesButDispenses;
+        public void setButDispenses(Set<ButAndParcoursDispenses> butDispenses) {
+            this.butDispenses = butDispenses;
         }
 
         public ObjectId getIut() {

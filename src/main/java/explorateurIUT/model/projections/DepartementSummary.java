@@ -18,6 +18,7 @@
  */
 package explorateurIUT.model.projections;
 
+import explorateurIUT.model.ButAndParcoursDispenses;
 import java.util.Set;
 
 /**
@@ -30,5 +31,5 @@ public interface DepartementSummary {
 
     String getCode();
 
-    Set<String> getCodesButDispenses();
+    Set<ButAndParcoursDispenses> getButDispenses();
 }

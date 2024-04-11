@@ -62,6 +62,7 @@ public class SerializableIUTSummary implements Serializable, IUTSummary {
         return this.site;
     }
 
+    @Override
     public String getRegion() {
         return region;
     }

@@ -18,27 +18,19 @@
  */
 package explorateurIUT.excelImport;
 
-import explorateurIUT.excelImport.model.ExcelAnneeAlt;
+import explorateurIUT.excelImport.consumers.BUTConsumer;
+import explorateurIUT.excelImport.consumers.IUTConsumer;
 import explorateurIUT.excelImport.model.ExcelBUT;
-import explorateurIUT.excelImport.model.ExcelDepartement;
 import explorateurIUT.excelImport.model.ExcelIUT;
-import explorateurIUT.excelImport.model.ExcelParcoursBUT;
-import explorateurIUT.excelImport.model.ExcelParcoursDeptDip;
-import explorateurIUT.model.Alternance;
 import explorateurIUT.model.BUT;
 import explorateurIUT.model.Departement;
 import explorateurIUT.model.IUT;
 import explorateurIUT.model.ParcoursBUT;
-import explorateurIUT.model.ParcoursDept;
-import java.util.AbstractMap;
-import java.util.HashMap;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.query.Query;
 
 /**
@@ -51,105 +43,31 @@ public class ExcelToMongoLoader {
 
     private final MongoTemplate mongoTemplate;
 
-    private final HashMap<String, BUT> butByCode = new HashMap<>();
-    private final HashMap<String, ParcoursBUT> parcoursButByCodeButParc = new HashMap<>();
+    private BUTConsumer butConsumer;
+    private IUTConsumer iutconsumer;
 
     public ExcelToMongoLoader(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
+        this.butConsumer = new BUTConsumer(mongoTemplate);
+        this.iutconsumer = new IUTConsumer(mongoTemplate, this.butConsumer.getParcoursButByCodeButParc());
     }
 
     public void reset() {
-        this.butByCode.clear();
-        this.parcoursButByCodeButParc.clear();
+        this.butConsumer = new BUTConsumer(this.mongoTemplate);
+        this.iutconsumer = new IUTConsumer(mongoTemplate, this.butConsumer.getParcoursButByCodeButParc());
     }
 
     public void clearDb() {
         final Query matchAll = new Query();
-        Stream.of(ParcoursDept.class, Departement.class, IUT.class, ParcoursBUT.class, BUT.class)
+        Stream.of(Departement.class, IUT.class, ParcoursBUT.class, BUT.class)
                 .forEach((c) -> this.mongoTemplate.remove(matchAll, c));
     }
 
     public Consumer<ExcelBUT> getExcelBUTConsumer() {
-        return new BUTConsumer();
+        return this.butConsumer;
     }
 
     public Consumer<ExcelIUT> getExcelIUTConsumer() {
-        return new IUTConsumer();
-    }
-
-    public class BUTConsumer implements Consumer<ExcelBUT> {
-
-        @Override
-        public void accept(ExcelBUT excelBut) {
-            //Create an instance of BUT then all instance of parcours
-            final BUT but = mongoTemplate.save(butFromExcel(excelBut));
-            butByCode.put(but.getCode(), but);
-            excelBut.getParcours().forEach((excelParcours) -> {
-                ParcoursBUT parcours = mongoTemplate.save(parcoursFromExcel(but, excelParcours));
-                String key = but.getCode() + "_" + parcours.getCode();
-                parcoursButByCodeButParc.put(key, parcours);
-            });
-        }
-    }
-
-    public class IUTConsumer implements Consumer<ExcelIUT> {
-
-        @Override
-        public void accept(ExcelIUT excelIut) {
-            // Start creating an instance of IUT
-            final IUT iut = mongoTemplate.save(iutFromExcel(excelIut));
-            excelIut.getDepartements().forEach((excelDept) -> {
-                final Departement dept = mongoTemplate.save(deptFromExcel(iut, excelDept));
-                excelDept.getDiplomes().stream()
-                        .flatMap((ed) -> ed.getParcours().stream()
-                        .map((ep) -> new AbstractMap.SimpleEntry<String, ExcelParcoursDeptDip>(ed.getCode(), ep)))
-                        .forEach((entry) -> {
-                            // Récupération du parcours but
-                            final String butParcKey = entry.getKey() + "_" + entry.getValue().getCode();
-                            final ParcoursBUT parcours = parcoursButByCodeButParc.get(butParcKey);
-                            if (parcours == null) {
-                                LOG.warn("Parcours not found for key " + butParcKey);
-                                return;
-                            }
-                            // maj dept avec but
-                            dept.addButDispense(parcours.getBut());
-                            // Creation alternances du parcours
-                            final List<Alternance> alternances = entry.getValue().getAnneesAlt().stream()
-                                    .map(ExcelToMongoLoader::alternanceFromExcel).toList();
-                            // Creation et sauvegarde du parcours
-                            mongoTemplate.save(parcoursDeptFromExcel(iut, dept, parcours, alternances));
-                        });
-                // update dept since but dispensé have been added
-                mongoTemplate.save(dept);
-            });
-        }
-    }
-
-    private static BUT butFromExcel(ExcelBUT but) {
-        return new BUT(but.getCode(), but.getNom(), but.getFiliere(), but.getDescription(), but.getUrlFiche(), but.getUrlFranceCompetence(), but.getUniversMetiers());
-    }
-
-    private static ParcoursBUT parcoursFromExcel(BUT but, ExcelParcoursBUT parcours) {
-        return new ParcoursBUT(but, parcours.getCode(), parcours.getNom(), parcours.getMotsCles(), parcours.getMetiers());
-    }
-
-    private static IUT iutFromExcel(ExcelIUT iut) {
-        GeoJsonPoint gpsCoor = null;
-        if (iut.getCoorGpsLat() != null && iut.getCoorGpsLon() != null) {
-            gpsCoor = new GeoJsonPoint(iut.getCoorGpsLat(), iut.getCoorGpsLon());
-        }
-        return new IUT(iut.getNom(), iut.getVille(), iut.getRegion(), iut.getAdresse(), iut.getTel(), iut.getMel(), iut.getUrl(), gpsCoor);
-    }
-
-    private static Departement deptFromExcel(IUT iut, ExcelDepartement dept) {
-        return new Departement(iut, dept.getCode(), dept.getTel(), dept.getMel(), dept.getUrl());
-    }
-
-    private static ParcoursDept parcoursDeptFromExcel(IUT iut, Departement dept, ParcoursBUT parcoursBut, List<Alternance> alternances) {
-        return new ParcoursDept(iut, dept, parcoursBut, alternances);
-    }
-
-    private static Alternance alternanceFromExcel(ExcelAnneeAlt alt) {
-        return new Alternance(alt.getAnnee(), alt.getMel(), alt.getTel(), alt.getContact(), alt.getUrlCal());
+        return this.iutconsumer;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 IUT Laval - Le Mans Université.
+ * Copyright (C) 2024 IUT Laval - Le Mans Université.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,15 +16,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package explorateurIUT.model;
+package explorateurIUT.excelImport.extractors;
 
-import java.io.Serializable;
-import java.util.List;
+import java.util.function.Consumer;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 
 /**
  *
  * @author Remi Venant
+ * @param <T> extracted entity type
  */
-public record FiliereInfo(String filiere, List<String> metiers) implements Serializable {
+public interface SheetExtractor<T> {
 
+    void extractEntities(XSSFSheet sheet, Consumer<T> entityConsumer);
 }

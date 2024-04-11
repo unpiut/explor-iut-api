@@ -40,7 +40,6 @@ public class CacheManagementServiceImpl implements CacheManagementService {
 
     @Caching(evict = {
         @CacheEvict(cacheNames = "butSummaries", allEntries = true, beforeInvocation = false),
-        @CacheEvict(cacheNames = "filiereInformations", allEntries = true, beforeInvocation = false),
         @CacheEvict(cacheNames = "iutSummaries", allEntries = true, beforeInvocation = false),
         @CacheEvict(cacheNames = "cacheEtag", allEntries = true, beforeInvocation = false)
     })
