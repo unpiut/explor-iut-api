@@ -82,12 +82,12 @@ public class MailSendingRequestTokenServiceImplTest {
     @Test
     public void testDecodeTokenEx() {
         assertThatThrownBy(()
-                -> this.testedSvc.decodeToken("aa.bb"))
+                -> this.testedSvc.decodeToken("aafefefbb"))
                 .as("Bad token components rejected")
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(()
-                -> this.testedSvc.decodeToken("aa.bb.cc"))
-                .as("Bad token validity rejected")
+                -> this.testedSvc.decodeToken("LSjCop2HlrmR26CwxEN6l9L3WPbh0wTWRdMQsOPV0gY="))
+                .as("Bad token components rejected")
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

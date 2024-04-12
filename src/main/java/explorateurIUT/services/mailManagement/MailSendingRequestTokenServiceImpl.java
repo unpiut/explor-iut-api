@@ -102,9 +102,16 @@ public class MailSendingRequestTokenServiceImpl implements MailSendingRequestTok
     @Override
     public String decodeToken(String token) throws ValidationException, IllegalArgumentException {
         // decode token from base64 (may throw IllegalArgumentException)
-        final byte[] tokenData = decodeBase64(token);
+        byte[] tokenData;
+        try {
+            tokenData = decodeBase64(token);
+        } catch (IllegalArgumentException ex) {
+            LOG.debug("Invalid token format", ex);
+            throw ex;
+        }
         // check token length is at minimum IV size + Salt size + 1
         if (tokenData.length <= SALT_SIZE + IV_SIZE) {
+            LOG.debug("Invalid token size");
             throw new IllegalArgumentException("Invalid token composition.");
         }
         // prepare ciphe, salt and iv
@@ -123,14 +130,15 @@ public class MailSendingRequestTokenServiceImpl implements MailSendingRequestTok
             throw new IllegalStateException(ex);
         } catch (BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException
                 | InvalidKeyException | NoSuchPaddingException ex) {
+            LOG.debug("Invalid token", ex);
             throw new IllegalArgumentException("Invalid token.");
         }
     }
 
     protected byte[] generateSalt() {
-        byte[] bytes = new byte[SALT_SIZE];
-        secureRnd.nextBytes(bytes);
-        return bytes;
+        byte[] salt = new byte[SALT_SIZE];
+        secureRnd.nextBytes(salt);
+        return salt;
     }
 
     protected byte[] generateIv() {
