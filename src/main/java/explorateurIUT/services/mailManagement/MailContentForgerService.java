@@ -18,10 +18,19 @@
  */
 package explorateurIUT.services.mailManagement;
 
+import jakarta.validation.ValidationException;
+
 /**
  * Service for forging final mail content (subject, body)
  * @author Remi Venant
  */
 public interface MailContentForgerService {
-    
+    /**
+     * Creation of the final body with the fusion of first form informations and original body
+     * @param informations : informations of the first form
+     * @param body : original body
+     * @return the body of the mail
+     * @throws ValidationException if given parameters are invalid
+     */
+    String bodyCreation(String[] informations, String body) throws ValidationException;
 }
