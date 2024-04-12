@@ -61,25 +61,13 @@ public class MailSendingRequestTokenServiceImplTest {
     }
 
     /**
-     * Test of generateSalt method, of class MailSendingRequestTokenServiceImpl.
-     */
-    @Test
-    public void testGenerateSalt() {
-        String salt = this.testedSvc.generateSalt();
-        assertThat(salt).as("Salt is not null nor blank").isNotNull().isNotBlank();
-        LOG.info("Salt: " + salt);
-    }
-
-    /**
      * Test of createValidationToken method, of class
      * MailSendingRequestTokenServiceImpl.
      */
     @Test
     public void testCreateThenValidateToken() {
-        String salt = this.testedSvc.generateSalt();
-        LOG.info("Salt: " + salt);
         String testId = "1234567890-abcdef1234-12";
-        String token = this.testedSvc.createValidationToken(testId, salt);
+        String token = this.testedSvc.createValidationToken(testId);
         assertThat(token).as("Token is not null nor blank").isNotNull().isNotBlank();
         //assertThat(token.split("\\.")).as("Token has only three points").hasSize(3);
         LOG.info("Token: " + token);

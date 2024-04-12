@@ -28,21 +28,13 @@ import jakarta.validation.constraints.NotBlank;
 public interface MailSendingRequestTokenService {
 
     /**
-     * Generate a secure random salt for token
-     *
-     * @return the salt, never null nor empty
-     */
-    String generateSalt();
-
-    /**
-     * Create a mail sending request validation token from its id and its salt
+     * Create a mail sending request validation token from its id
      *
      * @param mailSendingRequestId the request id
-     * @param salt the salt
      * @return the token
      * @throws ValidationException if given parameters are invalid
      */
-    String createValidationToken(@NotBlank String mailSendingRequestId, @NotBlank String salt) throws ValidationException;
+    String createValidationToken(@NotBlank String mailSendingRequestId) throws ValidationException;
 
     /**
      * Decode a sending request validation token and extract its id.

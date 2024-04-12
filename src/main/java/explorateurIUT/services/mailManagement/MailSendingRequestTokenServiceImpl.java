@@ -25,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -48,15 +49,15 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class MailSendingRequestTokenServiceImpl implements MailSendingRequestTokenService {
 
-    private final static String ENC_ALGO = "AES/CBC/PKCS5Padding";
-
     private static final Log LOG = LogFactory.getLog(MailSendingRequestTokenServiceImpl.class);
+
+    private final static String ENC_ALGO = "AES/CBC/PKCS5Padding";
+    private final static int SALT_SIZE = 10;
+    private final static int IV_SIZE = 16;
 
     private final MailSendingProperties mailSendingProperties;
 
     private final SecureRandom secureRnd;
-
-    private SecretKey secretKey;
 
     public MailSendingRequestTokenServiceImpl(MailSendingProperties mailSendingProperties) {
         this.mailSendingProperties = mailSendingProperties;
@@ -64,26 +65,32 @@ public class MailSendingRequestTokenServiceImpl implements MailSendingRequestTok
     }
 
     @Override
-    public String generateSalt() {
-        byte[] bytes = new byte[10];
-        secureRnd.nextBytes(bytes);
-        return encodeBase64(bytes);
-    }
-
-    @Override
-    public String createValidationToken(String mailSendingRequestId, String salt) throws ValidationException {
+    public String createValidationToken(String mailSendingRequestId) throws ValidationException {
         // merge id and salt
         try {
+            // Generate salt
+            final byte[] salt = this.generateSalt();
             // Create secret key. Use salt as salt
             final SecretKey key = getKeyFromPassword(this.mailSendingProperties.getTokenSecret(), salt);
             // create IV
-            IvParameterSpec ivParameterSpec = generateIv();
+            final byte[] iv = this.generateIv();
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
             // encrypt id with key and iv
-            final String cipherText = encrypt(mailSendingRequestId, key, ivParameterSpec);
-            // Concatenate citherText with salt and iv
-            final String token = cipherText + "." + salt + "." + encodeBase64(ivParameterSpec.getIV());
+            final byte[] cipherData = encrypt(mailSendingRequestId, key, ivParameterSpec);
+            // Concatenate cipherData with salt and iv
+            byte[] tokenData = new byte[cipherData.length + SALT_SIZE + IV_SIZE];
+            int i = 0;
+            for (int k = 0; k < cipherData.length; k++) {
+                tokenData[i++] = cipherData[k];
+            }
+            for (int k = 0; k < SALT_SIZE; k++) {
+                tokenData[i++] = salt[k];
+            }
+            for (int k = 0; k < IV_SIZE; k++) {
+                tokenData[i++] = iv[k];
+            }
             // encode the full token in base64
-            return encodeBase64(token.getBytes());
+            return encodeBase64(tokenData);
         } catch (InvalidKeySpecException | NoSuchAlgorithmException | NoSuchPaddingException
                 | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException
                 | InvalidKeyException ex) {
@@ -94,20 +101,22 @@ public class MailSendingRequestTokenServiceImpl implements MailSendingRequestTok
 
     @Override
     public String decodeToken(String token) throws ValidationException, IllegalArgumentException {
-        // Attempt to split token in cipher, salt and iv
-        final String unbasedToken = new String(decodeBase64(token));
-        final String[] components = unbasedToken.split("\\.");
-        if (components.length != 3) {
+        // decode token from base64 (may throw IllegalArgumentException)
+        final byte[] tokenData = decodeBase64(token);
+        // check token length is at minimum IV size + Salt size + 1
+        if (tokenData.length <= SALT_SIZE + IV_SIZE) {
             throw new IllegalArgumentException("Invalid token composition.");
         }
+        // prepare ciphe, salt and iv
+        final byte[] cipherData = Arrays.copyOfRange(tokenData, 0, tokenData.length - SALT_SIZE - IV_SIZE);
+        final byte[] salt = Arrays.copyOfRange(tokenData, cipherData.length, cipherData.length + SALT_SIZE);
+        final byte[] iv = Arrays.copyOfRange(tokenData, cipherData.length + SALT_SIZE, tokenData.length);
         try {
-            // Prepare cipher ,salt, iv
-            final String cipher = components[0];
-            final String salt = components[1];
+            // Prepare key and ivParameterSpec
             final SecretKey key = getKeyFromPassword(this.mailSendingProperties.getTokenSecret(), salt);
-            final IvParameterSpec ivParameterSpec = new IvParameterSpec(decodeBase64(components[2]));
-            // attempt to decryp
-            final String mailSendingRequestId = decrypt(cipher, key, ivParameterSpec);
+            final IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+            // Decrypt cipherData
+            final String mailSendingRequestId = decrypt(cipherData, key, ivParameterSpec);
             return mailSendingRequestId;
         } catch (InvalidKeySpecException | NoSuchAlgorithmException ex) {
             LOG.error("Cannot create validation token, bad algorithm.", ex);
@@ -118,49 +127,51 @@ public class MailSendingRequestTokenServiceImpl implements MailSendingRequestTok
         }
     }
 
+    protected byte[] generateSalt() {
+        byte[] bytes = new byte[SALT_SIZE];
+        secureRnd.nextBytes(bytes);
+        return bytes;
+    }
+
+    protected byte[] generateIv() {
+        byte[] iv = new byte[IV_SIZE];
+        secureRnd.nextBytes(iv);
+        return iv;
+    }
+
+    protected static SecretKey getKeyFromPassword(String password, byte[] salt)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 256);
+        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+        return secret;
+    }
+
+    protected static byte[] encrypt(String input, SecretKey key,
+            IvParameterSpec iv) throws NoSuchPaddingException, NoSuchAlgorithmException,
+            InvalidAlgorithmParameterException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(ENC_ALGO);
+        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+        byte[] cipherText = cipher.doFinal(input.getBytes());
+        return cipherText;
+    }
+
+    protected static String decrypt(byte[] cipherData, SecretKey key,
+            IvParameterSpec iv) throws NoSuchPaddingException, NoSuchAlgorithmException,
+            InvalidAlgorithmParameterException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(ENC_ALGO);
+        cipher.init(Cipher.DECRYPT_MODE, key, iv);
+        byte[] plainText = cipher.doFinal(cipherData);
+        return new String(plainText);
+    }
+
     protected static String encodeBase64(byte[] bytes) {
         return Base64.getEncoder().encodeToString(bytes);
     }
 
     protected static byte[] decodeBase64(String str) {
         return Base64.getDecoder().decode(str);
-    }
-
-    protected static SecretKey getKeyFromPassword(String password, String salt)
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
-
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 65536, 256);
-        SecretKey secret = new SecretKeySpec(factory.generateSecret(spec)
-                .getEncoded(), "AES");
-        return secret;
-    }
-
-    protected static IvParameterSpec generateIv() {
-        byte[] iv = new byte[16];
-        new SecureRandom().nextBytes(iv);
-        return new IvParameterSpec(iv);
-    }
-
-    protected static String encrypt(String input, SecretKey key,
-            IvParameterSpec iv) throws NoSuchPaddingException, NoSuchAlgorithmException,
-            InvalidAlgorithmParameterException, InvalidKeyException,
-            BadPaddingException, IllegalBlockSizeException {
-
-        Cipher cipher = Cipher.getInstance(ENC_ALGO);
-        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-        byte[] cipherText = cipher.doFinal(input.getBytes());
-        return encodeBase64(cipherText);
-    }
-
-    protected static String decrypt(String cipherText, SecretKey key,
-            IvParameterSpec iv) throws NoSuchPaddingException, NoSuchAlgorithmException,
-            InvalidAlgorithmParameterException, InvalidKeyException,
-            BadPaddingException, IllegalBlockSizeException {
-
-        Cipher cipher = Cipher.getInstance(ENC_ALGO);
-        cipher.init(Cipher.DECRYPT_MODE, key, iv);
-        byte[] plainText = cipher.doFinal(decodeBase64(cipherText));
-        return new String(plainText);
     }
 }
