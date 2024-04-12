@@ -18,10 +18,39 @@
  */
 package explorateurIUT.services.mailManagement;
 
+import jakarta.validation.ValidationException;
+import jakarta.validation.constraints.NotBlank;
+
 /**
  *
  * @author Remi Venant
  */
 public interface MailSendingRequestTokenService {
-    
+
+    /**
+     * Generate a secure random salt for token
+     *
+     * @return the salt, never null nor empty
+     */
+    String generateSalt();
+
+    /**
+     * Create a mail sending request validation token from its id and its salt
+     *
+     * @param mailSendingRequestId the request id
+     * @param salt the salt
+     * @return the token
+     * @throws ValidationException if given parameters are invalid
+     */
+    String createValidationToken(@NotBlank String mailSendingRequestId, @NotBlank String salt) throws ValidationException;
+
+    /**
+     * Decode a sending request validation token and extract its id.
+     *
+     * @param token the token
+     * @return the mail sending request id
+     * @throws ValidationException if the token is null or blank
+     * @throws IllegalArgumentException if the token cannot be decoded
+     */
+    String decodeToken(@NotBlank String token) throws ValidationException, IllegalArgumentException;
 }
