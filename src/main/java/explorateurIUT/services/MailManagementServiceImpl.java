@@ -18,6 +18,7 @@
  */
 package explorateurIUT.services;
 
+import explorateurIUT.services.mailManagement.MailQuotaService;
 import explorateurIUT.services.mailManagement.MailSendingRequest;
 import jakarta.validation.ValidationException;
 import java.time.LocalDateTime;
@@ -36,7 +37,6 @@ import org.springframework.validation.annotation.Validated;
 public class MailManagementServiceImpl implements MailManagementService {
 
     private static final Log LOG = LogFactory.getLog(MailManagementServiceImpl.class);
-
     @Override
     public LocalDateTime requestMailSending(MailSendingRequest sendingRequest) throws ValidationException {
         LOG.debug("requestMailSending: TO IMPLEMENT!");
@@ -58,5 +58,16 @@ public class MailManagementServiceImpl implements MailManagementService {
     public void confirmMailSendingRequest(String confirmationToken) throws ValidationException, NoSuchElementException {
         LOG.debug("confirmMailSendingRequest: TO IMPLEMENT!");
     }
+
+    @Override
+    public boolean confirmTotalQuota(){
+        return MailQuotaService.maxRequestAll();
+    };
+
+   @Override 
+   public boolean confirmIPQuota(@NotBlank String clientIP) throws ValidationException;
+
+   @Override
+   public boolean contentValidation();
 
 }
