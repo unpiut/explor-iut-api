@@ -18,10 +18,26 @@
  */
 package explorateurIUT.services.mailManagement;
 
+import jakarta.validation.ValidationException;
+import jakarta.validation.constraints.NotBlank;
+
 /**
  *
  * @author Remi Venant
  */
 public interface MailQuotaService {
+    /**
+     * Ask the DB if the simultaneous mail limit is reached
+     * @return true if the limit isn't reached
+     */
+    boolean maxRequestAll();
+
+    /**
+     * Ask the DB if the Client IP address's mail limit is reached
+     * @param clientIP : IP of the form's user
+     * @return true if the limit isn't reached
+     * @throws ValidationException if given parameters are invalid
+     */
+    boolean maxRequestIP(@NotBlank String clientIP) throws ValidationException;
     
 }
