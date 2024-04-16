@@ -29,16 +29,17 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 
 /**
- * 
+ *
  * @author Julien Fourdan
  */
-@Document(collection="PendingMail")
+@Document(collection = "PendingMails")
 public class PendingMail {
+
     @Id
-    private String Id;
+    private String id;
 
     @NotEmpty
-    private List<String> emailIUT;
+    private List<String> IUTmailRecipients;
 
     @NotBlank
     private String subject;
@@ -52,30 +53,30 @@ public class PendingMail {
     @CreatedDate
     private LocalDateTime createdDateTime;
 
-    protected PendingMail(){
+    protected PendingMail() {
     }
 
-    public PendingMail(List<String> emailIUT, String subject, String body, String replyTo){
-        this.emailIUT = emailIUT;
+    public PendingMail(List<String> IUTmailRecipients, String subject, String body, String replyTo) {
+        this.IUTmailRecipients = IUTmailRecipients;
         this.subject = subject;
         this.body = body;
         this.replyTo = replyTo;
     }
 
     public String getId() {
-        return Id;
+        return id;
     }
 
     protected void setId(String id) {
-        Id = id;
+        this.id = id;
     }
 
-    public List<String> getEmailIUT() {
-        return emailIUT;
+    public List<String> getIUTmailRecipients() {
+        return IUTmailRecipients;
     }
 
-    public void setEmailIUT(List<String> emailIUT) {
-        this.emailIUT = emailIUT;
+    public void setIUTmailRecipients(List<String> IUTmailRecipients) {
+        this.IUTmailRecipients = IUTmailRecipients;
     }
 
     public String getSubject() {

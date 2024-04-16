@@ -25,18 +25,24 @@ import jakarta.validation.constraints.NotNull;
 
 /**
  * Service for forging final mail content (subject, body)
+ *
  * @author Remi Venant
  */
 public interface MailContentForgerService {
+
     /**
-     * Creation of the final body with the fusion of first form informations and original body
+     * Creation of the final body with the fusion of first form informations and
+     * original body
+     *
      * @param mailSendingRequest: mail sending request
+     * @return the mail body
      * @throws ValidationException if given parameters are invalid
      */
     String createBody(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
 
     /**
      * Creation of the list of mail destinations
+     *
      * @param mailSendingRequest
      * @return
      * @throws ValidationException
