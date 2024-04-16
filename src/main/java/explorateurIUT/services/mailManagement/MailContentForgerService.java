@@ -18,6 +18,8 @@
  */
 package explorateurIUT.services.mailManagement;
 
+import java.util.List;
+
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotNull;
 
@@ -32,4 +34,12 @@ public interface MailContentForgerService {
      * @throws ValidationException if given parameters are invalid
      */
     String createBody(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
+
+    /**
+     * Creation of the list of mail destinations
+     * @param mailSendingRequest
+     * @return
+     * @throws ValidationException
+     */
+    List<String> createListMail(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
 }

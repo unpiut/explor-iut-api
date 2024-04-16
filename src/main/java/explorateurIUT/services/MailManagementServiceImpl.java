@@ -18,9 +18,14 @@
  */
 package explorateurIUT.services;
 
+import explorateurIUT.model.PendingMail;
+import explorateurIUT.model.PendingMailRepository;
+import explorateurIUT.services.mailManagement.MailContentForgerService;
+import explorateurIUT.services.mailManagement.MailContentValidationService;
 import explorateurIUT.services.mailManagement.MailSendingRequest;
 import jakarta.validation.ValidationException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,10 +39,18 @@ import org.springframework.validation.annotation.Validated;
 @Service
 @Validated
 public class MailManagementServiceImpl implements MailManagementService {
-
+    private MailContentForgerService mailContentForger;
+    private MailContentValidationService mailContentValidation;
     private static final Log LOG = LogFactory.getLog(MailManagementServiceImpl.class);
     @Override
     public LocalDateTime requestMailSending(MailSendingRequest sendingRequest) throws ValidationException {
+        String body = mailContentForger.createBody(sendingRequest);
+        List<String> listMailIUT = mailContentForger.createListMail(sendingRequest);
+        if(mailContentValidation.isValid(body) && mailContentValidation.isValid(sendingRequest.getSubject())) {
+        PendingMail pendingMail = new PendingMail(listMailIUT, sendingRequest.getSubject(), body,sendingRequest.getContactMail());
+        PendingMailRepository pendingMailRepository;
+        //pendingMailRepository.insert(pendingMail);
+        };
         LOG.debug("requestMailSending: TO IMPLEMENT!");
         return LocalDateTime.now();
     }
