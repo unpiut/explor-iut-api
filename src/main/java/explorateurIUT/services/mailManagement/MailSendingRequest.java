@@ -20,10 +20,13 @@ package explorateurIUT.services.mailManagement;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -36,16 +39,21 @@ public class MailSendingRequest {
     @NotEmpty
     Collection<@NotNull @Pattern(regexp = "[abcdef0-9]{24}", flags = Pattern.Flag.CASE_INSENSITIVE) String> iutIds;
     @NotBlank
+    @Size(max = 200)
     String contactIdentity;
     @NotBlank
+    @Size(max = 200)
     String contactCompany;
     @NotBlank
+    @Size(max = 200)
     String contactFunction;
     @Email
+    @Size(max = 200)
     String contactMail;
     @NotBlank
     String subject;
     @NotBlank
+    @Size(max = 2000)
     String body;
     List<@NotNull @Valid MailRequestAttachement> attachements;
 
