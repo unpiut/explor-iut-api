@@ -100,7 +100,7 @@ public class IUTRepositoryTest {
                 .streamMailOnlyByIdInAndMelIsNotNull(List.of(ti.getIutLannion().getId()))
                 .toList();
         assertThat(res).as("Request only one iut that has no mail is empty").isEmpty();
-        
+
         res = this.testedRepo
                 .streamMailOnlyByIdInAndMelIsNotNull(List.of(ti.getIutLaval().getId(), ti.getIutLaval().getId(), ti.getIutLaval().getId()))
                 .toList();
