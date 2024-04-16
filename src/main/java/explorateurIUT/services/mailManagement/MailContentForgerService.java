@@ -47,5 +47,5 @@ public interface MailContentForgerService {
      * @return
      * @throws ValidationException
      */
-    List<String> createListMail(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
+    List<String> createIUTMailingList(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
 }
