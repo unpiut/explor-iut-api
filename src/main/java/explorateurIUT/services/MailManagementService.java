@@ -77,27 +77,4 @@ public interface MailManagementService {
      * confirmation token
      */
     void confirmMailSendingRequest(@NotBlank String confirmationToken) throws ValidationException, NoSuchElementException;
-
-    /**
-     * Check if the total quota of DB ask is reached
-     * @return true if this quota isn't reached
-     */
-    boolean confirmTotalQuota();
-
-
-    /**
-     * Check if the client quota of DB ask is reached
-     * @param clientIP IP of the client
-     * @return true if this quota isn't reached
-     * @throws ValidationException if given parameters are invalid
-     */
-    boolean confirmIPQuota(@NotBlank String clientIP) throws ValidationException;
-
-    /**
-     * Function who sanitize the mail
-     * @return true if any error is find
-     */
-    boolean contentValidation();
-
-
 }
