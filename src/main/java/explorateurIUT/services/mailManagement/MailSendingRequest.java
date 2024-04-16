@@ -33,105 +33,26 @@ import java.util.List;
  *
  * @author Remi Venant
  */
-public class MailSendingRequest {
-
-    @NotEmpty
-    Collection<@NotNull @Pattern(regexp = "[abcdef0-9]{24}", flags = Pattern.Flag.CASE_INSENSITIVE) String> iutIds;
-    @NotBlank
-    @Size(max = 200)
-    String contactIdentity;
-    @NotBlank
-    @Size(max = 200)
-    String contactCompany;
-    @NotBlank
-    @Size(max = 200)
-    String contactFunction;
-    @Email
-    @Size(max = 200)
-    String contactMail;
-    @NotBlank
-    String subject;
-    @NotBlank
-    @Size(max = 2000)
-    String body;
-    List<@NotNull @Valid MailRequestAttachement> attachements;
-
-    public MailSendingRequest() {
-    }
-
-    public MailSendingRequest(Collection<String> iutIds, String contactIdentity, String contactCompany, String contactFunction, String contactMail, String subject, String body, List<MailRequestAttachement> attachements) {
-        this.iutIds = iutIds;
-        this.contactIdentity = contactIdentity;
-        this.contactCompany = contactCompany;
-        this.contactFunction = contactFunction;
-        this.contactMail = contactMail;
-        this.subject = subject;
-        this.body = body;
-        this.attachements = attachements;
-    }
-
-    public Collection<String> getIutIds() {
-        return iutIds;
-    }
-
-    public void setIutIds(Collection<String> iutIds) {
-        this.iutIds = iutIds;
-    }
-
-    public String getContactIdentity() {
-        return contactIdentity;
-    }
-
-    public void setContactIdentity(String contactIdentity) {
-        this.contactIdentity = contactIdentity;
-    }
-
-    public String getContactCompany() {
-        return contactCompany;
-    }
-
-    public void setContactCompany(String contactCompany) {
-        this.contactCompany = contactCompany;
-    }
-
-    public String getContactFunction() {
-        return contactFunction;
-    }
-
-    public void setContactFunction(String contactFunction) {
-        this.contactFunction = contactFunction;
-    }
-
-    public String getContactMail() {
-        return contactMail;
-    }
-
-    public void setContactMail(String contactMail) {
-        this.contactMail = contactMail;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public List<MailRequestAttachement> getAttachements() {
-        return attachements;
-    }
-
-    public void setAttachements(List<MailRequestAttachement> attachements) {
-        this.attachements = attachements;
-    }
+public record MailSendingRequest(
+        @NotEmpty
+        Collection<@NotNull @Pattern(regexp = "[abcdef0-9]{24}", flags = Pattern.Flag.CASE_INSENSITIVE) String> iutIds,
+        @NotBlank
+        @Size(max = 200)
+        String contactIdentity,
+        @NotBlank
+        @Size(max = 200)
+        String contactCompany,
+        @NotBlank
+        @Size(max = 200)
+        String contactFunction,
+        @Email
+        @Size(max = 200)
+        String contactMail,
+        @NotBlank
+        String subject,
+        @NotBlank
+        @Size(max = 2000)
+        String body,
+        List<@NotNull @Valid MailRequestAttachement> attachements) {
 
 }

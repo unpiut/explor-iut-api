@@ -46,8 +46,8 @@ public class MailManagementServiceImpl implements MailManagementService {
     public LocalDateTime requestMailSending(MailSendingRequest sendingRequest) throws ValidationException {
         String body = mailContentForger.createBody(sendingRequest);
         List<String> listMailIUT = mailContentForger.createListMail(sendingRequest);
-        if(mailContentValidation.isValid(body) && mailContentValidation.isValid(sendingRequest.getSubject())) {
-        PendingMail pendingMail = new PendingMail(listMailIUT, sendingRequest.getSubject(), body,sendingRequest.getContactMail());
+        if(mailContentValidation.isValid(body) && mailContentValidation.isValid(sendingRequest.subject())) {
+        PendingMail pendingMail = new PendingMail(listMailIUT, sendingRequest.subject(), body,sendingRequest.contactMail());
         PendingMailRepository pendingMailRepository;
         //pendingMailRepository.insert(pendingMail);
         };
