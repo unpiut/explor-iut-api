@@ -27,12 +27,10 @@ import jakarta.validation.constraints.NotBlank;
  */
 public interface MailContentValidationService {
     /**
-     * Sanitize the mail informations
-     * @param informations : Informations of the first form (name, entreprise name, function of the client and his mail)
-     * @param body : body of the mail
-     * @param subject : subject of the mail
+     * Check if the mail informations are valid
+     * @param mailContent: any content included in the mail
      * @return true if the sanitizer detect nothing
      * @throws ValidationException if given parameters are invalid
      */
-    boolean sanitizer(@NotBlank String[] informations,@NotBlank String body,@NotBlank String subject) throws ValidationException;
+    boolean isValid(@NotBlank String mailContent) throws ValidationException;
 }
