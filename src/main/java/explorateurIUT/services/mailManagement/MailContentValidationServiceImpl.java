@@ -1,16 +1,23 @@
 package explorateurIUT.services.mailManagement;
 
+import org.jsoup.safety.Cleaner;
+import org.jsoup.safety.Safelist;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import jakarta.annotation.PostConstruct;
+
+@Service
+@Validated
 public class MailContentValidationServiceImpl implements MailContentValidationService{
-    public boolean sanitizer(String[] informations,String body, String subject){
-        try{
-            for(int i=0;i<informations.length;i++){
-                //sanitize(informations[i]);
-            }
-            //sanitize(body);
-            //sanitize(subject);
-        } catch(Error err) {
-            throw err;
-        }
-        return true;
+    private Cleaner cleaner;
+
+    @PostConstruct
+    public void init(){
+        this.cleaner = new Cleaner(Safelist.none());
+    }
+
+    public boolean isValid(String mailContent){
+        return this.cleaner.isValidBodyHtml(mailContent);
     }
 }
