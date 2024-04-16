@@ -18,6 +18,8 @@
  */
 package explorateurIUT.services.mailManagement;
 
+import java.util.List;
+
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotBlank;
 
@@ -26,18 +28,26 @@ import jakarta.validation.constraints.NotBlank;
  * @author Remi Venant
  */
 public interface MailQuotaService {
+   
     /**
      * Ask the DB if the simultaneous mail limit is reached
-     * @return true if the limit isn't reached
      */
-    boolean maxRequestAll();
+    void checkGlobalRequestLimit();
 
     /**
      * Ask the DB if the Client IP address's mail limit is reached
      * @param clientIP : IP of the form's user
-     * @return true if the limit isn't reached
      * @throws ValidationException if given parameters are invalid
      */
-    boolean maxRequestIP(@NotBlank String clientIP) throws ValidationException;
+    void checkRequestPerClientLimit(@NotBlank String clientIP) throws ValidationException;
+
+    
+    /**
+     * Ask the DB if the Client IP address's mail already send mail to this dep in the 72h
+     * @param clientIP IP of the client
+     * @param idDepList List of the Id of the departments selected
+     * @throws ValidationException
+     */
+    void checkRequestPerClientPerDepLimit(@NotBlank String clientIP, List<String> idDepList) throws ValidationException;
     
 }
