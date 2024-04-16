@@ -21,6 +21,7 @@ package explorateurIUT.model;
 import explorateurIUT.configuration.MongoConfiguration;
 import explorateurIUT.configuration.TestDatasetConfig;
 import explorateurIUT.model.projections.DepartementSummary;
+import explorateurIUT.model.projections.IUTMailOnly;
 import explorateurIUT.model.projections.IUTSummary;
 import java.util.Collection;
 import java.util.List;
@@ -84,6 +85,27 @@ public class IUTRepositoryTest {
                 .flatMap(IUTSummary::getDepartements).map(DepartementSummary::getCode).containsExactlyInAnyOrder(
                 "Dept-Laval-GB", "Dept-Laval-MMI", "Dept-Laval-INFO",
                 "Dept-Lannion-MMI", "Dept-Lannion-INFO");
+    }
+
+    @Test
+    public void testStreamMailOnlyByIdInAndMelIsNotNull() {
+        final TestDatasetGenerator.TestInstances ti = this.testDataset.getTestInstances();
+        List<IUTMailOnly> res = this.testedRepo
+                .streamMailOnlyByIdInAndMelIsNotNull(List.of(ti.getIutLannion().getId(), ti.getIutLaval().getId()))
+                .toList();
+        assertThat(res).as("Request two iut, got one email").hasSize(1);
+        assertThat(res.getFirst().getMel()).as("Mail is Laval mail").isEqualTo(ti.getIutLaval().getMel());
+
+        res = this.testedRepo
+                .streamMailOnlyByIdInAndMelIsNotNull(List.of(ti.getIutLannion().getId()))
+                .toList();
+        assertThat(res).as("Request only one iut that has no mail is empty").isEmpty();
+        
+        res = this.testedRepo
+                .streamMailOnlyByIdInAndMelIsNotNull(List.of(ti.getIutLaval().getId(), ti.getIutLaval().getId(), ti.getIutLaval().getId()))
+                .toList();
+        assertThat(res).as("Request three same iut, got one email").hasSize(1);
+        assertThat(res.getFirst().getMel()).as("Mail is Laval mail").isEqualTo(ti.getIutLaval().getMel());
     }
 
     @Test

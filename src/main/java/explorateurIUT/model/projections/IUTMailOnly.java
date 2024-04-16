@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 IUT Laval - Le Mans Université.
+ * Copyright (C) 2024 IUT Laval - Le Mans Université.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,21 +16,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package explorateurIUT.model;
-
-import explorateurIUT.model.projections.IUTMailOnly;
-import explorateurIUT.model.projections.IUTSummary;
-import java.util.Collection;
-import java.util.stream.Stream;
-import org.springframework.data.mongodb.repository.MongoRepository;
+package explorateurIUT.model.projections;
 
 /**
  *
  * @author Remi Venant
  */
-public interface IUTRepository extends MongoRepository<IUT, String>, IUTRepositoryCustom {
+public interface IUTMailOnly {
 
-    Stream<IUTSummary> streamSummariesBy();
-
-    Stream<IUTMailOnly> streamMailOnlyByIdInAndMelIsNotNull(Collection<String> ids);
+    String getMel();
 }
