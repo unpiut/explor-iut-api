@@ -65,18 +65,17 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
 
     @Override
     public String createConfirmationMailSubject() {
-        // TODO: Implement
-        return "Confirmation";
+        return "Explor'IUT - Confirmation de la recherche d'alternance";
     }
 
     @Override
     public String createConfirmationMailBody(String contactIdentity, String confirmationUrl) {
-        // TODO: Implement
         StringBuilder sb = new StringBuilder("Bonjour");
         sb.append(contactIdentity).append(",").append(NEW_LINE_MAIL)
-                .append("Vous devez confirmer votre envoie en cliquant sur ce lien : ")
+                .append("Suite à votre demande de contact avec les IUT de France.").append(NEW_LINE_MAIL)
+                .append("Vous devez confirmer votre envoi en cliquant sur ce lien : ")
                 .append(confirmationUrl).append(".").append(NEW_LINE_MAIL).append(NEW_LINE_MAIL)
-                .append("Cordialement,");
+                .append("Cordialement,").append(NEW_LINE_MAIL).append("Explor'IUT");
         return sb.toString();
     }
 
