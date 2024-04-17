@@ -38,7 +38,7 @@ public class CorsConfiguration {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedMethods("OPTIONS", "HEAD", "GET")
+                        .allowedMethods("OPTIONS", "HEAD", "GET", "POST")
                         .allowedOrigins("*")
                         .maxAge(Duration.ofDays(7).toSeconds());
             }

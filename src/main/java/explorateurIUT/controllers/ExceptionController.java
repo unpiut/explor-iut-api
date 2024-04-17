@@ -32,6 +32,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -100,6 +101,14 @@ public class ExceptionController {
     ResponseEntity<ErrorMessage> handleMethodUnsupported(HttpServletRequest request, HttpRequestMethodNotSupportedException ex) {
         final HttpStatus status = HttpStatus.METHOD_NOT_ALLOWED;
         final String error = "Méthode non supportée.";
+        return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public @ResponseBody
+    ResponseEntity<ErrorMessage> handleMissingServletRequestPartException(HttpServletRequest request, HttpRequestMethodNotSupportedException ex) {
+        final HttpStatus status = HttpStatus.BAD_REQUEST;
+        final String error = "Fichier manquant";
         return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
     }
 
