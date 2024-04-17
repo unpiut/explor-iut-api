@@ -51,7 +51,9 @@ public class PendingMail {
     private String replyTo;
 
     @CreatedDate
-    private LocalDateTime createdDateTime;
+    private LocalDateTime creationDateTime;
+
+    private LocalDateTime lastConfirmationMail;
 
     protected PendingMail() {
     }
@@ -103,11 +105,20 @@ public class PendingMail {
         this.replyTo = replyTo;
     }
 
-    public LocalDateTime getCreatedDateTime() {
-        return createdDateTime;
+    public LocalDateTime getCreationDateTime() {
+        return creationDateTime;
     }
 
-    protected void setCreatedDateTime(LocalDateTime createdDateTime) {
-        this.createdDateTime = createdDateTime;
+    protected void setCreationDateTime(LocalDateTime creationDateTime) {
+        this.creationDateTime = creationDateTime;
     }
+
+    public LocalDateTime getLastConfirmationMail() {
+        return lastConfirmationMail;
+    }
+
+    protected void setLastConfirmationMail(LocalDateTime lastConfirmationMail) {
+        this.lastConfirmationMail = lastConfirmationMail;
+    }
+
 }

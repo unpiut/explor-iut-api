@@ -20,6 +20,7 @@ package explorateurIUT.services;
 
 import explorateurIUT.services.mailManagement.MailSendingRequest;
 import jakarta.validation.ConstraintViolationException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import static org.assertj.core.api.Assertions.*;
@@ -67,13 +68,14 @@ public class MailManagementServiceTest {
      */
     @Test
     public void testRequestMailSendingValidation() {
+        URI baseUri = URI.create("http://localhost:8080");
         assertThatThrownBy(()
-                -> this.testedSvc.requestMailSending(new MailSendingRequest(null, "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null)))
+                -> this.testedSvc.requestMailSending(new MailSendingRequest(null, "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null), baseUri))
                 .as("Null iutIds rejected")
                 .isInstanceOf(ConstraintViolationException.class);
 
         assertThatThrownBy(()
-                -> this.testedSvc.requestMailSending(new MailSendingRequest(null, "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null)))
+                -> this.testedSvc.requestMailSending(new MailSendingRequest(null, "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null), baseUri))
                 .as("Empty iutIds rejected")
                 .isInstanceOf(ConstraintViolationException.class);
 
@@ -81,16 +83,16 @@ public class MailManagementServiceTest {
         listWithNull.add("0000000000-0000000000-00");
         listWithNull.add(null);
         assertThatThrownBy(()
-                -> this.testedSvc.requestMailSending(new MailSendingRequest(listWithNull, "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null)))
+                -> this.testedSvc.requestMailSending(new MailSendingRequest(listWithNull, "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null), baseUri))
                 .as("Null iutId in iutIds rejected")
                 .isInstanceOf(ConstraintViolationException.class);
 
         assertThatThrownBy(()
-                -> this.testedSvc.requestMailSending(new MailSendingRequest(List.of("0000000000-0000000000-00", "0000000000-0000000000-g0"), "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null)))
+                -> this.testedSvc.requestMailSending(new MailSendingRequest(List.of("0000000000-0000000000-00", "0000000000-0000000000-g0"), "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null), baseUri))
                 .as("invalid iutId in iutIds rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.testedSvc.requestMailSending(new MailSendingRequest(List.of("0000000000-0000000000-00", "0000000000-0000000000-0"), "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null)))
+                -> this.testedSvc.requestMailSending(new MailSendingRequest(List.of("0000000000-0000000000-00", "0000000000-0000000000-0"), "Jean Bon", "Entreprise", "PDG", "jean.bon@mail.com", "le sujet", "le corps", null), baseUri))
                 .as("invalid (bis) iutId in iutIds rejected")
                 .isInstanceOf(ConstraintViolationException.class);
     }

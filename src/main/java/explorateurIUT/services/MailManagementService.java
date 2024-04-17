@@ -24,6 +24,8 @@ import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
@@ -36,15 +38,19 @@ public interface MailManagementService {
 
     /**
      * Given a mail sending request, store it in pending requests, send a
-     * confirmation link by mail to the contact. The create date returned can be
-     * used after in conjonction with the contact mail to re-send the
-     * confirmation mail
+     * confirmation link by mail to the contact.
+     *
+     * The create date returned can be used after in conjonction with the
+     * contact mail to re-send the confirmation mail.
      *
      * @param sendingRequest the mail sending request
+     * @param serverBaseURI the server base URI to use to generate the
+     * confirmation link.
      * @return the creation datetime
      * @throws ValidationException if given parameters are invalid
+     * @throws java.io.IOException if an error happens while saving attachement
      */
-    LocalDateTime requestMailSending(@NotNull @Valid MailSendingRequest sendingRequest) throws ValidationException;
+    LocalDateTime requestMailSending(@NotNull @Valid MailSendingRequest sendingRequest, @NotNull URI serverBaseURI) throws ValidationException, IOException;
 
     /**
      * Re-send the confirmation mail related to a pending mail sending request,
@@ -52,11 +58,13 @@ public interface MailManagementService {
      *
      * @param creationDatetime the creation date
      * @param contactMail the contact mail address
+     * @param serverBaseURI the server base URI to use to generate the
+     * confirmation link.
      * @throws ValidationException if given parameters are invalid
      * @throws NoSuchElementException if no pending mail request matches
      * creationDatetime and contactMail
      */
-    void resendConfirmationMail(@NotNull LocalDateTime creationDatetime, @NotNull @Email String contactMail) throws ValidationException, NoSuchElementException;
+    void resendConfirmationMail(@NotNull LocalDateTime creationDatetime, @NotNull @Email String contactMail, @NotNull URI serverBaseURI) throws ValidationException, NoSuchElementException;
 
     /**
      * Remove all pending mail request that have been created more than 6 hours

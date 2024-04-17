@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 IUT Laval - Le Mans Université.
+ * Copyright (C) 2024 IUT Laval - Le Mans Université.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,21 +18,23 @@
  */
 package explorateurIUT.model;
 
+import com.mongodb.client.gridfs.model.GridFSFile;
+import explorateurIUT.services.mailManagement.MailRequestAttachement;
 import java.time.LocalDateTime;
-import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Update;
+import java.util.stream.Stream;
 
 /**
  *
- * @author Julien Fourdan
+ * @author Remi Venant
  */
-public interface PendingMailRepository extends MongoRepository<PendingMail, String> {
+public interface PendingMailAttachementRepository {
 
-    Optional<PendingMail> findByCreationDateTimeAndReplyTo(LocalDateTime creationDateTime, String replyTo);
+    void save(MailRequestAttachement attachement, PendingMail pendingMail);
+
+    Stream<GridFSFile> streamByPendingMailId(String pendingMailId);
 
     void deleteByCreationDateTimeBefore(LocalDateTime creationDateTime);
 
-    @Update("{ '$set' : { 'lastConfirmationMail' : ?1 } }")
-    long findAndSetLastConfirmationMailById(String id, LocalDateTime lastConfirmationMail);
+    void deleteByPendingMailId(String pendingMailId);
+
 }

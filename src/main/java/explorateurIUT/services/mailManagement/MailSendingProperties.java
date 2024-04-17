@@ -49,6 +49,12 @@ public class MailSendingProperties {
     @Email
     private String testingMailAddress;
 
+    private int maxAttachementNumber = 3;
+
+    private int maxAttachementsTotalSizeMB = 10;
+
+    private int maxAttachementSizeMB = 10;
+
     public MailSendingProperties() {
     }
 
@@ -90,6 +96,30 @@ public class MailSendingProperties {
 
     public void setTestingMailAddress(String testingMailAddress) {
         this.testingMailAddress = testingMailAddress;
+    }
+
+    public int getMaxAttachementNumber() {
+        return maxAttachementNumber;
+    }
+
+    public void setMaxAttachementNumber(int maxAttachementNumber) {
+        this.maxAttachementNumber = maxAttachementNumber;
+    }
+
+    public int getMaxAttachementsTotalSizeMB() {
+        return maxAttachementsTotalSizeMB;
+    }
+
+    public void setMaxAttachementsTotalSizeMB(int maxAttachementsTotalSizeMB) {
+        this.maxAttachementsTotalSizeMB = maxAttachementsTotalSizeMB;
+    }
+
+    public int getMaxAttachementSizeMB() {
+        return maxAttachementSizeMB;
+    }
+
+    public void setMaxAttachementSizeMB(int maxAttachementSizeMB) {
+        this.maxAttachementSizeMB = maxAttachementSizeMB;
     }
 
 }

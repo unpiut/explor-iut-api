@@ -48,4 +48,8 @@ public interface MailContentForgerService {
      * @throws ValidationException
      */
     List<String> createIUTMailingList(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
+
+    String createConfirmationMailSubject();
+
+    String createConfirmationMailBody(String contactIdentity, String confirmationUrl);
 }

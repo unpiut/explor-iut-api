@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package explorateurIUT.services;
+package explorateurIUT.services.mailManagement;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
@@ -29,11 +29,12 @@ import static org.assertj.core.api.Assertions.*;
  *
  * @author Remi Venant
  */
-public class MailManagementServiceImplTest {
+public class MailContentValidationServiceImplTest {
 
-    private MailManagementServiceImpl testedSvc;
+    private MailSendingProperties mailSendingProp;
+    private MailContentValidationServiceImpl mailContentValidationServiceImpl;
 
-    public MailManagementServiceImplTest() {
+    public MailContentValidationServiceImplTest() {
     }
 
     @BeforeAll
@@ -46,7 +47,9 @@ public class MailManagementServiceImplTest {
 
     @BeforeEach
     public void setUp() {
-        this.testedSvc = new MailManagementServiceImpl();
+        this.mailSendingProp = new MailSendingProperties();
+        this.mailContentValidationServiceImpl = new MailContentValidationServiceImpl(this.mailSendingProp);
+        this.mailContentValidationServiceImpl.init();
     }
 
     @AfterEach
@@ -54,42 +57,14 @@ public class MailManagementServiceImplTest {
     }
 
     /**
-     * Test of requestMailSending method, of class MailManagementServiceImpl.
+     * Test of isValid method, of class MailContentValidationServiceImpl.
      */
     @Test
-    public void testRequestMailSending() {
-        System.out.println("requestMailSending");
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of resendConfirmationMail method, of class
-     * MailManagementServiceImpl.
-     */
-    @Test
-    public void testResendConfirmationMail() {
-        System.out.println("resendConfirmationMail");
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of removeOutdatedPendingMailRequest method, of class
-     * MailManagementServiceImpl.
-     */
-    @Test
-    public void testRemoveOutdatedPendingMailRequest() {
-        System.out.println("removeOutdatedPendingMailRequest");
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of confirmMailSendingRequest method, of class
-     * MailManagementServiceImpl.
-     */
-    @Test
-    public void testConfirmMailSendingRequest() {
-        System.out.println("confirmMailSendingRequest");
-        fail("The test case is a prototype.");
+    public void testIsValid() {
+        String context = "A clean content";
+        assertThat(this.mailContentValidationServiceImpl.isValid(context)).as("Clean content is valid").isTrue();
+        context = "A html inject <a href=\"click here\">content</a>";
+        assertThat(this.mailContentValidationServiceImpl.isValid(context)).as("Html content is invalid").isFalse();
     }
 
 }

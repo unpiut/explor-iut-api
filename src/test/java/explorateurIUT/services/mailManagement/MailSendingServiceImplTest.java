@@ -23,6 +23,7 @@ import com.dumbster.smtp.SmtpMessage;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import static org.assertj.core.api.Assertions.*;
@@ -82,7 +83,7 @@ public class MailSendingServiceImplTest {
         msp.setFromAddress("from@mail.com");
         msp.setSendingType("cc"); // we cannot test bcc as it wont be shown
 
-        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp);
+        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp, null);
 
         String replyTo = "reply@mail.com";
         String subject = "The subject";
@@ -90,7 +91,7 @@ public class MailSendingServiceImplTest {
         List<String> recipients = List.of("recipient1@mail.com", "recipient2@mail.com");
 
         LOG.info("Send mail");
-        mailSendingSvc.sendMailToIUT(recipients, replyTo, subject, body, null);
+        mailSendingSvc.sendMailToIUT(recipients, replyTo, subject, body, Stream.empty());
         LOG.info("Check if mail received");
         assertThat(server.getReceivedEmails()).hasSize(1);
         LOG.info("Assess mail info");
@@ -109,7 +110,7 @@ public class MailSendingServiceImplTest {
         msp.setFromAddress("from@mail.com");
         msp.setSendingType("cc"); // we cannot test bcc as it wont be shown
         msp.setTestingMailAddress("test@mail.com");
-        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp);
+        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp, null);
 
         String replyTo = "reply@mail.com";
         String subject = "The subject";
@@ -117,7 +118,7 @@ public class MailSendingServiceImplTest {
         List<String> recipients = List.of("recipient1@mail.com", "recipient2@mail.com");
 
         LOG.info("Send mail");
-        mailSendingSvc.sendMailToIUT(recipients, replyTo, subject, body, null);
+        mailSendingSvc.sendMailToIUT(recipients, replyTo, subject, body, Stream.empty());
         LOG.info("Check if mail received");
         assertThat(server.getReceivedEmails()).hasSize(1);
         LOG.info("Assess mail info");

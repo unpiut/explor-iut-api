@@ -18,6 +18,7 @@
  */
 package explorateurIUT.services.mailManagement;
 
+import com.mongodb.client.gridfs.model.GridFSFile;
 import jakarta.mail.MessagingException;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Email;
@@ -25,8 +26,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
-import java.util.List;
-import org.springframework.data.mongodb.gridfs.GridFsResource;
+import java.util.stream.Stream;
 import org.springframework.mail.MailException;
 
 /**
@@ -42,7 +42,8 @@ public interface MailSendingService {
      * @param replyTo mail address of contact
      * @param subject mail subject
      * @param body mail body
-     * @param attachements possible attachment (can be null)
+     * @param attachements possible attachments as stream (not null but can be
+     * empty)
      * @throws ValidationException if given parameters are invalid
      * @throws MailException if unable to send mail
      * @throws MessagingException if unable to create mail message
@@ -51,7 +52,7 @@ public interface MailSendingService {
             @NotNull @Email String replyTo,
             @NotBlank String subject,
             @NotBlank String body,
-            List<@NotNull GridFsResource> attachements) throws ValidationException, MailException, MessagingException;
+            @NotNull Stream<GridFSFile> attachements) throws ValidationException, MailException, MessagingException;
 
     /**
      * Send a mail to a particular contact.

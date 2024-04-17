@@ -20,17 +20,28 @@ package explorateurIUT.services.mailManagement;
 
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  *
  * @author Remi Venant
  */
 public interface MailContentValidationService {
+
     /**
      * Check if the mail informations are valid
+     *
      * @param mailContent: any content included in the mail
      * @return true if the sanitizer detect nothing
      * @throws ValidationException if given parameters are invalid
      */
     boolean isValid(@NotBlank String mailContent) throws ValidationException;
+
+    /**
+     * Check if attachements match the different limit (number, total size, size per attachement)
+     * @param attachements
+     * @return
+     * @throws ValidationException 
+     */
+    boolean isValid(List<MailRequestAttachement> attachements) throws ValidationException;
 }

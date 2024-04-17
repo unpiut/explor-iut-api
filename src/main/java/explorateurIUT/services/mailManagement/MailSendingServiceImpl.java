@@ -18,17 +18,21 @@
  */
 package explorateurIUT.services.mailManagement;
 
+import com.mongodb.client.gridfs.model.GridFSFile;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.ValidationException;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.InputStreamSource;
+import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -50,14 +54,17 @@ public class MailSendingServiceImpl implements MailSendingService {
 
     private final MailSendingProperties mailSendingProperties;
 
+    private final GridFsOperations gfsOperations;
+
     @Autowired
-    public MailSendingServiceImpl(JavaMailSender mailSender, MailSendingProperties mailSendingProperties) {
+    public MailSendingServiceImpl(JavaMailSender mailSender, MailSendingProperties mailSendingProperties, GridFsOperations gfsOperations) {
         this.mailSender = mailSender;
         this.mailSendingProperties = mailSendingProperties;
+        this.gfsOperations = gfsOperations;
     }
 
     @Override
-    public void sendMailToIUT(Collection<String> recipients, String replyTo, String subject, String body, List<GridFsResource> attachements) throws ValidationException, MailException, MessagingException {
+    public void sendMailToIUT(Collection<String> recipients, String replyTo, String subject, String body, Stream<GridFSFile> attachements) throws ValidationException, MailException, MessagingException {
         try {
             String[] recipientsArray;;
             if (this.mailSendingProperties.getTestingMailAddress() != null) {
@@ -93,7 +100,7 @@ public class MailSendingServiceImpl implements MailSendingService {
     }
 
     private MimeMessage createRawMessageForIUT(String[] recipients, String replyTo, String subject,
-            String body, List<GridFsResource> attachements) throws MessagingException {
+            String body, Stream<GridFSFile> attachements) throws MessagingException {
         final MimeMessage message = this.mailSender.createMimeMessage();
         final MimeMessageHelper helper = new MimeMessageHelper(message);
 
@@ -118,15 +125,22 @@ public class MailSendingServiceImpl implements MailSendingService {
         helper.setSubject(subject);
         helper.setText(body, false); // set text as plain text
 
-        if (attachements != null && !attachements.isEmpty()) {
-            for (GridFsResource attachement : attachements) {
-                try {
-                    InputStreamSource iss = new InputStreamResource(attachement.getInputStream());
-                    helper.addAttachment(attachement.getFilename(), iss, attachement.getContentType());
-                } catch (IOException ex) {
-                    LOG.error("Cannot attach resource to mail", ex);
-                }
+        Optional<MessagingException> optEx = attachements.filter(f -> f != null).map(gridFSFile -> {
+            try {
+                final GridFsResource rsc = this.gfsOperations.getResource(gridFSFile);
+                InputStreamSource iss = new InputStreamResource(rsc.getInputStream());
+                helper.addAttachment(rsc.getFilename(), iss, rsc.getContentType());
+                return null;
+            } catch (IOException ex) {
+                LOG.error("Cannot read resource to attach to mail", ex);
+                return new MessagingException("Cannot read resource to attach to mail", ex);
+            } catch (MessagingException ex) {
+                LOG.error("Cannot read resource to attach to mail", ex);
+                return ex;
             }
+        }).filter(Objects::nonNull).findAny();
+        if (optEx.isPresent()) {
+            throw optEx.get();
         }
         return message;
     }

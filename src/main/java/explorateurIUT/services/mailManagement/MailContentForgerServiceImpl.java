@@ -62,4 +62,17 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
                 .toList();
         return mails;
     }
+
+    @Override
+    public String createConfirmationMailSubject() {
+        // TODO: Implement
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public String createConfirmationMailBody(String contactIdentity, String confirmationUrl) {
+        // TODO: Implement
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 }
