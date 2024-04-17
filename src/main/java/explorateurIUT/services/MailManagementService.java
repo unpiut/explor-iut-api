@@ -19,6 +19,7 @@
 package explorateurIUT.services;
 
 import explorateurIUT.services.mailManagement.MailSendingRequest;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Email;
@@ -83,6 +84,7 @@ public interface MailManagementService {
      * @throws ValidationException if given parameters are invalid
      * @throws NoSuchElementException if no pending mail request matches the
      * confirmation token
+     * @throws MessagingException if unable to create mail message
      */
-    void confirmMailSendingRequest(@NotBlank String confirmationToken) throws ValidationException, NoSuchElementException;
+    void confirmMailSendingRequest(@NotBlank String confirmationToken) throws ValidationException, NoSuchElementException, MessagingException;
 }
