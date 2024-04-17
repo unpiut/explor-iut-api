@@ -33,6 +33,8 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.stream.Stream;
+import com.mongodb.client.gridfs.model.GridFSFile;
 
 /**
  *
@@ -124,8 +129,26 @@ public class MailManagementServiceImpl implements MailManagementService {
     @Override
     public void resendConfirmationMail(LocalDateTime creationDatetime, String contactMail, URI serverBaseURI) throws ValidationException, NoSuchElementException {
         LOG.debug("resendConfirmationMail: TO IMPLEMENT!");
-        // Retrieve the pending mail by creationdatetime and contactMail
-
+        final Optional<PendingMail> mail = pendingMailRepo.findByCreationDateTimeAndReplyTo(creationDatetime, contactMail);
+        if(mail.isPresent()){
+            PendingMail pendingMail = mail.get();
+            if(pendingMail.getLastConfirmationMail().isBefore(LocalDateTime.now().minusMinutes(2)) || pendingMail.getLastConfirmationMail() == null) {
+                pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(),LocalDateTime.now());
+                // Prepare validation token
+        LOG.debug("Create validation token");
+        final String validationToken = this.tokenSvc.createValidationToken(pendingMail.getId());
+        // Save attachement
+        // Create and send confirmation mail
+        LOG.debug("Create and send confirmation mail");
+        try {
+            this.createAndSendConfirmationMail(pendingMail.getReplyTo(), pendingMail.getReplyTo(), serverBaseURI, validationToken); //I don't see where get the contactName
+        } catch (MessagingException ex) {
+            LOG.error("Unable to send the confirmation mail: ", ex);
+        }
+        // Update pending mail lastConfirmationMail
+        this.pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(), LocalDateTime.now());
+            }
+        }
         // If found check that last confirmation mail has been sent more than X minutes ago (or never sent)
         // If ok, regenerate token and send a new confirmation mail
     }
@@ -134,24 +157,26 @@ public class MailManagementServiceImpl implements MailManagementService {
     @Override
     public int removeOutdatedPendingMailRequest() {
         LOG.debug("removeOutdatedPendingMailRequest: TO IMPLEMENT!");
-        // remove all pending mails whose creationDateTime was more than X hours ago
-
-        // Remove all attachement whose creationDateTime was more than X hours ago
+        pendingMailRepo.deleteByCreationDateTimeBefore(LocalDateTime.now().minusHours(3));
+        attachementRepo.deleteByCreationDateTimeBefore(LocalDateTime.now().minusHours(3));
         // remove all outdate pending Mail
         return 0;
     }
 
     @Transactional
     @Override
-    public void confirmMailSendingRequest(String confirmationToken) throws ValidationException, NoSuchElementException {
+    public void confirmMailSendingRequest(String confirmationToken) throws ValidationException, NoSuchElementException, MessagingException {
         LOG.debug("confirmMailSendingRequest: TO IMPLEMENT!");
-        // decode token and get the pending mail id
-
-        // Retrieve the pending mail
-        // Retrieve all potential attachement related to the pending mail
-        // send the mail to iuts
-        // remove all attachements related to the pending mail
-        // remove the pending mail
+        final String mailId = tokenSvc.decodeToken(confirmationToken);
+        final Optional<PendingMail> possibleMail = pendingMailRepo.findById(mailId);
+        if(!possibleMail.isPresent()){
+            throw new NoSuchElementException("Mail not found");
+        }
+        final PendingMail mail = possibleMail.get();
+        final Stream<GridFSFile> attachements = attachementRepo.streamByPendingMailId(mail.getId());
+        sendingSvc.sendMailToIUT(mail.getIUTmailRecipients(),mail.getReplyTo(),mail.getSubject(),mail.getBody(),attachements);
+        attachementRepo.deleteByPendingMailId(mail.getId());
+        pendingMailRepo.delete(mail);
     }
 
     private void createAndSendConfirmationMail(String contactIdentity, String recipientMailAddress, URI serverBaseURI, String token) throws MessagingException {
