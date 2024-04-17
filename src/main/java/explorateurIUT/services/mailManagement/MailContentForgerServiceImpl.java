@@ -66,13 +66,18 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
     @Override
     public String createConfirmationMailSubject() {
         // TODO: Implement
-        throw new UnsupportedOperationException("Not supported yet.");
+        return "Confirmation";
     }
 
     @Override
     public String createConfirmationMailBody(String contactIdentity, String confirmationUrl) {
         // TODO: Implement
-        throw new UnsupportedOperationException("Not supported yet.");
+        StringBuilder sb = new StringBuilder("Bonjour");
+        sb.append(contactIdentity).append(",").append(NEW_LINE_MAIL)
+                .append("Vous devez confirmer votre envoie en cliquant sur ce lien : ")
+                .append(confirmationUrl).append(".").append(NEW_LINE_MAIL).append(NEW_LINE_MAIL)
+                .append("Cordialement,");
+        return sb.toString();
     }
 
 }
