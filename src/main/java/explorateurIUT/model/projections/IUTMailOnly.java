@@ -23,6 +23,8 @@ package explorateurIUT.model.projections;
  * @author Remi Venant
  */
 public interface IUTMailOnly {
+    
+    String getId();
 
     String getMel();
 }

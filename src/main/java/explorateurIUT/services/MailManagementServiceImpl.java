@@ -18,6 +18,7 @@
  */
 package explorateurIUT.services;
 
+import explorateurIUT.model.MailIUTRecipient;
 import explorateurIUT.model.PendingMail;
 import explorateurIUT.model.PendingMailAttachementRepository;
 import explorateurIUT.model.PendingMailRepository;
@@ -38,6 +39,7 @@ import java.util.Optional;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailPreparationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -56,6 +58,8 @@ import com.mongodb.client.gridfs.model.GridFSFile;
 public class MailManagementServiceImpl implements MailManagementService {
 
     private static final Log LOG = LogFactory.getLog(MailManagementServiceImpl.class);
+    private static final int MAX_HOURS = 3;
+    private static final int MAX_MINUTES = 5;
 
     private final MailContentForgerService contentForgerSvc;
     private final MailContentValidationService validationSvc;
@@ -81,7 +85,7 @@ public class MailManagementServiceImpl implements MailManagementService {
     public LocalDateTime requestMailSending(MailSendingRequest sendingRequest, URI serverBaseURI) throws ValidationException, IOException {
         LOG.debug("Extract mailing list of iut");
         // Extract the mailing list
-        final List<String> iutMailingList = this.contentForgerSvc.createIUTMailingList(sendingRequest);
+        final List<MailIUTRecipient> iutMailingList = this.contentForgerSvc.createIUTMailingList(sendingRequest);
         // if list is empty -> exception
         if (iutMailingList.isEmpty()) {
             throw new IllegalArgumentException("No contact mail to send mail"); // TODO: precise the exception
@@ -104,7 +108,7 @@ public class MailManagementServiceImpl implements MailManagementService {
         // Create and save pending mail repository
         LOG.debug("Save pending mail in database");
         final PendingMail pendingMail = this.pendingMailRepo.save(
-                new PendingMail(iutMailingList, sendingRequest.subject(), body, sendingRequest.contactMail()));
+                new PendingMail(iutMailingList, sendingRequest.subject(), body, sendingRequest.contactMail(),sendingRequest.contactIdentity()));
         // Prepare validation token
         LOG.debug("Create validation token");
         final String validationToken = this.tokenSvc.createValidationToken(pendingMail.getId());
@@ -115,40 +119,45 @@ public class MailManagementServiceImpl implements MailManagementService {
         // Create and send confirmation mail
         LOG.debug("Create and send confirmation mail");
         try {
-            this.createAndSendConfirmationMail(sendingRequest.contactIdentity(), sendingRequest.contactMail(), serverBaseURI, validationToken);
-        } catch (MessagingException ex) {
-            LOG.error("Unable to send the confirmation mail: ", ex);
-        }
+            this.createAndSendConfirmationMail(sendingRequest.contactIdentity(), sendingRequest.contactMail(), serverBaseURI, validationToken); 
+            
         // Update pending mail lastConfirmationMail
-        this.pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(), LocalDateTime.now());
+            this.pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(), LocalDateTime.now());
 
         // return the create datetime of the pending mail
         return pendingMail.getCreationDateTime();
+        } catch (MessagingException ex) {
+            LOG.error("Unable to create the confirmation mail: ", ex);
+            throw new MailPreparationException(ex);
+        }
     }
 
     @Override
     public void resendConfirmationMail(LocalDateTime creationDatetime, String contactMail, URI serverBaseURI) throws ValidationException, NoSuchElementException {
         LOG.debug("resendConfirmationMail: TO IMPLEMENT!");
         final Optional<PendingMail> mail = pendingMailRepo.findByCreationDateTimeAndReplyTo(creationDatetime, contactMail);
-        if(mail.isPresent()){
-            PendingMail pendingMail = mail.get();
-            if(pendingMail.getLastConfirmationMail().isBefore(LocalDateTime.now().minusMinutes(2)) || pendingMail.getLastConfirmationMail() == null) {
-                pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(),LocalDateTime.now());
-                // Prepare validation token
+        if(!mail.isPresent()){
+            throw new NoSuchElementException("Pending mail not found");
+        }
+        PendingMail pendingMail = mail.get();
+        if(pendingMail.getLastConfirmationMail().isBefore(LocalDateTime.now().minusMinutes(MAX_MINUTES)) || pendingMail.getLastConfirmationMail() == null) {
+            throw new IllegalArgumentException("Mail already sent int the last 5 minutes. Please try later");
+        }
+        pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(),LocalDateTime.now());
+        // Prepare validation token
         LOG.debug("Create validation token");
         final String validationToken = this.tokenSvc.createValidationToken(pendingMail.getId());
         // Save attachement
         // Create and send confirmation mail
         LOG.debug("Create and send confirmation mail");
         try {
-            this.createAndSendConfirmationMail(pendingMail.getReplyTo(), pendingMail.getReplyTo(), serverBaseURI, validationToken); //I don't see where get the contactName
+            this.createAndSendConfirmationMail(pendingMail.getContactName(), pendingMail.getReplyTo(), serverBaseURI, validationToken); 
+            this.pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(), LocalDateTime.now());
         } catch (MessagingException ex) {
             LOG.error("Unable to send the confirmation mail: ", ex);
+            throw new MailPreparationException(ex);
         }
         // Update pending mail lastConfirmationMail
-        this.pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(), LocalDateTime.now());
-            }
-        }
         // If found check that last confirmation mail has been sent more than X minutes ago (or never sent)
         // If ok, regenerate token and send a new confirmation mail
     }
@@ -157,26 +166,36 @@ public class MailManagementServiceImpl implements MailManagementService {
     @Override
     public int removeOutdatedPendingMailRequest() {
         LOG.debug("removeOutdatedPendingMailRequest: TO IMPLEMENT!");
-        pendingMailRepo.deleteByCreationDateTimeBefore(LocalDateTime.now().minusHours(3));
-        attachementRepo.deleteByCreationDateTimeBefore(LocalDateTime.now().minusHours(3));
+        pendingMailRepo.deleteByCreationDateTimeBefore(LocalDateTime.now().minusHours(MAX_HOURS));
+        attachementRepo.deleteByCreationDateTimeBefore(LocalDateTime.now().minusHours(MAX_HOURS));
         // remove all outdate pending Mail
         return 0;
     }
 
     @Transactional
     @Override
-    public void confirmMailSendingRequest(String confirmationToken) throws ValidationException, NoSuchElementException, MessagingException {
+    public void confirmMailSendingRequest(String confirmationToken) throws ValidationException, NoSuchElementException {
         LOG.debug("confirmMailSendingRequest: TO IMPLEMENT!");
         final String mailId = tokenSvc.decodeToken(confirmationToken);
+        // Retrieve the pending mail
         final Optional<PendingMail> possibleMail = pendingMailRepo.findById(mailId);
         if(!possibleMail.isPresent()){
             throw new NoSuchElementException("Mail not found");
         }
         final PendingMail mail = possibleMail.get();
+        // Retrieve all potential attachement related to the pending mail
         final Stream<GridFSFile> attachements = attachementRepo.streamByPendingMailId(mail.getId());
-        sendingSvc.sendMailToIUT(mail.getIUTmailRecipients(),mail.getReplyTo(),mail.getSubject(),mail.getBody(),attachements);
+        try{
+        sendingSvc.sendMailToIUT(mail.getIUTMailRecipients(),mail.getReplyTo(),mail.getSubject(),mail.getBody(),attachements);
         attachementRepo.deleteByPendingMailId(mail.getId());
         pendingMailRepo.delete(mail);
+        } catch(MessagingException ex){
+            LOG.error("Unable to send the confirmation mail: ", ex);
+            throw new MailPreparationException(ex);
+        }
+        // send the mail to iuts
+        // remove all attachements related to the pending mail
+        // remove the pending mail
     }
 
     private void createAndSendConfirmationMail(String contactIdentity, String recipientMailAddress, URI serverBaseURI, String token) throws MessagingException {

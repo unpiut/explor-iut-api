@@ -18,15 +18,19 @@
  */
 package explorateurIUT.model.projections;
 
+import java.util.List;
+
 /**
  *
  * @author Remi Venant
  */
-public class DepartementIUTId {
+public class DepartementCodesOfIUTId {
 
     private String iut;
 
-    public DepartementIUTId() {
+    private List<String> codes;
+
+    public DepartementCodesOfIUTId() {
     }
 
     public String getIut() {
@@ -35,6 +39,14 @@ public class DepartementIUTId {
 
     public void setIut(String iut) {
         this.iut = iut;
+    }
+
+    public List<String> getCodes() {
+        return codes;
+    }
+
+    public void setCodes(List<String> codes) {
+        this.codes = codes;
     }
 
 }

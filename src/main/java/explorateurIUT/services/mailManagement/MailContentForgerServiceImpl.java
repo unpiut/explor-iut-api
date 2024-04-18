@@ -1,12 +1,16 @@
 package explorateurIUT.services.mailManagement;
 
 import explorateurIUT.model.IUTRepository;
-import explorateurIUT.model.projections.DepartementIUTId;
+import explorateurIUT.model.MailIUTRecipient;
+import explorateurIUT.model.projections.DepartementCodesOfIUTId;
 import explorateurIUT.model.projections.IUTMailOnly;
 import explorateurIUT.model.DepartementRepository;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -51,16 +55,18 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
     }
 
     @Override
-    public List<String> createIUTMailingList(MailSendingRequest mailSendingRequest) {
+    public List<MailIUTRecipient> createIUTMailingList(MailSendingRequest mailSendingRequest) {
         // Extract iutId related to deptId : the request ensure uniqueness of iutId
-        List<String> iutIds = this.deptRepo.streamIUTIdByIdIn(mailSendingRequest.deptIds())
-                .map(DepartementIUTId::getIut)
+        List<DepartementCodesOfIUTId> codesDeptByIUT = this.deptRepo.streamIUTIdByIdIn(mailSendingRequest.deptIds())
                 .toList();
         // Extract mail only of iut from Id. The request ensures uniqueness of mailId
-        List<String> mails = this.iutRepo.streamMailOnlyByIdInAndMelIsNotNull(iutIds)
-                .map(IUTMailOnly::getMel)
+        List<String> iutIds = codesDeptByIUT.stream().map(DepartementCodesOfIUTId::getIut).toList();
+        final Map<String, String> mailsByIUTid = this.iutRepo.streamMailOnlyByIdInAndMelIsNotNull(iutIds)
+                .collect(Collectors.toMap(IUTMailOnly::getId, IUTMailOnly::getMel));
+        return codesDeptByIUT.stream()
+                .filter((dep)->mailsByIUTid.containsKey(dep.getIut()))
+                .map((dep)->new MailIUTRecipient(mailsByIUTid.get(dep.getIut()),dep.getCodes()))
                 .toList();
-        return mails;
     }
 
     @Override

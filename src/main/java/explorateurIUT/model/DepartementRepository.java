@@ -18,7 +18,7 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.model.projections.DepartementIUTId;
+import explorateurIUT.model.projections.DepartementCodesOfIUTId;
 import java.util.Collection;
 import java.util.stream.Stream;
 import org.springframework.data.mongodb.repository.Aggregation;
@@ -32,9 +32,9 @@ public interface DepartementRepository extends MongoRepository<Departement, Stri
 
     @Aggregation(pipeline = {
         "{$match: {_id: {$in: ?0}}}",
-        "{$group: {_id: '$iut'}}",
+        "{$group: {_id: '$iut', codes: {$addToSet:  '$code'}}}",
         "{$set: {iut: '$_id', _id:'$$REMOVE'}}"
     })
-    Stream<DepartementIUTId> streamIUTIdByIdIn(Collection<String> ids);
+    Stream<DepartementCodesOfIUTId> streamIUTIdByIdIn(Collection<String> ids);
 
 }

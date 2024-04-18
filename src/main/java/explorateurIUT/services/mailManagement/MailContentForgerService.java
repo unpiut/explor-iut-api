@@ -20,6 +20,7 @@ package explorateurIUT.services.mailManagement;
 
 import java.util.List;
 
+import explorateurIUT.model.MailIUTRecipient;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotNull;
 
@@ -41,13 +42,13 @@ public interface MailContentForgerService {
     String createBody(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
 
     /**
-     * Creation of the list of mail destinations
+     * Creation of the list of mail destinations with their departments
      *
      * @param mailSendingRequest
      * @return
      * @throws ValidationException
      */
-    List<String> createIUTMailingList(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
+    List<MailIUTRecipient> createIUTMailingList(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
 
     String createConfirmationMailSubject();
 

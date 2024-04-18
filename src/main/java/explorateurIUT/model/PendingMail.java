@@ -19,6 +19,7 @@
 package explorateurIUT.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -39,7 +40,7 @@ public class PendingMail {
     private String id;
 
     @NotEmpty
-    private List<String> IUTmailRecipients;
+    private List<MailIUTRecipient> IUTMailRecipients;
 
     @NotBlank
     private String subject;
@@ -50,6 +51,9 @@ public class PendingMail {
     @NotBlank
     private String replyTo;
 
+    @NotBlank
+    private String contactName;
+
     @CreatedDate
     private LocalDateTime creationDateTime;
 
@@ -58,11 +62,12 @@ public class PendingMail {
     protected PendingMail() {
     }
 
-    public PendingMail(List<String> IUTmailRecipients, String subject, String body, String replyTo) {
-        this.IUTmailRecipients = IUTmailRecipients;
+    public PendingMail(List<MailIUTRecipient> IUTMailRecipients, String subject, String body, String replyTo, String contactName) {
+        this.IUTMailRecipients = IUTMailRecipients;
         this.subject = subject;
         this.body = body;
         this.replyTo = replyTo;
+        this.contactName = contactName;
     }
 
     public String getId() {
@@ -73,12 +78,12 @@ public class PendingMail {
         this.id = id;
     }
 
-    public List<String> getIUTmailRecipients() {
-        return IUTmailRecipients;
+    public List<MailIUTRecipient> getIUTMailRecipients() {
+        return this.IUTMailRecipients;
     }
 
-    public void setIUTmailRecipients(List<String> IUTmailRecipients) {
-        this.IUTmailRecipients = IUTmailRecipients;
+    public void setIUTMailRecipients(List<MailIUTRecipient> IUTMailRecipients) {
+        this.IUTMailRecipients = IUTMailRecipients;
     }
 
     public String getSubject() {
@@ -119,6 +124,14 @@ public class PendingMail {
 
     protected void setLastConfirmationMail(LocalDateTime lastConfirmationMail) {
         this.lastConfirmationMail = lastConfirmationMail;
+    }
+
+    public String getContactName() {
+        return this.contactName;
+    }
+
+    public void setContactName(String contactName) {
+        this.contactName = contactName;
     }
 
 }
