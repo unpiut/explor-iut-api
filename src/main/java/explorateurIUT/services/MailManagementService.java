@@ -19,7 +19,6 @@
 package explorateurIUT.services;
 
 import explorateurIUT.services.mailManagement.MailSendingRequest;
-import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Email;
@@ -29,6 +28,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+
+import org.springframework.mail.MailException;
 
 /**
  * Point d'entrée de la gestion des envoies de courriel aux iuts.
@@ -51,7 +52,7 @@ public interface MailManagementService {
      * @throws ValidationException if given parameters are invalid
      * @throws java.io.IOException if an error happens while saving attachement
      */
-    LocalDateTime requestMailSending(@NotNull @Valid MailSendingRequest sendingRequest, @NotNull URI serverBaseURI) throws ValidationException, IOException;
+    LocalDateTime requestMailSending(@NotNull @Valid MailSendingRequest sendingRequest, @NotNull URI serverBaseURI) throws ValidationException, IOException, MailException;
 
     /**
      * Re-send the confirmation mail related to a pending mail sending request,
@@ -65,7 +66,7 @@ public interface MailManagementService {
      * @throws NoSuchElementException if no pending mail request matches
      * creationDatetime and contactMail
      */
-    void resendConfirmationMail(@NotNull LocalDateTime creationDatetime, @NotNull @Email String contactMail, @NotNull URI serverBaseURI) throws ValidationException, NoSuchElementException;
+    void resendConfirmationMail(@NotNull LocalDateTime creationDatetime, @NotNull @Email String contactMail, @NotNull URI serverBaseURI) throws ValidationException, NoSuchElementException, MailException;
 
     /**
      * Remove all pending mail request that have been created more than 6 hours
@@ -84,7 +85,6 @@ public interface MailManagementService {
      * @throws ValidationException if given parameters are invalid
      * @throws NoSuchElementException if no pending mail request matches the
      * confirmation token
-     * @throws MessagingException if unable to create mail message
      */
-    void confirmMailSendingRequest(@NotBlank String confirmationToken) throws ValidationException, NoSuchElementException, MessagingException;
+    void confirmMailSendingRequest(@NotBlank String confirmationToken) throws ValidationException, NoSuchElementException, MailException;
 }
