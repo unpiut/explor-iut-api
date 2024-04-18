@@ -23,6 +23,7 @@ import explorateurIUT.configuration.TestDatasetConfig;
 import explorateurIUT.model.Departement;
 import explorateurIUT.model.DepartementRepository;
 import explorateurIUT.model.IUTRepository;
+import explorateurIUT.model.MailIUTRecipient;
 import explorateurIUT.model.TestDatasetGenerator;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -81,11 +82,11 @@ public class MailContentForgerServiceImplTest {
     }
 
     /**
-     * Test of createBody method, of class MailContentForgerServiceImpl.
+     * Test of createGeneralBody method, of class MailContentForgerServiceImpl.
      */
     @Test
-    public void testCreateBody() {
-        System.out.println("createBody");
+    public void testCreateGeneralBody() {
+        System.out.println("createGeneralBody");
         fail("The test case is a prototype.");
     }
 
@@ -101,10 +102,10 @@ public class MailContentForgerServiceImplTest {
         MailSendingRequest mailSendingRequest = new MailSendingRequest(allLavalDeptIds,
                 "contactIdentity", "contactCompany", "contactFunction", "contactMail", "subject", "body", null);
 
-        List<String> mailContact = this.testedSvc.createIUTMailingList(mailSendingRequest);
+        List<MailIUTRecipient> mailContact = this.testedSvc.createIUTMailingList(mailSendingRequest);
 
         assertThat(mailContact).as("Only one mail contact: iut laval").hasSize(1);
-        assertThat(mailContact.getFirst()).as("mail is iut laval").isEqualTo(ti.getIutLaval().getMel());
+        assertThat(mailContact.get(0).getMailAddress()).as("mail is iut laval").isEqualTo(ti.getIutLaval().getMel());
 
     }
 

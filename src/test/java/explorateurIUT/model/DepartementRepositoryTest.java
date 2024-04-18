@@ -20,7 +20,7 @@ package explorateurIUT.model;
 
 import explorateurIUT.configuration.MongoConfiguration;
 import explorateurIUT.configuration.TestDatasetConfig;
-import explorateurIUT.model.projections.DepartementIUTId;
+import explorateurIUT.model.projections.DepartementCodesOfIUTId;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -89,9 +89,9 @@ public class DepartementRepositoryTest {
                 .map(Departement::getId)
                 .toList();
         
-        List<DepartementIUTId> iutIds = this.testedRepo.streamIUTIdByIdIn(allDeptsId).toList();
+        List<DepartementCodesOfIUTId> iutIds = this.testedRepo.streamIUTIdByIdIn(allDeptsId).toList();
         assertThat(iutIds).as("Two iut id retrieves").hasSize(2)
-                .map(DepartementIUTId::getIut)
+                .map(DepartementCodesOfIUTId::getIut)
                 .containsExactlyInAnyOrder(ti.getIutLannion().getId(), ti.getIutLaval().getId());
     }
     
