@@ -32,6 +32,7 @@ import jakarta.validation.ValidationException;
 import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -93,7 +94,7 @@ public class MailManagementServiceImpl implements MailManagementService {
 
         // Forge the body
         LOG.debug("Forge body");
-        String body = this.contentForgerSvc.createBody(sendingRequest);
+        String body = this.contentForgerSvc.createGeneralBody(sendingRequest);
 
         // Validate (sanitizer) the different mail part that depends from use input: body, subject, replyTo (contact)
         LOG.debug("Validate mail parts");
@@ -185,17 +186,22 @@ public class MailManagementServiceImpl implements MailManagementService {
         final PendingMail mail = possibleMail.get();
         // Retrieve all potential attachement related to the pending mail
         final Stream<GridFSFile> attachements = attachementRepo.streamByPendingMailId(mail.getId());
+        Collection<String> mailIUT = mail.getIUTMailRecipients().stream().map((mailIut)->mailIut.getMailAddress()).toList();
+        LOG.debug(mailIUT);
         try{
-        sendingSvc.sendMailToIUT(mail.getIUTMailRecipients(),mail.getReplyTo(),mail.getSubject(),mail.getBody(),attachements);
+            // send the mail to iuts
+            for (MailIUTRecipient IUT : mail.getIUTMailRecipients()) {
+                String specificBody = contentForgerSvc.createSpecificBody(mail.getBody(),IUT.getDepartementCodes());
+                sendingSvc.sendMailToIUT(IUT.getMailAddress(), confirmationToken, mailId, specificBody, attachements);
+            }
+            // remove all attachements related to the pending mail
         attachementRepo.deleteByPendingMailId(mail.getId());
+        // remove the pending mail
         pendingMailRepo.delete(mail);
         } catch(MessagingException ex){
             LOG.error("Unable to send the confirmation mail: ", ex);
             throw new MailPreparationException(ex);
         }
-        // send the mail to iuts
-        // remove all attachements related to the pending mail
-        // remove the pending mail
     }
 
     private void createAndSendConfirmationMail(String contactIdentity, String recipientMailAddress, URI serverBaseURI, String token) throws MessagingException {

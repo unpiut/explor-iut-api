@@ -32,14 +32,23 @@ import jakarta.validation.constraints.NotNull;
 public interface MailContentForgerService {
 
     /**
-     * Creation of the final body with the fusion of first form informations and
+     * Creation of the general body with the fusion of first form informations and
      * original body
      *
      * @param mailSendingRequest: mail sending request
      * @return the mail body
      * @throws ValidationException if given parameters are invalid
      */
-    String createBody(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
+    String createGeneralBody(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
+
+    /**
+     * Creation of specific body by the specification of departments
+     * @param generalBody : the general body create before
+     * @param codesDep : the list of departments codes
+     * @return the final body of the mail specific to 1 IUT
+     * @throws ValidationException
+     */
+    String createSpecificBody(@NotNull String generalBody, List<String> codesDep) throws ValidationException;
 
     /**
      * Creation of the list of mail destinations with their departments

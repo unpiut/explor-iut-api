@@ -23,9 +23,7 @@ import jakarta.mail.MessagingException;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.stream.Stream;
 import org.springframework.mail.MailException;
 
@@ -38,7 +36,7 @@ public interface MailSendingService {
     /**
      * Send a mail to several IUT reciepients.
      *
-     * @param recipients mail addresses of IUTs
+     * @param recipients mail address of one IUT
      * @param replyTo mail address of contact
      * @param subject mail subject
      * @param body mail body
@@ -48,7 +46,7 @@ public interface MailSendingService {
      * @throws MailException if unable to send mail
      * @throws MessagingException if unable to create mail message
      */
-    void sendMailToIUT(@NotEmpty Collection<@NotNull @Email String> recipients,
+    void sendMailToIUT(@NotNull @Email String recipient,
             @NotNull @Email String replyTo,
             @NotBlank String subject,
             @NotBlank String body,

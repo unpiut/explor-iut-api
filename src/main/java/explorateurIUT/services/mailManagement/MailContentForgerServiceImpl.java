@@ -7,7 +7,6 @@ import explorateurIUT.model.projections.IUTMailOnly;
 import explorateurIUT.model.DepartementRepository;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +29,8 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
         this.iutRepo = iutRepo;
     }
 
-    private void createExtraInformation(MailSendingRequest mailSendingRequest, StringBuilder finalBody) {
-        finalBody.append("Identité : ")
+    private void createExtraInformation(MailSendingRequest mailSendingRequest, StringBuilder generalBody) {
+        generalBody.append("Identité : ")
                 .append(mailSendingRequest.contactIdentity())
                 .append(NEW_LINE_MAIL)
                 .append("Nom entreprise : ")
@@ -45,13 +44,26 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
     }
 
     @Override
-    public String createBody(MailSendingRequest mailSendingRequest) {
-        final StringBuilder finalBody = new StringBuilder(mailSendingRequest.body());
-        finalBody.append(NEW_LINE_MAIL)
+    public String createGeneralBody(MailSendingRequest mailSendingRequest) {
+        final StringBuilder generalBody = new StringBuilder(mailSendingRequest.body());
+        generalBody.append(NEW_LINE_MAIL)
                 .append("Merci de transmettre cette demande au service compétent au sein de votre IUT et dans l’attente d’un retour rapide,")
                 .append(NEW_LINE_MAIL).append("-".repeat(10)).append("\n"); //Add a separator between the body and the informations
-        this.createExtraInformation(mailSendingRequest, finalBody);
-        return finalBody.toString();
+        this.createExtraInformation(mailSendingRequest, generalBody);
+        return generalBody.toString();
+    }
+
+    @Override
+    public String createSpecificBody(String generalBody, List<String> codesDep) {
+        final StringBuilder finalBody = new StringBuilder("Les départements concernés par ce mail sont : ");
+        for (String dep : codesDep) {
+            finalBody.append(dep);
+        }
+        return finalBody.append(NEW_LINE_MAIL)
+        .append("Attention, les possibles offres en pièces jointes peuvent être destinées à d'autres départements.")
+        .append(NEW_LINE_MAIL)
+        .append(generalBody).toString();
+        
     }
 
     @Override

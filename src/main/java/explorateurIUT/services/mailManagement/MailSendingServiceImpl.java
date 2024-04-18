@@ -23,7 +23,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.ValidationException;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -64,17 +63,9 @@ public class MailSendingServiceImpl implements MailSendingService {
     }
 
     @Override
-    public void sendMailToIUT(Collection<String> recipients, String replyTo, String subject, String body, Stream<GridFSFile> attachements) throws ValidationException, MailException, MessagingException {
+    public void sendMailToIUT(String recipient, String replyTo, String subject, String body, Stream<GridFSFile> attachements) throws ValidationException, MailException, MessagingException {
         try {
-            String[] recipientsArray;;
-            if (this.mailSendingProperties.getTestingMailAddress() != null) {
-                recipientsArray = new String[]{this.mailSendingProperties.getTestingMailAddress()};
-            } else {
-                recipientsArray = new String[recipients.size()];
-                recipientsArray = recipients.toArray(recipientsArray);
-            }
-
-            final MimeMessage message = this.createRawMessageForIUT(recipientsArray, replyTo, subject, body, attachements);
+            final MimeMessage message = this.createRawMessageForIUT(recipient, replyTo, subject, body, attachements);
             this.mailSender.send(message);
         } catch (MessagingException ex) {
             LOG.error("Unable to create mail for IUT.", ex);
@@ -99,24 +90,23 @@ public class MailSendingServiceImpl implements MailSendingService {
         }
     }
 
-    private MimeMessage createRawMessageForIUT(String[] recipients, String replyTo, String subject,
+    private MimeMessage createRawMessageForIUT(String recipient, String replyTo, String subject,
             String body, Stream<GridFSFile> attachements) throws MessagingException {
         final MimeMessage message = this.mailSender.createMimeMessage();
         final MimeMessageHelper helper = new MimeMessageHelper(message);
-
         switch (this.mailSendingProperties.getSendingType().toLowerCase()) {
             case "to" -> {
-                helper.setTo(recipients);
+                helper.setTo(recipient);
             }
             case "cc" -> {
-                helper.setCc(recipients);
+                helper.setCc(recipient);
             }
             case "bcc" -> {
-                helper.setBcc(recipients);
+                helper.setBcc(recipient);
             }
             default -> {
                 LOG.warn("Invalid sending type \"" + this.mailSendingProperties.getSendingType() + "\". Revert to bcc");
-                helper.setBcc(recipients);
+                helper.setBcc(recipient);
             }
         }
 

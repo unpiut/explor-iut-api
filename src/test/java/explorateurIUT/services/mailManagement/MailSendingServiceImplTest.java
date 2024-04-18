@@ -91,7 +91,9 @@ public class MailSendingServiceImplTest {
         List<String> recipients = List.of("recipient1@mail.com", "recipient2@mail.com");
 
         LOG.info("Send mail");
-        mailSendingSvc.sendMailToIUT(recipients, replyTo, subject, body, Stream.empty());
+        for (String recipient: recipients) {
+            mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, Stream.empty());
+        }
         LOG.info("Check if mail received");
         assertThat(server.getReceivedEmails()).hasSize(1);
         LOG.info("Assess mail info");
@@ -118,7 +120,9 @@ public class MailSendingServiceImplTest {
         List<String> recipients = List.of("recipient1@mail.com", "recipient2@mail.com");
 
         LOG.info("Send mail");
-        mailSendingSvc.sendMailToIUT(recipients, replyTo, subject, body, Stream.empty());
+        for (String recipient: recipients) {
+            mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, Stream.empty());
+        }
         LOG.info("Check if mail received");
         assertThat(server.getReceivedEmails()).hasSize(1);
         LOG.info("Assess mail info");
