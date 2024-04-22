@@ -32,6 +32,7 @@ public class AppDataProperties {
     private String filePath = "data.xlsx";
     private String butSheetName = "but";
     private String iutSheetName = "iut";
+    private String appTextSheetName = "app-text";
 
     public AppDataProperties() {
     }
@@ -58,6 +59,14 @@ public class AppDataProperties {
 
     public void setIutSheetName(String iutSheetName) {
         this.iutSheetName = iutSheetName;
+    }
+
+    public String getAppTextSheetName() {
+        return appTextSheetName;
+    }
+
+    public void setAppTextSheetName(String appTextSheetName) {
+        this.appTextSheetName = appTextSheetName;
     }
 
 }

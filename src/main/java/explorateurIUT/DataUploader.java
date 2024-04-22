@@ -29,15 +29,10 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
-
-/**
- *
- * @author Remi Venant
- */
-@Profile("load-data")
+import org.springframework.transaction.annotation.Transactional;
+@Profile("upload-data")
 @Component
-public class DataLoader implements CommandLineRunner {
-
+public class DataUploader implements CommandLineRunner{
     private static final Log LOG = LogFactory.getLog(DataLoader.class);
 
     private final AppDataProperties appDataProperties;
@@ -47,7 +42,7 @@ public class DataLoader implements CommandLineRunner {
     private final CacheManagementService cacheMgmtSvc;
 
     @Autowired
-    public DataLoader(
+    public DataUploader(
             MongoTemplate mongoTemplate,
             CacheManagementService cacheMgmtSvc,
             AppDataProperties appDataProperties) {
@@ -57,8 +52,9 @@ public class DataLoader implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
-        LOG.info("START DATA LOADING");
+        LOG.info("START DATA UPLOADING");
 
         LOG.info("Prepare mongo loader");
         ExcelToMongoLoader loader = new ExcelToMongoLoader(mongoTemplate);
@@ -76,6 +72,6 @@ public class DataLoader implements CommandLineRunner {
         final String etag = this.cacheMgmtSvc.setAndGetCacheEtag();
         LOG.info("Set new etag cache: " + etag);
 
-        LOG.info("END DATA LOADING");
+        LOG.info("END DATA UPLOADING");
     }
 }

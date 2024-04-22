@@ -8,13 +8,13 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 
-import explorateurIUT.excelImport.model.ExcelTexte;
+import explorateurIUT.excelImport.model.ExcelAppText;
 
-public class TexteExtractor implements SheetExtractor<ExcelTexte>{
-    private static final Log LOG = LogFactory.getLog(TexteExtractor.class);
+public class AppTextExtractor implements SheetExtractor<ExcelAppText>{
+    private static final Log LOG = LogFactory.getLog(AppTextExtractor.class);
 
     @Override
-    public void extractEntities(XSSFSheet sheet, Consumer<ExcelTexte> entityConsumer) {
+    public void extractEntities(XSSFSheet sheet, Consumer<ExcelAppText> entityConsumer) {
         LOG.debug("Loading excel sheet " + sheet.getSheetName());
         //Iterate over rows
         final Iterator<Row> itRows = sheet.rowIterator();
@@ -22,7 +22,7 @@ public class TexteExtractor implements SheetExtractor<ExcelTexte>{
         itRows.next();
 
         //Iterate over remaining lines to complete IUT Info
-        ExcelTexte currentTexte = null;
+        ExcelAppText currentTexte = null;
 
         while (itRows.hasNext()) {
             //Iterate cells
@@ -45,13 +45,17 @@ public class TexteExtractor implements SheetExtractor<ExcelTexte>{
                             entityConsumer.accept(currentTexte);
                         }
                         LOG.debug("Create new Texte of name " + rawValue);
-                        currentTexte = new ExcelTexte(rawValue);
+                        currentTexte = new ExcelAppText(rawValue);
                     }
-                    case 2 -> { // Texte content
+                    case 1 -> { // Texte content
                         if (currentTexte == null) {
                             LOG.warn("New Texte content cell with no current Texte: " + cell.getAddress().formatAsR1C1String());
-                        } else {
+                        } else if(currentTexte.getContent() == null) {
+                            LOG.warn("Using same text id with different content"); 
+                        }else { 
                             currentTexte.setContent(rawValue);
+                            entityConsumer.accept(currentTexte);
+                            currentTexte = null;
                         }
                     }
                     default ->

@@ -18,8 +18,10 @@
  */
 package explorateurIUT.excelImport;
 
+import explorateurIUT.excelImport.extractors.AppTextExtractor;
 import explorateurIUT.excelImport.extractors.BUTExtractor;
 import explorateurIUT.excelImport.extractors.IUTExtractor;
+import explorateurIUT.excelImport.model.ExcelAppText;
 import explorateurIUT.excelImport.model.ExcelBUT;
 import explorateurIUT.excelImport.model.ExcelIUT;
 import java.io.File;
@@ -45,7 +47,7 @@ public class ExcelDataExtractor {
         this.appDataProperties = appDataProperties;
     }
 
-    public void extractInfoFromExcelFile(Consumer<ExcelIUT> iutInfoConsummer, Consumer<ExcelBUT> butInfoConsummer) {
+    public void extractInfoFromExcelFile(Consumer<ExcelIUT> iutInfoConsummer, Consumer<ExcelBUT> butInfoConsummer, Consumer<ExcelAppText> appTextInfoConsummer) {
         LOG.info(String.format("Extraction from file %s...", this.appDataProperties.getFilePath()));
         try (FileInputStream fis = new FileInputStream(new File(this.appDataProperties.getFilePath()))) {
             final XSSFWorkbook wb = new XSSFWorkbook(fis);
@@ -57,6 +59,9 @@ public class ExcelDataExtractor {
             LOG.info("Extract and Load IUT...");
             final IUTExtractor iutExtractor = new IUTExtractor();
             iutExtractor.extractEntities(wb.getSheet(this.appDataProperties.getIutSheetName()), iutInfoConsummer);
+            LOG.info("Extract and Load IUT...");
+        final AppTextExtractor appTextExtractor = new AppTextExtractor();
+        appTextExtractor.extractEntities(wb.getSheet(this.appDataProperties.getAppTextSheetName()), appTextInfoConsummer);
         } catch (IOException | UnsupportedFileFormatException ex) {
             LOG.warn(String.format("Cannot load score file \"%s\": %s", this.appDataProperties.getFilePath(), ex.getMessage()));
         }

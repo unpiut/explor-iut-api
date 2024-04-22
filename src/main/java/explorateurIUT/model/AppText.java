@@ -3,33 +3,44 @@ package explorateurIUT.model;
 import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
-import explorateurIUT.model.views.TexteViews;
+import explorateurIUT.model.views.AppTextViews;
 import jakarta.validation.constraints.NotBlank;
 
 @Document(collection = "Texte", language = "french")
-public class Texte {
-    @JsonView(TexteViews.Normal.class)
+public class AppText {
+    @JsonView(AppTextViews.Details.class)
     @Id
     private String id;
 
-    @JsonView(TexteViews.Normal.class)
+    @JsonView(AppTextViews.Normal.class)
     @NotBlank
     private String code;
 
-    @JsonView(TexteViews.Normal.class)
+    @Indexed
+    private String language;
+
+    @JsonView(AppTextViews.Normal.class)
     @NotBlank
     private String texte;
 
-    protected Texte(){
+    protected AppText(){
     }
 
-    public Texte(String code, String texte) {
+    public AppText(String code, String texte) {
         this.code = code;
         this.texte = texte;
+        this.language = "fr";
+    }
+
+    public AppText(String code, String texte, String language) {
+        this.code = code;
+        this.texte = texte;
+        this.language = language;
     }
 
     public String getId() {
@@ -56,6 +67,13 @@ public class Texte {
         this.texte = texte;
     }
 
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -67,7 +85,7 @@ public class Texte {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Texte other = (Texte) obj;
+        final AppText other = (AppText) obj;
         return Objects.equals(this.id, other.id);
     }
     

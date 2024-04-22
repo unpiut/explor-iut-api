@@ -1,10 +1,10 @@
 package explorateurIUT.excelImport.model;
 
-public class ExcelTexte {
+public class ExcelAppText {
     private final String code;
     private String content;
 
-    public ExcelTexte(String code){
+    public ExcelAppText(String code){
         this.code = code;
     }
 

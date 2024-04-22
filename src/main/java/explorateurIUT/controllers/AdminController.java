@@ -20,6 +20,8 @@ package explorateurIUT.controllers;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.NoSuchElementException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -63,6 +65,8 @@ public class AdminController {
                                                                                 // fichier excel
                     .headers(contentHeaders)
                     .body(fis);
+        } catch (IOException error) {
+            throw new NoSuchElementException("Data sheets not found.");
         }
     }
 
