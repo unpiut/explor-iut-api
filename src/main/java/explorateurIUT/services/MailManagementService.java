@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.mail.MailException;
 
@@ -52,7 +54,9 @@ public interface MailManagementService {
      * @throws ValidationException if given parameters are invalid
      * @throws java.io.IOException if an error happens while saving attachement
      */
-    LocalDateTime requestMailSending(@NotNull @Valid MailSendingRequest sendingRequest, @NotNull URI serverBaseURI) throws ValidationException, IOException, MailException;
+    @PreAuthorize("hasPermission(#sendingRequest.deptIds, 'quota-met')")
+    @PostAuthorize("hasPermission(#sendingRequest.deptIds, 'quota-update')")
+    LocalDateTime requestMailSending(@NotNull @Valid MailSendingRequest sendingRequest, @NotNull URI serverBaseURI) throws ValidationException, IOException;
 
     /**
      * Re-send the confirmation mail related to a pending mail sending request,

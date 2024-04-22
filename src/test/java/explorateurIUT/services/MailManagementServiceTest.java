@@ -19,6 +19,7 @@
 package explorateurIUT.services;
 
 import explorateurIUT.services.mailManagement.MailSendingRequest;
+import explorateurIUT.testUtils.WithWebAnonymousUser;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -67,6 +68,7 @@ public class MailManagementServiceTest {
      * Test of requestMailSending method, of class MailManagementServiceImpl.
      */
     @Test
+    @WithWebAnonymousUser
     public void testRequestMailSendingValidation() {
         URI baseUri = URI.create("http://localhost:8080");
         assertThatThrownBy(()

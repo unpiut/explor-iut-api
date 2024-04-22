@@ -21,18 +21,26 @@ package explorateurIUT.configuration;
 import explorateurIUT.security.authentication.LocalAdminDetailsService;
 import explorateurIUT.security.csrf.CsrfCookieFilter;
 import explorateurIUT.security.csrf.SpaCsrfTokenRequestHandler;
+import explorateurIUT.security.mailQuota.GlobalQuotaFilter;
+import explorateurIUT.security.mailQuota.IPQuotaPermissionEvaluator;
+import explorateurIUT.security.mailQuota.services.GlobalQuotaValidator;
+import explorateurIUT.security.mailQuota.services.IPQuotaValidator;
+import explorateurIUT.security.mailQuota.services.MongoQuotaValidator;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.PermissionEvaluator;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -41,6 +49,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
+import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
@@ -52,6 +61,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * @author Remi Venant
  */
 @Configuration
+@EnableMethodSecurity
 @EnableWebSecurity
 public class SecurityEndpointsConfiguration {
 
@@ -64,11 +74,10 @@ public class SecurityEndpointsConfiguration {
 
     @Bean
     public UserDetailsService userDetailsService(
-            @Value("${app.security.admin-username}") String username,
-            @Value("${app.security.admin-password}") String clearPassword,
+            AppSecurityProperties appSecurityProperties,
             PasswordEncoder passwordEncoder) {
-        final String encodedPassword = passwordEncoder.encode(clearPassword);
-        return new LocalAdminDetailsService(username, encodedPassword);
+        final String encodedPassword = passwordEncoder.encode(appSecurityProperties.getAdminPassword());
+        return new LocalAdminDetailsService(appSecurityProperties.getAdminUsername(), encodedPassword);
     }
 
     @Bean
@@ -117,9 +126,26 @@ public class SecurityEndpointsConfiguration {
     }
 
     @Bean
+    public MongoQuotaValidator mongoQuotaValidator(AppSecurityProperties appSecurityProperties, MongoTemplate mongoTemplate) {
+        MongoQuotaValidator mqv = new MongoQuotaValidator(mongoTemplate);
+        mqv.setMaxRequestPerMinute(appSecurityProperties.getMaxMailRequestsMinute());
+        mqv.setMaxIpRequestPerHour(appSecurityProperties.getMaxMailIpRequestsHour());
+        mqv.setMaxIpRequestPerDeptPerHour(appSecurityProperties.getMaxMailIpRequestsDeptHour());
+        return mqv;
+    }
+
+    @Bean
+    public GlobalQuotaFilter mailQuotaFilter(GlobalQuotaValidator globalQuotaValidator) {
+        GlobalQuotaFilter filter = new GlobalQuotaFilter(globalQuotaValidator);
+        filter.setFilterProcessesUrl("/api/v1/iut/tracert"); // "/api/v1/mail/request"
+        return filter;
+    }
+
+    @Bean
     public SecurityFilterChain MultiSecFilterChain(HttpSecurity http,
             CorsConfigurationSource corsConfigurationSource,
-            @Value("${app.security.csrf:false}") boolean withCsrf) throws Exception {
+            AppSecurityProperties appSecurityProperties,
+            GlobalQuotaFilter mailQuotaFilter) throws Exception {
         // Gestion de l'authentification : mot de passe dans en-tete
         http
                 .httpBasic(basic -> {
@@ -131,7 +157,7 @@ public class SecurityEndpointsConfiguration {
         // Gestion du CORS
         http.cors(cors -> cors.configurationSource(corsConfigurationSource));
         // Protection CSRF pour une SPA (Double cookie, chiffré) si activé
-        if (withCsrf) {
+        if (appSecurityProperties.isCsrf()) {
             LOG.info("ENFORCING CSRF");
             CookieCsrfTokenRepository csrfTokenRepo = new CookieCsrfTokenRepository();
             csrfTokenRepo.setCookieCustomizer((cookieBuilder) -> {
@@ -148,6 +174,9 @@ public class SecurityEndpointsConfiguration {
             LOG.info("DISABLING CSRF");
             http.csrf(csrf -> csrf.disable());
         }
+        // Quota de creation de mail
+        //http.addFilterBefore(mailQuotaFilter, SecurityContextHolderFilter.class);
+        http.addFilterAfter(mailQuotaFilter, ExceptionTranslationFilter.class);
 
         // Par-feu applicatif
         http.authorizeHttpRequests(ahr -> {
@@ -167,5 +196,17 @@ public class SecurityEndpointsConfiguration {
         });
 
         return http.build();
+    }
+
+    @Bean
+    public DefaultMethodSecurityExpressionHandler methodExpressionHandler(PermissionEvaluator permissionEvaluator) {
+        DefaultMethodSecurityExpressionHandler dmse = new DefaultMethodSecurityExpressionHandler();
+        dmse.setPermissionEvaluator(permissionEvaluator);
+        return dmse;
+    }
+
+    @Bean
+    public PermissionEvaluator permissionEvaluator(IPQuotaValidator ipQuotaValidator) {
+        return new IPQuotaPermissionEvaluator(ipQuotaValidator);
     }
 }

@@ -22,6 +22,7 @@ import explorateurIUT.services.MailManagementService;
 import explorateurIUT.services.RequestServerUrlBuilder;
 import explorateurIUT.services.mailManagement.MailRequestAttachement;
 import explorateurIUT.services.mailManagement.MailSendingRequest;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -48,19 +49,19 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 @RequestMapping("/api/v1/mail")
 public class MailController {
-    
+
     private static final Log LOG = LogFactory.getLog(MailController.class);
-    
+
     private final RequestServerUrlBuilder serverUrlBuilder;
-    
+
     private final MailManagementService mailMgmtSvc;
-    
+
     @Autowired
     public MailController(RequestServerUrlBuilder serverUrlBuilder, MailManagementService mailMgmtSvc) {
         this.serverUrlBuilder = serverUrlBuilder;
         this.mailMgmtSvc = mailMgmtSvc;
     }
-    
+
     @PostMapping("/request")
     public @ResponseBody
     ResponseEntity<?> sendMailRequest(
@@ -73,7 +74,7 @@ public class MailController {
             @RequestParam("mailBody") String body,
             @RequestParam(name = "files", required = false) MultipartFile[] files,
             HttpServletRequest request) throws IOException {
-        
+
         ArrayList<MailRequestAttachement> fileList = null;
         if (files != null) {
             fileList = new ArrayList<>(files.length);
@@ -83,15 +84,15 @@ public class MailController {
                 fileList.add(new MailRequestAttachement(file, fileName));
             }
         }
-        
+
         final MailSendingRequest msr = new MailSendingRequest(deptIds, identity,
                 company, function, mail, subject, body, fileList);
-        
+
         LocalDateTime requestCreationDT = this.mailMgmtSvc.requestMailSending(msr, this.serverUrlBuilder.buildServerBaseURI());
-        
+
         return ResponseEntity.ok(Map.of("creationDateTime", requestCreationDT));
     }
-    
+
     @PostMapping("/resend-confirmation")
     public @ResponseBody
     ResponseEntity<?> sendMailRequest(@RequestParam("c") String contact, @RequestParam("cdt") String rawCreationDateTime) {
@@ -102,14 +103,14 @@ public class MailController {
         } catch (DateTimeParseException ex) {
             throw new IllegalArgumentException("Bad creation datetime");
         }
-        
+
     }
-    
+
     @GetMapping("/validate")
     public @ResponseBody
-    ResponseEntity<?> validate(@RequestParam("t") String token) {
+    ResponseEntity<?> validate(@RequestParam("t") String token) throws MessagingException {
         this.mailMgmtSvc.confirmMailSendingRequest(token);
         return ResponseEntity.accepted().build();
     }
-    
+
 }
