@@ -26,20 +26,20 @@ public class AppText {
 
     @JsonView(AppTextViews.Normal.class)
     @NotBlank
-    private String texte;
+    private String content;
 
     protected AppText(){
     }
 
-    public AppText(String code, String texte) {
+    public AppText(String code, String content) {
         this.code = code;
-        this.texte = texte;
+        this.content = content;
         this.language = "fr";
     }
 
-    public AppText(String code, String texte, String language) {
+    public AppText(String code, String content, String language) {
         this.code = code;
-        this.texte = texte;
+        this.content = content;
         this.language = language;
     }
 
@@ -59,12 +59,12 @@ public class AppText {
         this.code = code;
     }
 
-    public String getTexte() {
-        return texte;
+    public String getContent() {
+        return content;
     }
 
-    public void setTexte(String texte) {
-        this.texte = texte;
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public String getLanguage() {
