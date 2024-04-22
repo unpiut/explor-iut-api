@@ -21,10 +21,12 @@ package explorateurIUT.controllers;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,9 +36,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import explorateurIUT.DataUploader;
 import explorateurIUT.excelImport.AppDataProperties;
+import explorateurIUT.services.mailManagement.MailRequestAttachement;
 
 /**
  *
@@ -47,8 +53,14 @@ import explorateurIUT.excelImport.AppDataProperties;
 public class AdminController {
 
     private static final Log LOG = LogFactory.getLog(AdminController.class);
+    private final DataUploader dataUploader;
+    private final AppDataProperties appDataProperties;
 
-    private final AppDataProperties appDataProperties = new AppDataProperties();
+    @Autowired
+    public AdminController(DataUploader dataUploader,AppDataProperties appDataProperties){
+        this.dataUploader = dataUploader;
+        this.appDataProperties = appDataProperties;
+    }
 
     @GetMapping("data-sheets")
     public ResponseEntity<?> getData(@AuthenticationPrincipal UserDetails currentUser) {
@@ -71,7 +83,11 @@ public class AdminController {
     }
 
     @PutMapping("data-sheets")
-    public String updateData(@AuthenticationPrincipal UserDetails currentUser) {
-        return "T.B.A";
+    public String updateData(@AuthenticationPrincipal UserDetails currentUser, @RequestParam("file") MultipartFile file) throws IOException{
+                final String fileName = file.getOriginalFilename() != null ? file.getOriginalFilename() : String.format("%d_%s", 1, file.getName());
+                dataUploader.run(fileName);
+                return fileName;
+                
+            
     }
 }
