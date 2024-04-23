@@ -40,8 +40,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import explorateurIUT.DataUploader;
 import explorateurIUT.excelImport.AppDataProperties;
+import explorateurIUT.services.DataUploadServiceImpl;
 import explorateurIUT.services.mailManagement.MailRequestAttachement;
 
 /**
@@ -53,11 +53,11 @@ import explorateurIUT.services.mailManagement.MailRequestAttachement;
 public class AdminController {
 
     private static final Log LOG = LogFactory.getLog(AdminController.class);
-    private final DataUploader dataUploader;
+    private final DataUploadServiceImpl dataUploader;
     private final AppDataProperties appDataProperties;
 
     @Autowired
-    public AdminController(DataUploader dataUploader,AppDataProperties appDataProperties){
+    public AdminController(DataUploadServiceImpl dataUploader, AppDataProperties appDataProperties) {
         this.dataUploader = dataUploader;
         this.appDataProperties = appDataProperties;
     }
@@ -83,11 +83,8 @@ public class AdminController {
     }
 
     @PutMapping("data-sheets")
-    public String updateData(@AuthenticationPrincipal UserDetails currentUser, @RequestParam("file") MultipartFile file) throws IOException{
-                final String fileName = file.getOriginalFilename() != null ? file.getOriginalFilename() : String.format("%d_%s", 1, file.getName());
-                dataUploader.run(fileName);
-                return fileName;
-                
-            
+    public void updateData(@AuthenticationPrincipal UserDetails currentUser, @RequestParam("file") MultipartFile file)
+            throws IOException {
+        dataUploader.uploadData(file);
     }
 }

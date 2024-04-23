@@ -18,7 +18,6 @@
  */
 package explorateurIUT;
 
-import explorateurIUT.excelImport.AppDataProperties;
 import explorateurIUT.excelImport.ExcelDataExtractor;
 import explorateurIUT.excelImport.ExcelToMongoLoader;
 import explorateurIUT.services.CacheManagementService;
@@ -40,20 +39,20 @@ public class DataLoader implements CommandLineRunner {
 
     private static final Log LOG = LogFactory.getLog(DataLoader.class);
 
-    private final AppDataProperties appDataProperties;
-
     private final MongoTemplate mongoTemplate;
 
     private final CacheManagementService cacheMgmtSvc;
+
+    private final ExcelDataExtractor excelDataExtractor;
 
     @Autowired
     public DataLoader(
             MongoTemplate mongoTemplate,
             CacheManagementService cacheMgmtSvc,
-            AppDataProperties appDataProperties) {
+            ExcelDataExtractor excelDataExtractor) {
         this.mongoTemplate = mongoTemplate;
         this.cacheMgmtSvc = cacheMgmtSvc;
-        this.appDataProperties = appDataProperties;
+        this.excelDataExtractor = excelDataExtractor;
     }
 
     @Override
@@ -67,8 +66,7 @@ public class DataLoader implements CommandLineRunner {
         loader.clearDb();
 
         LOG.info("Start ETL...");
-        ExcelDataExtractor excelDataLoader = new ExcelDataExtractor(appDataProperties);
-        excelDataLoader.extractInfoFromExcelFile(loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), loader.getExcelAppTextConsumer());
+        excelDataExtractor.extractFromAppProperties(loader.getExcelAppTextConsumer(), loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer());
         LOG.info("ETL end.");
 
         LOG.info("Clear cache");

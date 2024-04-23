@@ -16,44 +16,49 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package explorateurIUT;
+package explorateurIUT.services;
 
-import explorateurIUT.excelImport.AppDataProperties;
+import explorateurIUT.DataLoader;
 import explorateurIUT.excelImport.ExcelDataExtractor;
 import explorateurIUT.excelImport.ExcelToMongoLoader;
-import explorateurIUT.services.CacheManagementService;
+import jakarta.validation.valueextraction.ValueExtractorDeclarationException;
+
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-@Profile("upload-data")
-@Component
-public class DataUploader implements CommandLineRunner{
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
+
+@Service
+@Validated
+public class DataUploadServiceImpl implements DataUploadService{
     private static final Log LOG = LogFactory.getLog(DataLoader.class);
 
-    private final AppDataProperties appDataProperties;
 
     private final MongoTemplate mongoTemplate;
 
     private final CacheManagementService cacheMgmtSvc;
 
+    private final ExcelDataExtractor excelDataExtractor;
+
     @Autowired
-    public DataUploader(
+    public DataUploadServiceImpl(
             MongoTemplate mongoTemplate,
-            CacheManagementService cacheMgmtSvc,
-            AppDataProperties appDataProperties) {
+            CacheManagementService cacheMgmtSvc, ExcelDataExtractor excelDataExtractor) {
         this.mongoTemplate = mongoTemplate;
         this.cacheMgmtSvc = cacheMgmtSvc;
-        this.appDataProperties = appDataProperties;
+        this.excelDataExtractor = excelDataExtractor;
     }
 
     @Override
     @Transactional
-    public void run(String... args) throws Exception {
+    public void uploadData(MultipartFile dataExcelFile) {
         LOG.info("START DATA UPLOADING");
 
         LOG.info("Prepare mongo loader");
@@ -63,8 +68,11 @@ public class DataUploader implements CommandLineRunner{
         loader.clearDb();
 
         LOG.info("Start ETL...");
-        ExcelDataExtractor excelDataLoader = new ExcelDataExtractor(appDataProperties);
-        excelDataLoader.extractInfoFromExcelFile(loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), loader.getExcelAppTextConsumer());
+        try(InputStream dataExcel = dataExcelFile.getInputStream()){
+        excelDataExtractor.extractFromInputStream(loader.getExcelAppTextConsumer(), loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), dataExcel);
+    } catch( IOException err) {
+        throw new ValueExtractorDeclarationException("Download didn't work");
+    }
         LOG.info("ETL end.");
 
         LOG.info("Clear cache");

@@ -21,15 +21,11 @@ package explorateurIUT.excelImport;
 import explorateurIUT.excelImport.consumers.AppTextConsumer;
 import explorateurIUT.excelImport.consumers.BUTConsumer;
 import explorateurIUT.excelImport.consumers.IUTConsumer;
-import explorateurIUT.excelImport.model.ExcelAppText;
-import explorateurIUT.excelImport.model.ExcelBUT;
-import explorateurIUT.excelImport.model.ExcelIUT;
 import explorateurIUT.model.AppText;
 import explorateurIUT.model.BUT;
 import explorateurIUT.model.Departement;
 import explorateurIUT.model.IUT;
 import explorateurIUT.model.ParcoursBUT;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -69,15 +65,15 @@ public class ExcelToMongoLoader {
                 .forEach((c) -> this.mongoTemplate.remove(matchAll, c));
     }
 
-    public Consumer<ExcelBUT> getExcelBUTConsumer() {
+    public BUTConsumer getExcelBUTConsumer() {
         return this.butConsumer;
     }
 
-    public Consumer<ExcelIUT> getExcelIUTConsumer() {
+    public IUTConsumer getExcelIUTConsumer() {
         return this.iutconsumer;
     }
 
-    public Consumer<ExcelAppText> getExcelAppTextConsumer() {
+    public AppTextConsumer getExcelAppTextConsumer() {
         return this.appTextconsumer;
     }
 }
