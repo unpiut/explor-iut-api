@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import explorateurIUT.excelImport.AppDataProperties;
-import explorateurIUT.services.DataUploadServiceImpl;
+import explorateurIUT.services.DataUploadService;
 
 /**
  *
@@ -47,11 +47,13 @@ import explorateurIUT.services.DataUploadServiceImpl;
 public class AdminController {
 
     private static final Log LOG = LogFactory.getLog(AdminController.class);
-    private final DataUploadServiceImpl dataUploader;
+
+    private final DataUploadService dataUploader;
+
     private final AppDataProperties appDataProperties;
 
     @Autowired
-    public AdminController(DataUploadServiceImpl dataUploader, AppDataProperties appDataProperties) {
+    public AdminController(DataUploadService dataUploader, AppDataProperties appDataProperties) {
         this.dataUploader = dataUploader;
         this.appDataProperties = appDataProperties;
     }

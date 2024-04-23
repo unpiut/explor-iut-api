@@ -32,7 +32,7 @@ public class AppDataProperties {
     private String filePath = "data.xlsx";
     private String butSheetName = "but";
     private String iutSheetName = "iut";
-    private String appTextSheetName = "app-text";
+    private String appTextSheetName = "textes";
 
     public AppDataProperties() {
     }

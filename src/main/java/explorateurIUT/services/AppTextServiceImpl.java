@@ -24,11 +24,15 @@ import explorateurIUT.model.AppText;
 import explorateurIUT.model.AppTextRepository;
 import jakarta.validation.constraints.NotBlank;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 /**
  *
  * @author Julien Fourdan
  */
+@Service
+@Validated
 public class AppTextServiceImpl implements AppTextService {
 
     private final static String DEFAULT_LANGUAGE = "fr";
