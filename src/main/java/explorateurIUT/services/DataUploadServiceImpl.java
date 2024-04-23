@@ -19,13 +19,9 @@
 package explorateurIUT.services;
 
 import explorateurIUT.DataLoader;
-import explorateurIUT.excelImport.ExcelDataExtractor;
 import explorateurIUT.excelImport.ExcelToMongoLoader;
-import jakarta.validation.valueextraction.ValueExtractorDeclarationException;
-
 import java.io.IOException;
 import java.io.InputStream;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +31,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ *
+ * @author Julien Fourdan
+ */
 @Service
 @Validated
-public class DataUploadServiceImpl implements DataUploadService{
-    private static final Log LOG = LogFactory.getLog(DataLoader.class);
+public class DataUploadServiceImpl implements DataUploadService {
 
+    private static final Log LOG = LogFactory.getLog(DataLoader.class);
 
     private final MongoTemplate mongoTemplate;
 
@@ -48,9 +48,8 @@ public class DataUploadServiceImpl implements DataUploadService{
     private final ExcelDataExtractor excelDataExtractor;
 
     @Autowired
-    public DataUploadServiceImpl(
-            MongoTemplate mongoTemplate,
-            CacheManagementService cacheMgmtSvc, ExcelDataExtractor excelDataExtractor) {
+    public DataUploadServiceImpl(MongoTemplate mongoTemplate, CacheManagementService cacheMgmtSvc,
+            ExcelDataExtractor excelDataExtractor) {
         this.mongoTemplate = mongoTemplate;
         this.cacheMgmtSvc = cacheMgmtSvc;
         this.excelDataExtractor = excelDataExtractor;
@@ -58,7 +57,7 @@ public class DataUploadServiceImpl implements DataUploadService{
 
     @Override
     @Transactional
-    public void uploadData(MultipartFile dataExcelFile) {
+    public void uploadData(MultipartFile dataExcelFile) throws IOException {
         LOG.info("START DATA UPLOADING");
 
         LOG.info("Prepare mongo loader");
@@ -67,14 +66,11 @@ public class DataUploadServiceImpl implements DataUploadService{
         LOG.info("Clear database");
         loader.clearDb();
 
-        LOG.info("Start ETL...");
-        try(InputStream dataExcel = dataExcelFile.getInputStream()){
-        excelDataExtractor.extractFromInputStream(loader.getExcelAppTextConsumer(), loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), dataExcel);
-    } catch( IOException err) {
-        throw new ValueExtractorDeclarationException("Download didn't work");
-    }
-        LOG.info("ETL end.");
+        try (InputStream dataExcel = dataExcelFile.getInputStream()) {
+            excelDataExtractor.extractFromInputStream(loader.getExcelAppTextConsumer(), loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), dataExcel);
+        }
 
+        //TODO : replace the existing excel file with the one given in parameter.
         LOG.info("Clear cache");
         this.cacheMgmtSvc.resetCaches();
         final String etag = this.cacheMgmtSvc.setAndGetCacheEtag();

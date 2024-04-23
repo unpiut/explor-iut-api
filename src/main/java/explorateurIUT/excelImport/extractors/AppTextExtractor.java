@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2023 IUT Laval - Le Mans Université.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
 package explorateurIUT.excelImport.extractors;
 
 import java.util.Iterator;
@@ -7,10 +25,14 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
-
 import explorateurIUT.excelImport.model.ExcelAppText;
 
-public class AppTextExtractor implements SheetExtractor<ExcelAppText>{
+/**
+ *
+ * @author Julien Fourdan
+ */
+public class AppTextExtractor implements SheetExtractor<ExcelAppText> {
+
     private static final Log LOG = LogFactory.getLog(AppTextExtractor.class);
 
     @Override
@@ -42,7 +64,7 @@ public class AppTextExtractor implements SheetExtractor<ExcelAppText>{
                 switch (columnIdx) {
                     case 0 -> { // Texte code, new Texte
                         if (currentTexte != null) {
-                            entityConsumer.accept(currentTexte);
+                            LOG.warn("Texte without any content will not be retrieved: " + currentTexte.getCode());
                         }
                         LOG.debug("Create new Texte of name " + rawValue);
                         currentTexte = new ExcelAppText(rawValue);
@@ -50,9 +72,7 @@ public class AppTextExtractor implements SheetExtractor<ExcelAppText>{
                     case 1 -> { // Texte content
                         if (currentTexte == null) {
                             LOG.warn("New Texte content cell with no current Texte: " + cell.getAddress().formatAsR1C1String());
-                        } else if(currentTexte.getContent() == null) {
-                            LOG.warn("Using same text id with different content"); 
-                        }else { 
+                        } else {
                             currentTexte.setContent(rawValue);
                             entityConsumer.accept(currentTexte);
                             currentTexte = null;
@@ -65,7 +85,7 @@ public class AppTextExtractor implements SheetExtractor<ExcelAppText>{
         }
 
         if (currentTexte != null) {
-            entityConsumer.accept(currentTexte);
+            LOG.warn("Texte without any content will not be retrieved: " + currentTexte.getCode());
         }
     }
 }

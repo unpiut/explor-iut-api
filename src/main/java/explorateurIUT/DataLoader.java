@@ -18,7 +18,7 @@
  */
 package explorateurIUT;
 
-import explorateurIUT.excelImport.ExcelDataExtractor;
+import explorateurIUT.services.ExcelDataExtractor;
 import explorateurIUT.excelImport.ExcelToMongoLoader;
 import explorateurIUT.services.CacheManagementService;
 import org.apache.commons.logging.Log;

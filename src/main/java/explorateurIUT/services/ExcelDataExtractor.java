@@ -18,16 +18,20 @@
  */
 package explorateurIUT.services;
 
-import java.util.Map;
-import jakarta.validation.constraints.NotBlank;
+import java.io.IOException;
+import java.io.InputStream;
+import explorateurIUT.excelImport.consumers.AppTextConsumer;
+import explorateurIUT.excelImport.consumers.BUTConsumer;
+import explorateurIUT.excelImport.consumers.IUTConsumer;
+import jakarta.validation.constraints.NotNull;
 
 /**
  *
  * @author Julien Fourdan
  */
-public interface AppTextService {
+public interface ExcelDataExtractor {
 
-    Map<String, String> getAppTextsByCode(@NotBlank String language);
+    public void extractFromAppProperties(@NotNull AppTextConsumer appTextConsumer, @NotNull IUTConsumer iutConsumer, @NotNull BUTConsumer butConsumer) throws IOException;
 
-    Map<String, String> getDefaultAppTextsByCode();
+    public void extractFromInputStream(@NotNull AppTextConsumer appTextConsumer, @NotNull IUTConsumer iutConsumer, @NotNull BUTConsumer butConsumer, @NotNull InputStream inputStream) throws IOException;
 }

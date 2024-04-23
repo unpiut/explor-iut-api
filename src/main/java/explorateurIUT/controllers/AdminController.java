@@ -21,9 +21,7 @@ package explorateurIUT.controllers;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.NoSuchElementException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,18 +29,14 @@ import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import explorateurIUT.excelImport.AppDataProperties;
 import explorateurIUT.services.DataUploadServiceImpl;
-import explorateurIUT.services.mailManagement.MailRequestAttachement;
 
 /**
  *
@@ -63,18 +57,18 @@ public class AdminController {
     }
 
     @GetMapping("data-sheets")
-    public ResponseEntity<?> getData(@AuthenticationPrincipal UserDetails currentUser) {
+    public ResponseEntity<?> getData() {
         try (FileInputStream fis = new FileInputStream(new File(this.appDataProperties.getFilePath()))) {
             ContentDisposition contentDisposition = ContentDisposition.builder("attachement") // doit être téléchargé
-                    .filename("data.xlsx") // le nom du fichier
+                    .filename("exploriut_data.xlsx") // le nom du fichier
                     .build();
             HttpHeaders contentHeaders = new HttpHeaders();
             contentHeaders.setContentDisposition(contentDisposition);
 
             return ResponseEntity.ok() // ok() : code 200
                     .contentType(MediaType.valueOf("application/vnd.ms-excel")) // en-tête content-type positioné sur
-                                                                                // "application/vnd.ms-excel » : un
-                                                                                // fichier excel
+                    // "application/vnd.ms-excel » : un
+                    // fichier excel
                     .headers(contentHeaders)
                     .body(fis);
         } catch (IOException error) {
@@ -83,7 +77,7 @@ public class AdminController {
     }
 
     @PutMapping("data-sheets")
-    public void updateData(@AuthenticationPrincipal UserDetails currentUser, @RequestParam("file") MultipartFile file)
+    public void updateData(@RequestParam("file") MultipartFile file)
             throws IOException {
         dataUploader.uploadData(file);
     }
