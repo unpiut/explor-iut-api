@@ -69,8 +69,7 @@ public class ExcelDataExtractorImpl implements ExcelDataExtractor {
     public void extractFromInputStream(@NotNull AppTextConsumer appTextConsumer, @NotNull IUTConsumer iutConsumer,
             @NotNull BUTConsumer butConsumer, @NotNull InputStream inputStream) throws IOException {
         LOG.info("ETL Excel data: start...");
-        try {
-            final XSSFWorkbook wb = new XSSFWorkbook(inputStream);
+        try (final XSSFWorkbook wb = new XSSFWorkbook(inputStream)){
             // First we process BUT
             final BUTExtractor butExtractor = new BUTExtractor();
             butExtractor.extractEntities(wb.getSheet(this.appDataProperties.getButSheetName()), butConsumer);
