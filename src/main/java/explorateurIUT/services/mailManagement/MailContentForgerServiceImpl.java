@@ -83,7 +83,7 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
 
     @Override
     public String createConfirmationMailSubject() {
-        return "Explor'IUT - Confirmation de la recherche d'alternance";
+        return "ExplorerIUT - Confirmation de la recherche d'alternance";
     }
 
     @Override

@@ -104,7 +104,7 @@ public class DataUploadServiceTest {
         assertThat(this.mongTemplate.count(everyDocQuery, Departement.class)).as("Proper number of departement inserted").isEqualTo(7);
         assertThat(this.mongTemplate.count(everyDocQuery, AppText.class)).as("Proper number of AppText inserted").isEqualTo(6);
     }
-
+    
     @Test
     public void testUploadDataFail() throws Exception {
         final Query everyDocQuery = new Query(new Criteria());
@@ -128,5 +128,5 @@ public class DataUploadServiceTest {
         assertThat(this.mongTemplate.count(everyDocQuery, Departement.class)).as("Number of departement still 0").isEqualTo(0);
         assertThat(this.mongTemplate.count(everyDocQuery, AppText.class)).as("Number of AppText still 0").isEqualTo(0);
     }
-
+    
 }
