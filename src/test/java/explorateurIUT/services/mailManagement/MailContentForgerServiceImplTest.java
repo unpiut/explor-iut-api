@@ -87,7 +87,13 @@ public class MailContentForgerServiceImplTest {
     @Test
     public void testCreateGeneralBody() {
         System.out.println("createGeneralBody");
-        fail("The test case is a prototype.");
+        final TestDatasetGenerator.TestInstances ti = this.testDataset.getTestInstances();
+        List<String> allLavalDeptIds = ti.getIutLaval().getDepartements().stream().map(Departement::getId).toList();
+        MailSendingRequest mailSendingRequest = new MailSendingRequest(allLavalDeptIds,
+                "contactIdentity", "contactCompany", "contactFunction", "contactMail", "subject", "body", null);
+
+        final String body = this.testedSvc.createGeneralBody(mailSendingRequest);
+        assertThat(body).as("Le corps créé est vide.").isNotBlank();
     }
 
     /**
