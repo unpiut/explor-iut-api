@@ -22,9 +22,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+import de.flapdoodle.embed.mongo.commands.MongodArguments;
+import de.flapdoodle.embed.mongo.config.Storage;
 
 /**
  *
@@ -40,6 +45,18 @@ public class MongoConfiguration {
     public LocalValidatorFactoryBean localValidatorFactoryBean() {
         //a common bean to enforce javax validation constraints
         return new LocalValidatorFactoryBean();
+    }
+
+    @Bean
+    public MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
+        return new MongoTransactionManager(dbFactory);
+    }
+
+    @Bean
+    public MongodArguments mongodArguments() {
+        return MongodArguments.builder()
+                .replication(Storage.of("test", 10))
+                .build();
     }
 
     @Bean
