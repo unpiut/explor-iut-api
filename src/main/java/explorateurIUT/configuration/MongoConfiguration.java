@@ -28,9 +28,6 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import de.flapdoodle.embed.mongo.commands.MongodArguments;
-import de.flapdoodle.embed.mongo.config.Storage;
-
 /**
  *
  * @author Rémi Venant
@@ -50,13 +47,6 @@ public class MongoConfiguration {
     @Bean
     public MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
         return new MongoTransactionManager(dbFactory);
-    }
-
-    @Bean
-    public MongodArguments mongodArguments() {
-        return MongodArguments.builder()
-                .replication(Storage.of("test", 10))
-                .build();
     }
 
     @Bean

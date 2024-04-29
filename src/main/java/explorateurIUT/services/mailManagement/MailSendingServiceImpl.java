@@ -94,22 +94,7 @@ public class MailSendingServiceImpl implements MailSendingService {
             String body, Stream<GridFSFile> attachements) throws MessagingException {
         final MimeMessage message = this.mailSender.createMimeMessage();
         final MimeMessageHelper helper = new MimeMessageHelper(message);
-        switch (this.mailSendingProperties.getSendingType().toLowerCase()) {
-            case "to" -> {
-                helper.setTo(recipient);
-            }
-            case "cc" -> {
-                helper.setCc(recipient);
-            }
-            case "bcc" -> {
-                helper.setBcc(recipient);
-            }
-            default -> {
-                LOG.warn("Invalid sending type \"" + this.mailSendingProperties.getSendingType() + "\". Revert to bcc");
-                helper.setBcc(recipient);
-            }
-        }
-
+        helper.setTo(recipient);
         helper.setFrom(this.mailSendingProperties.getFromAddress());
         helper.setReplyTo(replyTo);
         helper.setSubject(subject);
