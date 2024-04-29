@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import explorateurIUT.services.AppTextService;
 
 @RestController
-@RequestMapping("/api/v1/texte")
+@RequestMapping("/api/v1/textes")
 public class AppTextController {
     private final AppTextService appTextSvc;
 
