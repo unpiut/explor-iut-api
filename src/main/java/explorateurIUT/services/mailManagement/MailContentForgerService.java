@@ -1,0 +1,65 @@
+/*
+ * Copyright (C) 2024 IUT Laval - Le Mans Université.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301  USA
+ */
+package explorateurIUT.services.mailManagement;
+
+import java.util.List;
+
+import explorateurIUT.model.MailIUTRecipient;
+import jakarta.validation.ValidationException;
+import jakarta.validation.constraints.NotNull;
+
+/**
+ * Service for forging final mail content (subject, body)
+ *
+ * @author Remi Venant
+ */
+public interface MailContentForgerService {
+
+    /**
+     * Creation of the general body with the fusion of first form informations and
+     * original body
+     *
+     * @param mailSendingRequest: mail sending request
+     * @return the mail body
+     * @throws ValidationException if given parameters are invalid
+     */
+    String createGeneralBody(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
+
+    /**
+     * Creation of specific body by the specification of departments
+     * @param generalBody : the general body create before
+     * @param codesDep : the list of departments codes
+     * @return the final body of the mail specific to 1 IUT
+     * @throws ValidationException
+     */
+    String createSpecificBody(@NotNull String generalBody, List<String> codesDep) throws ValidationException;
+
+    /**
+     * Creation of the list of mail destinations with their departments
+     *
+     * @param mailSendingRequest
+     * @return
+     * @throws ValidationException
+     */
+    List<MailIUTRecipient> createIUTMailingList(@NotNull MailSendingRequest mailSendingRequest) throws ValidationException;
+
+    String createConfirmationMailSubject();
+
+    String createConfirmationMailBody(String contactIdentity, String confirmationUrl);
+}

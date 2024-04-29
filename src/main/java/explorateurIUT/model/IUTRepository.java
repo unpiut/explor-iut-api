@@ -18,7 +18,9 @@
  */
 package explorateurIUT.model;
 
+import explorateurIUT.model.projections.IUTMailOnly;
 import explorateurIUT.model.projections.IUTSummary;
+import java.util.Collection;
 import java.util.stream.Stream;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
@@ -30,4 +32,5 @@ public interface IUTRepository extends MongoRepository<IUT, String>, IUTReposito
 
     Stream<IUTSummary> streamSummariesBy();
 
+    Stream<IUTMailOnly> streamMailOnlyByIdInAndMelIsNotNull(Collection<String> ids);
 }

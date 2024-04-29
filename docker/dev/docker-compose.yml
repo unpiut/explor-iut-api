@@ -18,6 +18,12 @@ services:
       timeout: 10s
       retries: 10
       start_period: 20s
+  
+  mailcatcher:
+    image: dockage/mailcatcher:0.9.0
+    ports:
+      - 127.0.0.1:1080:1080/tcp
+      - 127.0.0.1:1025:1025/tcp
 
 volumes:
   data:

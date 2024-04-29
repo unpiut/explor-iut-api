@@ -27,11 +27,13 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
@@ -102,7 +104,24 @@ public class ExceptionController {
         final String error = "Méthode non supportée.";
         return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
     }
+    
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public @ResponseBody
+    ResponseEntity<ErrorMessage> handleMissingServletRequestPartException(HttpServletRequest request, HttpRequestMethodNotSupportedException ex) {
+        final HttpStatus status = HttpStatus.BAD_REQUEST;
+        final String error = "Fichier manquant";
+        return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
+    }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public @ResponseBody
+    ResponseEntity<ErrorMessage> handleAccessDenied(HttpServletRequest request, AccessDeniedException ex) {
+        logError(ex);
+        final HttpStatus status = HttpStatus.UNAUTHORIZED;
+        final String error = "Accès non autorisé";
+        return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
+    }
+    
     @ExceptionHandler(Throwable.class)
     public @ResponseBody
     ResponseEntity<ErrorMessage> handleOther(HttpServletRequest request, Throwable ex) {

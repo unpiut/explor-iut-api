@@ -18,15 +18,14 @@
  */
 package explorateurIUT.excelImport;
 
+import explorateurIUT.excelImport.consumers.AppTextConsumer;
 import explorateurIUT.excelImport.consumers.BUTConsumer;
 import explorateurIUT.excelImport.consumers.IUTConsumer;
-import explorateurIUT.excelImport.model.ExcelBUT;
-import explorateurIUT.excelImport.model.ExcelIUT;
+import explorateurIUT.model.AppText;
 import explorateurIUT.model.BUT;
 import explorateurIUT.model.Departement;
 import explorateurIUT.model.IUT;
 import explorateurIUT.model.ParcoursBUT;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,29 +44,36 @@ public class ExcelToMongoLoader {
 
     private BUTConsumer butConsumer;
     private IUTConsumer iutconsumer;
+    private AppTextConsumer appTextconsumer;
 
     public ExcelToMongoLoader(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
         this.butConsumer = new BUTConsumer(mongoTemplate);
         this.iutconsumer = new IUTConsumer(mongoTemplate, this.butConsumer.getParcoursButByCodeButParc());
+        this.appTextconsumer = new AppTextConsumer(mongoTemplate);
     }
 
     public void reset() {
         this.butConsumer = new BUTConsumer(this.mongoTemplate);
         this.iutconsumer = new IUTConsumer(mongoTemplate, this.butConsumer.getParcoursButByCodeButParc());
+        this.appTextconsumer = new AppTextConsumer(mongoTemplate);
     }
 
     public void clearDb() {
         final Query matchAll = new Query();
-        Stream.of(Departement.class, IUT.class, ParcoursBUT.class, BUT.class)
+        Stream.of(Departement.class, IUT.class, ParcoursBUT.class, BUT.class, AppText.class)
                 .forEach((c) -> this.mongoTemplate.remove(matchAll, c));
     }
 
-    public Consumer<ExcelBUT> getExcelBUTConsumer() {
+    public BUTConsumer getExcelBUTConsumer() {
         return this.butConsumer;
     }
 
-    public Consumer<ExcelIUT> getExcelIUTConsumer() {
+    public IUTConsumer getExcelIUTConsumer() {
         return this.iutconsumer;
+    }
+
+    public AppTextConsumer getExcelAppTextConsumer() {
+        return this.appTextconsumer;
     }
 }
