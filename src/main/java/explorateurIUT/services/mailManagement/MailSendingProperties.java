@@ -21,7 +21,6 @@ package explorateurIUT.services.mailManagement;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -39,9 +38,6 @@ public class MailSendingProperties {
 
     @Email
     private String noReplyAddress;
-
-    @Pattern(regexp = "^(to|b?cc)$")
-    private String sendingType = "bcc"; // to, cc, bcc
 
     @NotEmpty
     private String tokenSecret = "change-me";
@@ -72,14 +68,6 @@ public class MailSendingProperties {
 
     public void setNoReplyAddress(String noReplyAddress) {
         this.noReplyAddress = noReplyAddress;
-    }
-
-    public String getSendingType() {
-        return sendingType;
-    }
-
-    public void setSendingType(String sendingType) {
-        this.sendingType = sendingType;
     }
 
     public String getTokenSecret() {

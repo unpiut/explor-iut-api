@@ -81,7 +81,6 @@ public class MailSendingServiceImplTest {
     public void testSendMail() throws Exception {
         MailSendingProperties msp = new MailSendingProperties();
         msp.setFromAddress("from@mail.com");
-        msp.setSendingType("cc"); // we cannot test bcc as it wont be shown
 
         MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp, null);
 
@@ -95,13 +94,22 @@ public class MailSendingServiceImplTest {
             mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, Stream.empty());
         }
         LOG.info("Check if mail received");
-        assertThat(server.getReceivedEmails()).hasSize(1);
+        assertThat(server.getReceivedEmails()).hasSize(2);
         LOG.info("Assess mail info");
         SmtpMessage messageRecevied = server.getReceivedEmails().get(0);
         assertThat(messageRecevied.getHeaderValue("Reply-To")).isEqualTo(replyTo);
         assertThat(messageRecevied.getHeaderValue("From")).isEqualTo(msp.getFromAddress());
-        assertThat(messageRecevied.getHeaderValue("To")).isNull();
-        assertThat(messageRecevied.getHeaderValue("Cc")).isEqualTo(recipients.stream().collect(Collectors.joining(", ")));
+        assertThat(messageRecevied.getHeaderValue("To")).isIn(recipients);
+        final String recipientMail1 = messageRecevied.getHeaderValue("To");
+        assertThat(messageRecevied.getHeaderValue("Cc")).isNull();
+        assertThat(messageRecevied.getHeaderValue("Subject")).isEqualTo(subject);
+        assertThat(messageRecevied.getBody()).isEqualTo(body);
+        
+        messageRecevied = server.getReceivedEmails().get(1);
+        assertThat(messageRecevied.getHeaderValue("Reply-To")).isEqualTo(replyTo);
+        assertThat(messageRecevied.getHeaderValue("From")).isEqualTo(msp.getFromAddress());
+        assertThat(messageRecevied.getHeaderValue("To")).isIn(recipients).isNotEqualTo(recipientMail1);
+        assertThat(messageRecevied.getHeaderValue("Cc")).isNull();
         assertThat(messageRecevied.getHeaderValue("Subject")).isEqualTo(subject);
         assertThat(messageRecevied.getBody()).isEqualTo(body);
     }
@@ -110,7 +118,6 @@ public class MailSendingServiceImplTest {
     public void testSendMailWithTestingMailAddr() throws Exception {
         MailSendingProperties msp = new MailSendingProperties();
         msp.setFromAddress("from@mail.com");
-        msp.setSendingType("cc"); // we cannot test bcc as it wont be shown
         msp.setTestingMailAddress("test@mail.com");
         MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp, null);
 
@@ -124,13 +131,22 @@ public class MailSendingServiceImplTest {
             mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, Stream.empty());
         }
         LOG.info("Check if mail received");
-        assertThat(server.getReceivedEmails()).hasSize(1);
+        assertThat(server.getReceivedEmails()).hasSize(2);
         LOG.info("Assess mail info");
         SmtpMessage messageRecevied = server.getReceivedEmails().get(0);
         assertThat(messageRecevied.getHeaderValue("Reply-To")).isEqualTo(replyTo);
         assertThat(messageRecevied.getHeaderValue("From")).isEqualTo(msp.getFromAddress());
-        assertThat(messageRecevied.getHeaderValue("To")).isNull();
-        assertThat(messageRecevied.getHeaderValue("Cc")).isEqualTo(msp.getTestingMailAddress());
+        assertThat(messageRecevied.getHeaderValue("To")).isIn(recipients);
+        final String recipientMail1 = messageRecevied.getHeaderValue("To");
+        assertThat(messageRecevied.getHeaderValue("Cc")).isNull();
+        assertThat(messageRecevied.getHeaderValue("Subject")).isEqualTo(subject);
+        assertThat(messageRecevied.getBody()).isEqualTo(body);
+        
+        messageRecevied = server.getReceivedEmails().get(1);
+        assertThat(messageRecevied.getHeaderValue("Reply-To")).isEqualTo(replyTo);
+        assertThat(messageRecevied.getHeaderValue("From")).isEqualTo(msp.getFromAddress());
+        assertThat(messageRecevied.getHeaderValue("To")).isIn(recipients).isNotEqualTo(recipientMail1);
+        assertThat(messageRecevied.getHeaderValue("Cc")).isNull();
         assertThat(messageRecevied.getHeaderValue("Subject")).isEqualTo(subject);
         assertThat(messageRecevied.getBody()).isEqualTo(body);
     }

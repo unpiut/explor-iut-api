@@ -18,6 +18,7 @@
  */
 package explorateurIUT.services;
 
+import explorateurIUT.configuration.MongoTestConfig;
 import explorateurIUT.model.AppText;
 import explorateurIUT.model.BUT;
 import explorateurIUT.model.Departement;
@@ -35,8 +36,10 @@ import static org.assertj.core.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.mock.web.MockMultipartFile;
@@ -47,6 +50,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @author rvenant
  */
 @ActiveProfiles({"development", "app-test", "mongo-test", "ext-data"})
+@Import(MongoTestConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class DataUploadServiceTest {
 
@@ -60,7 +64,7 @@ public class DataUploadServiceTest {
     private DataUploadService testSvc;
 
     @Autowired
-    private MongoTemplate mongTemplate;
+    private MongoTemplate mongoTemplate;
 
     public DataUploadServiceTest() {
     }
@@ -79,6 +83,11 @@ public class DataUploadServiceTest {
 
     @AfterEach
     public void tearDown() {
+        this.mongoTemplate.remove(new BasicQuery("{}"), BUT.class);
+        this.mongoTemplate.remove(new BasicQuery("{}"), ParcoursBUT.class);
+        this.mongoTemplate.remove(new BasicQuery("{}"), IUT.class);
+        this.mongoTemplate.remove(new BasicQuery("{}"), Departement.class);
+        this.mongoTemplate.remove(new BasicQuery("{}"), AppText.class);
     }
 
     /**
@@ -87,32 +96,32 @@ public class DataUploadServiceTest {
     @Test
     public void testUploadDataSuccess() throws Exception {
         final Query everyDocQuery = new Query(new Criteria());
-        assertThat(this.mongTemplate.count(everyDocQuery, BUT.class)).as("Initial number of BUT is 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Initial number of ParcoursBUT is 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, IUT.class)).as("Initial number of IUT inserted").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, Departement.class)).as("Initial number of departement is 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, AppText.class)).as("Initial number of AppText is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Initial number of BUT is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Initial number of ParcoursBUT is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Initial number of IUT inserted").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Initial number of departement is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Initial number of AppText is 0").isEqualTo(0);
 
         try (InputStream is = new FileInputStream(this.dataSample)) {
             MockMultipartFile data = new MockMultipartFile("data.xlsx", is);
             this.testSvc.uploadData(data);
         }
 
-        assertThat(this.mongTemplate.count(everyDocQuery, BUT.class)).as("Proper number of BUT inserted").isEqualTo(6);
-        assertThat(this.mongTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Proper number of ParcoursBUT inserted").isEqualTo(25);
-        assertThat(this.mongTemplate.count(everyDocQuery, IUT.class)).as("Proper number of IUT inserted").isEqualTo(3);
-        assertThat(this.mongTemplate.count(everyDocQuery, Departement.class)).as("Proper number of departement inserted").isEqualTo(7);
-        assertThat(this.mongTemplate.count(everyDocQuery, AppText.class)).as("Proper number of AppText inserted").isEqualTo(6);
+        assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Proper number of BUT inserted").isEqualTo(6);
+        assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Proper number of ParcoursBUT inserted").isEqualTo(25);
+        assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Proper number of IUT inserted").isEqualTo(3);
+        assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Proper number of departement inserted").isEqualTo(7);
+        assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Proper number of AppText inserted").isEqualTo(6);
     }
-    
+
     @Test
     public void testUploadDataFail() throws Exception {
         final Query everyDocQuery = new Query(new Criteria());
-        assertThat(this.mongTemplate.count(everyDocQuery, BUT.class)).as("Initial number of BUT is 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Initial number of ParcoursBUT is 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, IUT.class)).as("Initial number of IUT inserted").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, Departement.class)).as("Initial number of departement is 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, AppText.class)).as("Initial number of AppText is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Initial number of BUT is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Initial number of ParcoursBUT is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Initial number of IUT inserted").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Initial number of departement is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Initial number of AppText is 0").isEqualTo(0);
 
         try (InputStream is = new FileInputStream(this.dataFailing)) {
             MockMultipartFile data = new MockMultipartFile("data.xlsx", is);
@@ -122,11 +131,11 @@ public class DataUploadServiceTest {
                     .isInstanceOf(DuplicateKeyException.class);
         }
 
-        assertThat(this.mongTemplate.count(everyDocQuery, BUT.class)).as("Number of BUT still 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Number of ParcoursBUT still 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, IUT.class)).as("Number of IUT still 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, Departement.class)).as("Number of departement still 0").isEqualTo(0);
-        assertThat(this.mongTemplate.count(everyDocQuery, AppText.class)).as("Number of AppText still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Number of BUT still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Number of ParcoursBUT still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Number of IUT still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Number of departement still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Number of AppText still 0").isEqualTo(0);
     }
-    
+
 }

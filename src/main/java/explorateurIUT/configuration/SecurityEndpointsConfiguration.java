@@ -184,7 +184,7 @@ public class SecurityEndpointsConfiguration {
                     // CORS options
                     .requestMatchers(HttpMethod.OPTIONS).permitAll() // Autorise les requête OPTIONS à tous pour le CORS
                     // api/ configuration
-                    .requestMatchers(HttpMethod.GET, "/api/v1/referentiel/**", "/api/v1/iut/**", "/api/v1/app-text/**").permitAll() // Allow public access to data apis
+                    .requestMatchers(HttpMethod.GET, "/api/v1/referentiel/**", "/api/v1/iut/**", "/api/v1/textes/**").permitAll() // Allow public access to data apis
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN") // admin endpoints
                     .requestMatchers("/api/**").denyAll() // default policy for api
                     // errors
