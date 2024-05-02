@@ -35,16 +35,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -58,7 +57,6 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * @author rvenant
  */
-@ExtendWith(MockitoExtension.class)
 @ActiveProfiles({"development", "app-test", "mongo-test", "ext-data"})
 @Import(MongoTestConfig.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
@@ -70,19 +68,16 @@ public class DataUploadServiceTest {
     @Value("classpath:data_failing.xlsx")
     private File dataFailing;
 
-    @InjectMocks
+    @Autowired
     private DataUploadServiceImpl testSvc;
 
     @Autowired
     private MongoTemplate mongoTemplate;
-    
-    @Autowired
-    private CacheManagementService cacheMgmtSvc;
-    
-    @Autowired
-    private ExcelDataExtractor excelDataEx;
 
-    @Mock
+    @MockBean
+    private CacheManagementService cacheMgmtSvc;
+
+    @MockBean
     private ExcelChangeService excelChangeSvc;
 
     private AutoCloseable mockMgr;
@@ -125,24 +120,28 @@ public class DataUploadServiceTest {
         assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Initial number of IUT inserted").isEqualTo(0);
         assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Initial number of departement is 0").isEqualTo(0);
         assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Initial number of AppText is 0").isEqualTo(0);
-        
+
+        // Mock changeExcelSession with a instance to control different calls on the instance
         MyMockSession mms = new MyMockSession();
         Mockito.when(this.excelChangeSvc.getChangeExcelSession()).thenReturn(mms);
 
-        System.out.println("Mock Excelchange svc: " + this.excelChangeSvc);
-        ExcelChangeSession ecs = this.excelChangeSvc.getChangeExcelSession();
-        assertThat(ecs).as("Test 1").isSameAs(mms);
-        ecs = this.excelChangeSvc.getChangeExcelSession();
-        assertThat(ecs).as("Test 2").isSameAs(mms);
-        
+        // Set CacheManagementService to act without error
+        doNothing().when(this.cacheMgmtSvc).resetCaches();
+        Mockito.when(this.cacheMgmtSvc.setAndGetCacheEtag()).thenReturn("an-etag");
+
+        // Load valid data
         try (InputStream is = new FileInputStream(this.dataSample)) {
             MockMultipartFile data = new MockMultipartFile("data.xlsx", is);
             this.testSvc.uploadData(data);
         }
-        
+
+        // Check that ChangeExcelSession has been created then that its proper methods have been called
         Mockito.verify(this.excelChangeSvc, times(1)).getChangeExcelSession();
-        assertThat(mms).as("Proper number of called of apply, commit and rollback")
+        assertThat(mms).as("For changeExcelSession: 1 apply, 1 commit and 0 rollback")
                 .extracting("applyChangeCalled", "commitCalled", "rollbackCalled").containsExactly(1, 1, 0);
+        // Check cacheManagementService has its caches reseted and its etage cache has been repopulated properly
+        Mockito.verify(this.cacheMgmtSvc, times(1)).resetCaches();
+        Mockito.verify(this.cacheMgmtSvc, times(1)).setAndGetCacheEtag();
 
         assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Proper number of BUT inserted").isEqualTo(6);
         assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Proper number of ParcoursBUT inserted").isEqualTo(25);
@@ -152,17 +151,23 @@ public class DataUploadServiceTest {
     }
 
     @Test
-    public void testUploadDataFail() throws Exception {
+    public void testUploadDataFailOnMongo() throws Exception {
         final Query everyDocQuery = new Query(new Criteria());
         assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Initial number of BUT is 0").isEqualTo(0);
         assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Initial number of ParcoursBUT is 0").isEqualTo(0);
         assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Initial number of IUT inserted").isEqualTo(0);
         assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Initial number of departement is 0").isEqualTo(0);
         assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Initial number of AppText is 0").isEqualTo(0);
-        
+
+        // Mock changeExcelSession with a instance to control different calls on the instance
         MyMockSession mms = new MyMockSession();
         Mockito.when(this.excelChangeSvc.getChangeExcelSession()).thenReturn(mms);
 
+        // Set CacheManagementService to act without error
+        doNothing().when(this.cacheMgmtSvc).resetCaches();
+        Mockito.when(this.cacheMgmtSvc.setAndGetCacheEtag()).thenReturn("an-etag");
+
+        // Load INVALID data
         try (InputStream is = new FileInputStream(this.dataFailing)) {
             MockMultipartFile data = new MockMultipartFile("data.xlsx", is);
             assertThatThrownBy(()
@@ -170,10 +175,55 @@ public class DataUploadServiceTest {
                     .as("UploadData failed on spring data exception (duplicate key)")
                     .isInstanceOf(DuplicateKeyException.class);
         }
-        
+
+        // Check that ChangeExcelSession has been created then that its proper methods have been called
         Mockito.verify(this.excelChangeSvc, times(1)).getChangeExcelSession();
-        assertThat(mms).as("Proper number of called of apply, commit and rollback")
+        assertThat(mms).as("For changeExcelSession: 0 apply, 0 commit and 1 rollback")
                 .extracting("applyChangeCalled", "commitCalled", "rollbackCalled").containsExactly(0, 0, 1);
+        // Check cacheManagementService has not been manipulated
+        Mockito.verify(this.cacheMgmtSvc, times(0)).resetCaches();
+        Mockito.verify(this.cacheMgmtSvc, times(0)).setAndGetCacheEtag();
+
+        assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Number of BUT still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Number of ParcoursBUT still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Number of IUT still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Number of departement still 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Number of AppText still 0").isEqualTo(0);
+    }
+
+    @Test
+    public void testUploadDataFailOnCacheManagement() throws Exception {
+        final Query everyDocQuery = new Query(new Criteria());
+        assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Initial number of BUT is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Initial number of ParcoursBUT is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Initial number of IUT inserted").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Initial number of departement is 0").isEqualTo(0);
+        assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Initial number of AppText is 0").isEqualTo(0);
+
+        // Mock changeExcelSession with a instance to control different calls on the instance
+        MyMockSession mms = new MyMockSession();
+        Mockito.when(this.excelChangeSvc.getChangeExcelSession()).thenReturn(mms);
+
+        // Set CacheManagementService to raise exception when resetCaches is called
+        Mockito.doThrow(new IllegalStateException("RESET CACHE FAIL")).when(this.cacheMgmtSvc).resetCaches();
+        Mockito.when(this.cacheMgmtSvc.setAndGetCacheEtag()).thenReturn("an-etag");
+        
+        // Load valid data but reseting cache will fail
+        try (InputStream is = new FileInputStream(this.dataSample)) {
+            MockMultipartFile data = new MockMultipartFile("data.xlsx", is);
+            assertThatThrownBy(()
+                    -> this.testSvc.uploadData(data))
+                    .as("UploadData failed on reseting cache (simulated)")
+                    .isInstanceOf(IllegalStateException.class).hasMessage("RESET CACHE FAIL");
+        }
+
+        // Check that ChangeExcelSession has been created then that its proper methods have been called
+        Mockito.verify(this.excelChangeSvc, times(1)).getChangeExcelSession();
+        assertThat(mms).as("For changeExcelSession: 1 apply, 0 commit and 1 rollback")
+                .extracting("applyChangeCalled", "commitCalled", "rollbackCalled").containsExactly(1, 0, 1);
+        // Check cacheManagementService got order to reset its caches (that failes) and its etage cache has not been repopulated
+        Mockito.verify(this.cacheMgmtSvc, times(1)).resetCaches();
+        Mockito.verify(this.cacheMgmtSvc, times(0)).setAndGetCacheEtag();
 
         assertThat(this.mongoTemplate.count(everyDocQuery, BUT.class)).as("Number of BUT still 0").isEqualTo(0);
         assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Number of ParcoursBUT still 0").isEqualTo(0);
@@ -183,6 +233,7 @@ public class DataUploadServiceTest {
     }
 
     public static class MyMockSession implements ExcelChangeSession {
+
         private int applyChangeCalled;
         private int commitCalled;
         private int rollbackCalled;
@@ -201,6 +252,6 @@ public class DataUploadServiceTest {
         public void rollback() throws IOException, SecurityException {
             this.rollbackCalled++;
         }
-        
+
     }
 }

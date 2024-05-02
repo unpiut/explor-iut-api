@@ -69,8 +69,6 @@ public class DataUploadServiceImpl implements DataUploadService {
         
         LOG.info("Prepare File Change Session");
         ExcelChangeSession changeSession = this.excelChangeSvc.getChangeExcelSession();
-        LOG.info("Excelchange svc: " + this.excelChangeSvc);
-        LOG.info("Change session: " + changeSession);
         
         try {
             LOG.info("Clear database");
