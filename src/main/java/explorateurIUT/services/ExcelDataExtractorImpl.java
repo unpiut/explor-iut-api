@@ -50,7 +50,7 @@ public class ExcelDataExtractorImpl implements ExcelDataExtractor {
 
     private static final Log LOG = LogFactory.getLog(ExcelDataExtractorImpl.class);
 
-    AppDataProperties appDataProperties;
+    private final AppDataProperties appDataProperties;
 
     @Autowired
     public ExcelDataExtractorImpl(AppDataProperties appDataProperties) {

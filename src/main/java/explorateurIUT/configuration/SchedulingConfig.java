@@ -19,6 +19,7 @@
 package explorateurIUT.configuration;
 
 import explorateurIUT.security.mailQuota.services.IPQuotaValidator;
+import explorateurIUT.services.MailManagementService;
 import jakarta.annotation.PostConstruct;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
@@ -52,6 +53,12 @@ public class SchedulingConfig {
         LOG.info("Create clear cron");
         return new ClearCacheCron(ipQuotaValidator);
     }
+    
+    @Bean
+    public ClearPendingMailCron clearPendingMailCron(MailManagementService mailManagementService) {
+        LOG.info("Create clear pendingMail");
+        return new ClearPendingMailCron(mailManagementService);
+    }
 
     public static class ClearCacheCron {
 
@@ -65,6 +72,21 @@ public class SchedulingConfig {
         public void clearCaches() {
             LOG.debug("Clear ipQuotaValidator");
             this.ipQuotaValidator.cleanOutdatedQuotas();
+        }
+    }
+    
+    public static class ClearPendingMailCron {
+
+        private final MailManagementService mailManagementService;
+
+        public ClearPendingMailCron(MailManagementService mailManagementService) {
+            this.mailManagementService = mailManagementService;
+        }
+
+        @Scheduled(fixedDelay = 1L, timeUnit = TimeUnit.MINUTES)
+        public void clearPendingMails() {
+            LOG.debug("Clear Pending mail");
+            this.mailManagementService.removeOutdatedPendingMailRequest();
         }
     }
 }

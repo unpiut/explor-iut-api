@@ -92,7 +92,7 @@ public class SecurityEndpointsConfiguration {
     public CorsConfiguration basicCORSConfiguration() {
         final CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("OPTIONS", "HEAD", "GET"));
+        configuration.setAllowedMethods(Arrays.asList("OPTIONS", "HEAD", "GET", "POST"));
         configuration.setAllowedHeaders(Arrays.asList("content-type", "Accept", "Accept-Language", "X-Requested-With"));
         configuration.setAllowCredentials(Boolean.FALSE);
         configuration.setMaxAge(Duration.ofDays(7));
@@ -105,7 +105,7 @@ public class SecurityEndpointsConfiguration {
         final CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://127.0.0.1:*", "moz-extension://*"));
         configuration.setAllowedMethods(Arrays.asList("OPTIONS", "HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"));
-        configuration.setAllowedHeaders(Arrays.asList("content-type", "Accept", "Accept-Language", "Authorization", "X-Requested-With"));
+        configuration.setAllowedHeaders(Arrays.asList("content-type", "Content-Disposition", "Accept", "Accept-Language", "Authorization", "X-Requested-With"));
         configuration.setAllowCredentials(Boolean.TRUE);
         configuration.setMaxAge(Duration.ofHours(6));
         return configuration;
@@ -118,6 +118,7 @@ public class SecurityEndpointsConfiguration {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/v1/iut/**", basicCORSConfiguration);
         source.registerCorsConfiguration("/api/v1/referentiel/**", basicCORSConfiguration);
+        source.registerCorsConfiguration("/api/v1/mail/**", basicCORSConfiguration);
         if (devCORSConfiguration.isPresent()) {
             LOG.warn("CONFIGURE HTTP SECURITY WITH CORS - DEV");
             source.registerCorsConfiguration("/api/v1/admin/**", devCORSConfiguration.get());
@@ -186,6 +187,7 @@ public class SecurityEndpointsConfiguration {
                     // api/ configuration
                     .requestMatchers(HttpMethod.GET, "/api/v1/referentiel/**", "/api/v1/iut/**", "/api/v1/textes/**").permitAll() // Allow public access to data apis
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN") // admin endpoints
+                    .requestMatchers(HttpMethod.POST, "/api/v1/mail/request", "/api/v1/mail/resend-confirmation","/api/v1/mail/validate").permitAll()
                     .requestMatchers("/api/**").denyAll() // default policy for api
                     // errors
                     .requestMatchers(HttpMethod.GET, "/error").permitAll()

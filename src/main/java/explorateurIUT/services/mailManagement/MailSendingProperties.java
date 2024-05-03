@@ -51,6 +51,9 @@ public class MailSendingProperties {
 
     private int maxAttachementSizeMB = 10;
 
+    @NotEmpty
+    private String validationUrl = "/validation";
+
     public MailSendingProperties() {
     }
 
@@ -108,6 +111,14 @@ public class MailSendingProperties {
 
     public void setMaxAttachementSizeMB(int maxAttachementSizeMB) {
         this.maxAttachementSizeMB = maxAttachementSizeMB;
+    }
+
+    public String getValidationUrl() {
+        return validationUrl;
+    }
+
+    public void setValidationUrl(String validationUrl) {
+        this.validationUrl = validationUrl;
     }
 
 }

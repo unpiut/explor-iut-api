@@ -5,9 +5,13 @@ import explorateurIUT.model.MailIUTRecipient;
 import explorateurIUT.model.projections.DepartementCodesOfIUTId;
 import explorateurIUT.model.projections.IUTMailOnly;
 import explorateurIUT.model.DepartementRepository;
+import explorateurIUT.services.CacheManagementServiceImpl;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,16 +21,21 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class MailContentForgerServiceImpl implements MailContentForgerService {
 
+    private static final Log LOG = LogFactory.getLog(CacheManagementServiceImpl.class);
+
     private final static String NEW_LINE_MAIL = "\r\n";
+    
+    private final MailSendingProperties mailProp;
 
     private final DepartementRepository deptRepo;
 
     private final IUTRepository iutRepo;
 
     @Autowired
-    public MailContentForgerServiceImpl(DepartementRepository deptRepo, IUTRepository iutRepo) {
+    public MailContentForgerServiceImpl(DepartementRepository deptRepo, IUTRepository iutRepo, MailSendingProperties mailProp) {
         this.deptRepo = deptRepo;
         this.iutRepo = iutRepo;
+        this.mailProp = mailProp;
     }
 
     private void createExtraInformation(MailSendingRequest mailSendingRequest, StringBuilder generalBody) {
@@ -55,29 +64,43 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
 
     @Override
     public String createSpecificBody(String generalBody, List<String> codesDep) {
-        final StringBuilder finalBody = new StringBuilder("Les départements concernés par ce mail sont : ");
+        final StringBuilder finalBody = new StringBuilder("Bonjour ceci est un mail automatique de Explo'IUT,");
+        finalBody.append(NEW_LINE_MAIL).append(NEW_LINE_MAIL)
+                .append("Les départements concernés par ce mail sont : ");
         for (String dep : codesDep) {
-            finalBody.append(dep);
+            finalBody.append(NEW_LINE_MAIL)
+                    .append("- ").append(dep);
         }
         return finalBody.append(NEW_LINE_MAIL)
-        .append("Attention, les possibles offres en pièces jointes peuvent être destinées à d'autres départements.")
-        .append(NEW_LINE_MAIL)
-        .append(generalBody).toString();
-        
+                .append("Attention, les possibles offres en pièces jointes peuvent être destinées à d'autres départements.")
+                .append(NEW_LINE_MAIL)
+                .append(generalBody).toString();
+
     }
 
     @Override
     public List<MailIUTRecipient> createIUTMailingList(MailSendingRequest mailSendingRequest) {
-        // Extract iutId related to deptId : the request ensure uniqueness of iutId
+        // Extract iutId related to deptId : the request ensure uniqueness of 
+        LOG.debug("Creation de la liste des codes départements");
         List<DepartementCodesOfIUTId> codesDeptByIUT = this.deptRepo.streamIUTIdByIdIn(mailSendingRequest.deptIds())
                 .toList();
         // Extract mail only of iut from Id. The request ensures uniqueness of mailId
+        LOG.debug("Recuperation des ID d'IUT");
         List<String> iutIds = codesDeptByIUT.stream().map(DepartementCodesOfIUTId::getIut).toList();
-        final Map<String, String> mailsByIUTid = this.iutRepo.streamMailOnlyByIdInAndMelIsNotNull(iutIds)
+        LOG.debug("Creation de la map et recuperation des mails");
+        Map<String, String> mailsByIUTid = this.iutRepo.streamMailOnlyByIdInAndMelIsNotNull(iutIds)
                 .collect(Collectors.toMap(IUTMailOnly::getId, IUTMailOnly::getMel));
+        if(this.mailProp.getTestingMailAddress() !=null && !this.mailProp.getTestingMailAddress().isEmpty()){
+            mailsByIUTid = new HashMap<>(mailsByIUTid);
+            for(String iutId:iutIds){
+                mailsByIUTid.putIfAbsent(iutId, "unknown@mail.com");
+            };
+        }
+        final Map<String,String> fMailsByIUTid = mailsByIUTid;
+        LOG.debug("Renvoi des differents recipient");
         return codesDeptByIUT.stream()
-                .filter((dep)->mailsByIUTid.containsKey(dep.getIut()))
-                .map((dep)->new MailIUTRecipient(mailsByIUTid.get(dep.getIut()),dep.getCodes()))
+                .filter((dep)->fMailsByIUTid.containsKey(dep.getIut()))
+                .map((dep)->new MailIUTRecipient(fMailsByIUTid.get(dep.getIut()),dep.getCodes()))
                 .toList();
     }
 
