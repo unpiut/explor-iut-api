@@ -18,10 +18,7 @@
  */
 package explorateurIUT.controllers;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.NoSuchElementException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import explorateurIUT.excelImport.AppDataProperties;
 import explorateurIUT.services.DataUploadService;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.springframework.core.io.PathResource;
 
 /**
  *
@@ -59,28 +59,28 @@ public class AdminController {
     }
 
     @GetMapping("data-sheets")
-    public ResponseEntity<?> getData() {
-        try (FileInputStream fis = new FileInputStream(new File(this.appDataProperties.getFilePath()))) {
-            ContentDisposition contentDisposition = ContentDisposition.builder("attachement") // doit être téléchargé
-                    .filename("exploriut_data.xlsx") // le nom du fichier
-                    .build();
-            HttpHeaders contentHeaders = new HttpHeaders();
-            contentHeaders.setContentDisposition(contentDisposition);
+    public ResponseEntity<PathResource> getData() {
+// Récupère le chemin du fichier
+        final Path filePath = Paths.get(this.appDataProperties.getFilePath());
+// Prépare les en-tête de réponse personnalisé : Content-disposition et Content-type
+// Content-Length sera automatiquement calculé par ResponseEntity
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(
+                ContentDisposition.builder("attachement") // dit au navigateur que le fichier doit être téléchargé (et pas affiché dans une page)
+                        .filename("exploriut_data.xlsx") // précise le nom du fichier
+                        .build());
+// en-tête content-type positioné sur "application/vnd.ms-excel » : un fichier excel
+        headers.setContentType(MediaType.valueOf("application/vnd.ms-excel"));
 
-            return ResponseEntity.ok() // ok() : code 200
-                    .contentType(MediaType.valueOf("application/vnd.ms-excel")) // en-tête content-type positioné sur
-                    // "application/vnd.ms-excel » : un
-                    // fichier excel
-                    .headers(contentHeaders)
-                    .body(fis);
-        } catch (IOException error) {
-            throw new NoSuchElementException("Data sheets not found.");
-        }
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(new PathResource(filePath));
     }
 
     @PutMapping("data-sheets")
     public void updateData(@RequestParam("file") MultipartFile file)
             throws IOException {
+        LOG.debug("Initialize update");
         dataUploader.uploadData(file);
     }
 }

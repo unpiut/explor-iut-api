@@ -20,6 +20,7 @@ package explorateurIUT.services;
 
 import explorateurIUT.DataLoader;
 import explorateurIUT.excelImport.ExcelToMongoLoader;
+import explorateurIUT.services.ExcelChangeService.ExcelChangeSession;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.logging.Log;
@@ -47,12 +48,15 @@ public class DataUploadServiceImpl implements DataUploadService {
 
     private final ExcelDataExtractor excelDataExtractor;
 
+    private final ExcelChangeService excelChangeSvc;
+
     @Autowired
     public DataUploadServiceImpl(MongoTemplate mongoTemplate, CacheManagementService cacheMgmtSvc,
-            ExcelDataExtractor excelDataExtractor) {
+            ExcelDataExtractor excelDataExtractor, ExcelChangeService excelChangeSvc) {
         this.mongoTemplate = mongoTemplate;
         this.cacheMgmtSvc = cacheMgmtSvc;
         this.excelDataExtractor = excelDataExtractor;
+        this.excelChangeSvc = excelChangeSvc;
     }
 
     @Override
@@ -62,20 +66,36 @@ public class DataUploadServiceImpl implements DataUploadService {
 
         LOG.info("Prepare mongo loader");
         ExcelToMongoLoader loader = new ExcelToMongoLoader(mongoTemplate);
+        
+        LOG.info("Prepare File Change Session");
+        ExcelChangeSession changeSession = this.excelChangeSvc.getChangeExcelSession();
+        
+        try {
+            LOG.info("Clear database");
+            loader.clearDb();
 
-        LOG.info("Clear database");
-        loader.clearDb();
+            LOG.info("Re-populate database");
+            try (InputStream dataExcel = dataExcelFile.getInputStream()) {
+                excelDataExtractor.extractFromInputStream(loader.getExcelAppTextConsumer(), loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), dataExcel);
+            }
 
-        try (InputStream dataExcel = dataExcelFile.getInputStream()) {
-            excelDataExtractor.extractFromInputStream(loader.getExcelAppTextConsumer(), loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), dataExcel);
+            LOG.info("Change excel");
+            try (InputStream dataExcel = dataExcelFile.getInputStream()) {
+                changeSession.applyChange(dataExcel);
+            }
+
+            //TODO : replace the existing excel file with the one given in parameter.
+            LOG.info("Clear cache");
+            this.cacheMgmtSvc.resetCaches();
+            final String etag = this.cacheMgmtSvc.setAndGetCacheEtag();
+            LOG.info("Set new etag cache: " + etag);
+
+            // Commit file change
+            changeSession.commit();
+            LOG.info("END DATA UPLOADING");
+        } catch (Throwable ex) {
+            changeSession.rollback();
+            throw ex;
         }
-
-        //TODO : replace the existing excel file with the one given in parameter.
-        LOG.info("Clear cache");
-        this.cacheMgmtSvc.resetCaches();
-        final String etag = this.cacheMgmtSvc.setAndGetCacheEtag();
-        LOG.info("Set new etag cache: " + etag);
-
-        LOG.info("END DATA UPLOADING");
     }
 }

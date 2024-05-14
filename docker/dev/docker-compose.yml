@@ -9,6 +9,7 @@ services:
       - MONGO_INITDB_DATABASE=exploiut-db
     volumes:
       - data:/data/db
+      - ./mongoInit:/docker-entrypoint-initdb.d:ro
     ports:
       - 127.0.0.1:27017:27017/tcp
     restart: always
@@ -18,6 +19,7 @@ services:
       timeout: 10s
       retries: 10
       start_period: 20s
+    command: --replSet my-rs
   
   mailcatcher:
     image: dockage/mailcatcher:0.9.0

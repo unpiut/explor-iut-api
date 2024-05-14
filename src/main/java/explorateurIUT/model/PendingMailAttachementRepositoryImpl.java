@@ -77,7 +77,7 @@ public class PendingMailAttachementRepositoryImpl implements PendingMailAttachem
     @Override
     public Stream<GridFSFile> streamByPendingMailId(String pendingMailId) {
         final Query query = new Query(
-                Criteria.where(PENDING_MAIL_ID_FIELD).is(pendingMailId)
+                Criteria.where("metadata."+PENDING_MAIL_ID_FIELD).is(pendingMailId)
         );
         GridFSFindIterable gfsIter = this.operations.find(query);
         return StreamSupport.stream(gfsIter.spliterator(), false);
@@ -86,7 +86,7 @@ public class PendingMailAttachementRepositoryImpl implements PendingMailAttachem
     @Override
     public void deleteByCreationDateTimeBefore(LocalDateTime creationDateTime) {
         final Query query = new Query(
-                Criteria.where(CREATION_DATETIME_FIELD).lt(creationDateTime)
+                Criteria.where("metadata."+CREATION_DATETIME_FIELD).lt(creationDateTime)
         );
         this.operations.delete(query);
     }
@@ -94,7 +94,7 @@ public class PendingMailAttachementRepositoryImpl implements PendingMailAttachem
     @Override
     public void deleteByPendingMailId(String pendingMailId) {
         final Query query = new Query(
-                Criteria.where(PENDING_MAIL_ID_FIELD).is(pendingMailId)
+                Criteria.where("metadata."+PENDING_MAIL_ID_FIELD).is(pendingMailId)
         );
         this.operations.delete(query);
     }
