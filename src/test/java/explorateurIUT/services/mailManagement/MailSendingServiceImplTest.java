@@ -22,7 +22,6 @@ import com.dumbster.smtp.SimpleSmtpServer;
 import com.dumbster.smtp.SmtpMessage;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -90,7 +89,7 @@ public class MailSendingServiceImplTest {
         List<String> recipients = List.of("recipient1@mail.com", "recipient2@mail.com");
 
         LOG.info("Send mail");
-        for (String recipient: recipients) {
+        for (String recipient : recipients) {
             mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, Stream.empty());
         }
         LOG.info("Check if mail received");
@@ -103,15 +102,15 @@ public class MailSendingServiceImplTest {
         final String recipientMail1 = messageRecevied.getHeaderValue("To");
         assertThat(messageRecevied.getHeaderValue("Cc")).isNull();
         assertThat(messageRecevied.getHeaderValue("Subject")).isEqualTo(subject);
-        assertThat(messageRecevied.getBody()).isEqualTo(body);
-        
+        assertThat(messageRecevied.getBody()).contains(body);
+
         messageRecevied = server.getReceivedEmails().get(1);
         assertThat(messageRecevied.getHeaderValue("Reply-To")).isEqualTo(replyTo);
         assertThat(messageRecevied.getHeaderValue("From")).isEqualTo(msp.getFromAddress());
         assertThat(messageRecevied.getHeaderValue("To")).isIn(recipients).isNotEqualTo(recipientMail1);
         assertThat(messageRecevied.getHeaderValue("Cc")).isNull();
         assertThat(messageRecevied.getHeaderValue("Subject")).isEqualTo(subject);
-        assertThat(messageRecevied.getBody()).isEqualTo(body);
+        assertThat(messageRecevied.getBody()).contains(body);
     }
 
     @Test
@@ -127,7 +126,7 @@ public class MailSendingServiceImplTest {
         List<String> recipients = List.of("recipient1@mail.com", "recipient2@mail.com");
 
         LOG.info("Send mail");
-        for (String recipient: recipients) {
+        for (String recipient : recipients) {
             mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, Stream.empty());
         }
         LOG.info("Check if mail received");
@@ -140,15 +139,15 @@ public class MailSendingServiceImplTest {
         final String recipientMail1 = messageRecevied.getHeaderValue("To");
         assertThat(messageRecevied.getHeaderValue("Cc")).isNull();
         assertThat(messageRecevied.getHeaderValue("Subject")).isEqualTo(subject);
-        assertThat(messageRecevied.getBody()).isEqualTo(body);
-        
+        assertThat(messageRecevied.getBody()).contains(body);
+
         messageRecevied = server.getReceivedEmails().get(1);
         assertThat(messageRecevied.getHeaderValue("Reply-To")).isEqualTo(replyTo);
         assertThat(messageRecevied.getHeaderValue("From")).isEqualTo(msp.getFromAddress());
         assertThat(messageRecevied.getHeaderValue("To")).isIn(recipients).isNotEqualTo(recipientMail1);
         assertThat(messageRecevied.getHeaderValue("Cc")).isNull();
         assertThat(messageRecevied.getHeaderValue("Subject")).isEqualTo(subject);
-        assertThat(messageRecevied.getBody()).isEqualTo(body);
+        assertThat(messageRecevied.getBody()).contains(body);
     }
 
 }

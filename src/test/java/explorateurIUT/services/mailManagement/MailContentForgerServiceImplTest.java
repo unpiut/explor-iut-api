@@ -49,7 +49,7 @@ public class MailContentForgerServiceImplTest {
     private AutoCloseable mocks;
 
     private MailSendingProperties mailSendingProp;
-    
+
     @Autowired
     private IUTRepository iutRepo;
 
@@ -75,7 +75,9 @@ public class MailContentForgerServiceImplTest {
     @BeforeEach
     public void setUp() {
         this.testDataset.createDataset();
-        this.testedSvc = new MailContentForgerServiceImpl(deptRepo, iutRepo,mailSendingProp);
+        this.mailSendingProp = new MailSendingProperties();
+        this.mailSendingProp.setTestingMailAddress("testaddr@mail.com");
+        this.testedSvc = new MailContentForgerServiceImpl(deptRepo, iutRepo, mailSendingProp);
     }
 
     @AfterEach
