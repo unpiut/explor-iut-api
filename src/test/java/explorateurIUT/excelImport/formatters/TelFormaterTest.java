@@ -71,27 +71,31 @@ public class TelFormaterTest {
         res = TelFormater.matchesAndRetrieve("0247324445 / 0247324446");
         assertThat(res).as("an double tel number should not be null").isNotNull();
     }
-    
+
     @Test
     public void testMatchesAndRetrieveMultiple() {
         System.out.println("matchesAndRetrieve");
-        String[] givenTels = new String[]{"0247324445 / 0245652232", "0247324445 ;   02.45.65.22.32", "0247324445,02-45-65.22.32", "0247324445   / ; ,  /   0245652232 /,;"};
+        String[] givenTels = new String[]{"0247324445 / 0245652232", "0247324445 ;   02.45.65.22.32", "0247324445,02-45-65.22.32"};
         String expectedTel = givenTels[0];
         for (String tel : givenTels) {
             String res = TelFormater.matchesAndRetrieve(tel);
             assertThat(res).as("a valid tel number should be extracted").isEqualTo(expectedTel);
         }
+        String res = TelFormater.matchesAndRetrieve("0247324445   / 024715a44  /   0245652232 /,;");
+        assertThat(res).as("an invalid tel number should be null").isNull();
+        res = TelFormater.matchesAndRetrieve("0247324445   /   /   0245652232 /,;");
+        assertThat(res).as("an invalid tel number should be null").isNull();
     }
 
-    @Test 
+    @Test
     public void testNewMatcher() {
-       Pattern p = Pattern.compile("^\\s*0?(\\d)[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})\\s*$");
-       Matcher m = p.matcher("02.42.43.34.55");
-       assertThat(m).as("tel matches").matches();
-       assertThat(m.groupCount()).as("has proper group count").isEqualTo(5);
+        Pattern p = Pattern.compile("^\\s*0?(\\d)[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})\\s*$");
+        Matcher m = p.matcher("02.42.43.34.55");
+        assertThat(m).as("tel matches").matches();
+        assertThat(m.groupCount()).as("has proper group count").isEqualTo(5);
         System.out.println("matcher num groups: " + m.groupCount());
-       for (int i = 0 ; i <= m.groupCount(); i++) {
-           System.out.println("Matcher group " + i + ": " + m.group(i));
-       }
+        for (int i = 0; i <= m.groupCount(); i++) {
+            System.out.println("Matcher group " + i + ": " + m.group(i));
+        }
     }
 }

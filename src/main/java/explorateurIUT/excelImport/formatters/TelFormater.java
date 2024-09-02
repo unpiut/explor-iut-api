@@ -54,15 +54,15 @@ public class TelFormater {
 
     private static String matchesAndRetrieveMultiple(String[] texts) {
         final StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < texts.length - 1; i++) {
+        for (int i = 0; i < texts.length; i++) {
             String tel = matchesAndRetrieveSingle(texts[i]);
-            if (tel != null) {
-                sb.append(tel).append(" / ");
+            if (tel == null) {
+                return null;
             }
-        }
-        String tel = matchesAndRetrieveSingle(texts[texts.length - 1]);
-        if (tel != null) {
             sb.append(tel);
+            if (i < texts.length - 1) {
+                sb.append(" / ");
+            }
         }
         return sb.toString();
     }
