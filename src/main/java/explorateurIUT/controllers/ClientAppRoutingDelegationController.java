@@ -36,7 +36,8 @@ public class ClientAppRoutingDelegationController {
         "/mailSend",
         "/validate",
         "/mentions",
-        "/excelAccess"})
+        "/excelAccess",
+        "/admin"})
     public String index() {
         return "/index.html";
     }
