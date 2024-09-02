@@ -27,12 +27,20 @@ import java.util.regex.Pattern;
  */
 public class TelFormater {
 
-    private final static Pattern TEL_PATTERN = Pattern.compile("^\\s*0?(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)[\\s\\.-]*(\\d)\\s*$", Pattern.CASE_INSENSITIVE);
+    private final static Pattern TEL_PATTERN = Pattern.compile("^\\s*0?(\\d)[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})[\\s\\.-]*(\\d{2})\\s*$");
 
     public static String matchesAndRetrieve(String text) {
         if (text == null) {
             return null;
         }
+        final String[] subTexts = text.split("[/;,]");
+        if (subTexts.length == 1) {
+            return matchesAndRetrieveSingle(text);
+        }
+        return matchesAndRetrieveMultiple(subTexts);
+    }
+
+    private static String matchesAndRetrieveSingle(String text) {
         final Matcher m = TEL_PATTERN.matcher(text);
         if (!m.matches()) {
             return null;
@@ -44,4 +52,18 @@ public class TelFormater {
         return sb.toString();
     }
 
+    private static String matchesAndRetrieveMultiple(String[] texts) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < texts.length - 1; i++) {
+            String tel = matchesAndRetrieveSingle(texts[i]);
+            if (tel != null) {
+                sb.append(tel).append(" / ");
+            }
+        }
+        String tel = matchesAndRetrieveSingle(texts[texts.length - 1]);
+        if (tel != null) {
+            sb.append(tel);
+        }
+        return sb.toString();
+    }
 }
