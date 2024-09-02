@@ -206,7 +206,7 @@ public class DataUploadServiceTest {
         // Set CacheManagementService to raise exception when resetCaches is called
         Mockito.doThrow(new IllegalStateException("RESET CACHE FAIL")).when(this.cacheMgmtSvc).resetCaches();
         Mockito.when(this.cacheMgmtSvc.setAndGetCacheEtag()).thenReturn("an-etag");
-        
+
         // Load valid data but reseting cache will fail
         try (InputStream is = new FileInputStream(this.dataSample)) {
             MockMultipartFile data = new MockMultipartFile("data.xlsx", is);
