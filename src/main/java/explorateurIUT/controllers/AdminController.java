@@ -34,9 +34,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import explorateurIUT.excelImport.AppDataProperties;
 import explorateurIUT.services.DataUploadService;
+import explorateurIUT.services.ExcelDataFileManagementService;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Objects;
 import org.springframework.core.io.PathResource;
+import org.springframework.web.bind.annotation.PathVariable;
 
 /**
  *
@@ -48,33 +53,50 @@ public class AdminController {
 
     private static final Log LOG = LogFactory.getLog(AdminController.class);
 
+    private final static DateTimeFormatter ISO_DATETIME_Export = DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss");
+
     private final DataUploadService dataUploader;
 
     private final AppDataProperties appDataProperties;
 
+    private final ExcelDataFileManagementService excelDataFileMgmtSvc;
+
     @Autowired
-    public AdminController(DataUploadService dataUploader, AppDataProperties appDataProperties) {
+    public AdminController(DataUploadService dataUploader, AppDataProperties appDataProperties, ExcelDataFileManagementService excelDataFileMgmtSvc) {
         this.dataUploader = dataUploader;
         this.appDataProperties = appDataProperties;
+        this.excelDataFileMgmtSvc = excelDataFileMgmtSvc;
     }
 
     @GetMapping("data-sheets")
-    public ResponseEntity<PathResource> getData() {
-// Récupère le chemin du fichier
-        final Path filePath = Paths.get(this.appDataProperties.getFilePath());
-// Prépare les en-tête de réponse personnalisé : Content-disposition et Content-type
-// Content-Length sera automatiquement calculé par ResponseEntity
-        final HttpHeaders headers = new HttpHeaders();
-        headers.setContentDisposition(
-                ContentDisposition.builder("attachement") // dit au navigateur que le fichier doit être téléchargé (et pas affiché dans une page)
-                        .filename("exploriut_data.xlsx") // précise le nom du fichier
-                        .build());
-// en-tête content-type positioné sur "application/vnd.ms-excel » : un fichier excel
-        headers.setContentType(MediaType.valueOf("application/vnd.ms-excel"));
+    public List<? extends ExcelDataFileManagementService.DataFileHistoryEntry> getDataHistoryEntries() throws IOException {
+        return this.excelDataFileMgmtSvc.getHistory();
+    }
+
+    @GetMapping("data-sheets/current")
+    public ResponseEntity<PathResource> getCurrentDataSheet() throws IOException {
+        // Récupère le chemin du fichier
+        final Path currentDataPath = this.excelDataFileMgmtSvc.getCurrentFilePath();
+        // Prépare les en-têtes
+        HttpHeaders headers = this.prepareDataResponseHttpHeaders("current");
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .body(new PathResource(filePath));
+                .body(new PathResource(currentDataPath));
+    }
+
+    @GetMapping("data-sheets/{version:[0-9\\-:T]{19}}") // "yyyy-MM-ddThh:mm:ss" -> 19 chars
+    public ResponseEntity<PathResource> getVersionDataSheet(@PathVariable LocalDateTime version) throws IOException {
+        //LocalDateTime version = LocalDateTime.parse(rawVersion, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        LOG.info("attempt access ds for version " + Objects.toString(version));
+        // Récupère le chemin du fichier
+        final Path currentDataPath = this.excelDataFileMgmtSvc.getFilePath(version);
+        // Prépare les en-têtes
+        HttpHeaders headers = this.prepareDataResponseHttpHeaders(version.format(ISO_DATETIME_Export));
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(new PathResource(currentDataPath));
     }
 
     @PutMapping("data-sheets")
@@ -82,5 +104,21 @@ public class AdminController {
             throws IOException {
         LOG.debug("Initialize update");
         dataUploader.uploadData(file);
+    }
+
+    private HttpHeaders prepareDataResponseHttpHeaders(String fileVersion) {
+        // Prépare le titre du fichier : exportiut_{prefix}_version
+        final String filename = "exploriut_" + this.appDataProperties.getDataFilePrefix() + "_" + fileVersion + "." + ExcelDataFileManagementService.DEFAULT_FILE_EXTENSION;
+
+        // Prépare les en-tête de réponse personnalisé : Content-disposition et Content-type
+        // Content-Length sera automatiquement calculé par ResponseEntity
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(
+                ContentDisposition.builder("attachement") // dit au navigateur que le fichier doit être téléchargé (et pas affiché dans une page)
+                        .filename(filename) // précise le nom du fichier
+                        .build());
+        // en-tête content-type positioné sur "application/vnd.ms-excel » : un fichier excel
+        headers.setContentType(MediaType.valueOf("application/vnd.ms-excel"));
+        return headers;
     }
 }

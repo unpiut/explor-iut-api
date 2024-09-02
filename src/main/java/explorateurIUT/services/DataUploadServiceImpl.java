@@ -20,7 +20,7 @@ package explorateurIUT.services;
 
 import explorateurIUT.DataLoader;
 import explorateurIUT.excelImport.ExcelToMongoLoader;
-import explorateurIUT.services.ExcelChangeService.ExcelChangeSession;
+import explorateurIUT.services.ExcelDataFileManagementService.ExcelChangeSession;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.logging.Log;
@@ -48,11 +48,11 @@ public class DataUploadServiceImpl implements DataUploadService {
 
     private final ExcelDataExtractor excelDataExtractor;
 
-    private final ExcelChangeService excelChangeSvc;
+    private final ExcelDataFileManagementService excelChangeSvc;
 
     @Autowired
     public DataUploadServiceImpl(MongoTemplate mongoTemplate, CacheManagementService cacheMgmtSvc,
-            ExcelDataExtractor excelDataExtractor, ExcelChangeService excelChangeSvc) {
+            ExcelDataExtractor excelDataExtractor, ExcelDataFileManagementService excelChangeSvc) {
         this.mongoTemplate = mongoTemplate;
         this.cacheMgmtSvc = cacheMgmtSvc;
         this.excelDataExtractor = excelDataExtractor;
@@ -66,10 +66,10 @@ public class DataUploadServiceImpl implements DataUploadService {
 
         LOG.info("Prepare mongo loader");
         ExcelToMongoLoader loader = new ExcelToMongoLoader(mongoTemplate);
-        
+
         LOG.info("Prepare File Change Session");
         ExcelChangeSession changeSession = this.excelChangeSvc.getChangeExcelSession();
-        
+
         try {
             LOG.info("Clear database");
             loader.clearDb();

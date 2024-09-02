@@ -19,7 +19,6 @@
 package explorateurIUT.services;
 
 import explorateurIUT.excelImport.AppDataProperties;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,17 +49,20 @@ public class ExcelDataExtractorImpl implements ExcelDataExtractor {
 
     private static final Log LOG = LogFactory.getLog(ExcelDataExtractorImpl.class);
 
+    private final ExcelDataFileManagementService excelDataFileMgmtSvc;
+
     private final AppDataProperties appDataProperties;
 
     @Autowired
-    public ExcelDataExtractorImpl(AppDataProperties appDataProperties) {
+    public ExcelDataExtractorImpl(AppDataProperties appDataProperties, ExcelDataFileManagementService excelDataFileMgmtSvc) {
         this.appDataProperties = appDataProperties;
+        this.excelDataFileMgmtSvc = excelDataFileMgmtSvc;
     }
 
     @Override
-    public void extractFromAppProperties(@NotNull AppTextConsumer appTextConsumer, @NotNull IUTConsumer iutConsumer,
+    public void extractFromCurrentDataFile(@NotNull AppTextConsumer appTextConsumer, @NotNull IUTConsumer iutConsumer,
             @NotNull BUTConsumer butConsumer) throws IOException {
-        try (InputStream fis = new FileInputStream(new File(this.appDataProperties.getFilePath()))) {
+        try (InputStream fis = new FileInputStream(this.excelDataFileMgmtSvc.getCurrentFilePath().toFile())) {
             this.extractFromInputStream(appTextConsumer, iutConsumer, butConsumer, fis);
         }
     }
@@ -69,7 +71,7 @@ public class ExcelDataExtractorImpl implements ExcelDataExtractor {
     public void extractFromInputStream(@NotNull AppTextConsumer appTextConsumer, @NotNull IUTConsumer iutConsumer,
             @NotNull BUTConsumer butConsumer, @NotNull InputStream inputStream) throws IOException {
         LOG.info("ETL Excel data: start...");
-        try (final XSSFWorkbook wb = new XSSFWorkbook(inputStream)){
+        try (final XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
             // First we process BUT
             final BUTExtractor butExtractor = new BUTExtractor();
             butExtractor.extractEntities(wb.getSheet(this.appDataProperties.getButSheetName()), butConsumer);

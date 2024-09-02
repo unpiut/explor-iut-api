@@ -29,7 +29,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.data")
 public class AppDataProperties {
 
-    private String filePath = "data.xlsx";
+    private String dataDir = "./";
+    private String dataFilePrefix = "data";
     private String butSheetName = "but";
     private String iutSheetName = "iut";
     private String appTextSheetName = "textes";
@@ -37,12 +38,20 @@ public class AppDataProperties {
     public AppDataProperties() {
     }
 
-    public String getFilePath() {
-        return filePath;
+    public String getDataDir() {
+        return dataDir;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
+    public void setDataDir(String dataDir) {
+        this.dataDir = dataDir;
+    }
+
+    public String getDataFilePrefix() {
+        return dataFilePrefix;
+    }
+
+    public void setDataFilePrefix(String dataFilePrefix) {
+        this.dataFilePrefix = dataFilePrefix;
     }
 
     public String getButSheetName() {

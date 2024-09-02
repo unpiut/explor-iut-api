@@ -24,7 +24,7 @@ import explorateurIUT.model.BUT;
 import explorateurIUT.model.Departement;
 import explorateurIUT.model.IUT;
 import explorateurIUT.model.ParcoursBUT;
-import explorateurIUT.services.ExcelChangeService.ExcelChangeSession;
+import explorateurIUT.services.ExcelDataFileManagementService.ExcelChangeSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -36,7 +36,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.mockito.Mockito;
-import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import org.mockito.MockitoAnnotations;
@@ -78,7 +77,7 @@ public class DataUploadServiceTest {
     private CacheManagementService cacheMgmtSvc;
 
     @MockBean
-    private ExcelChangeService excelChangeSvc;
+    private ExcelDataFileManagementService excelChangeSvc;
 
     private AutoCloseable mockMgr;
 

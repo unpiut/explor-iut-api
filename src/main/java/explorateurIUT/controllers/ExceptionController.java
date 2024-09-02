@@ -33,6 +33,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -73,6 +74,14 @@ public class ExceptionController {
         return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public @ResponseBody
+    ResponseEntity<ErrorMessage> handleMethodArgumentTypeMismatch(HttpServletRequest request, MethodArgumentTypeMismatchException ex) {
+        final HttpStatus status = HttpStatus.BAD_REQUEST;
+        final String error = "Paramètre de Requête invalide";
+        return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public @ResponseBody
     ResponseEntity<ErrorMessage> handleConstraintViolationException(HttpServletRequest request, ConstraintViolationException ex) {
@@ -104,7 +113,7 @@ public class ExceptionController {
         final String error = "Méthode non supportée.";
         return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
     }
-    
+
     @ExceptionHandler(MissingServletRequestPartException.class)
     public @ResponseBody
     ResponseEntity<ErrorMessage> handleMissingServletRequestPartException(HttpServletRequest request, HttpRequestMethodNotSupportedException ex) {
@@ -121,7 +130,7 @@ public class ExceptionController {
         final String error = "Accès non autorisé";
         return new ResponseEntity<>(createErrorMessage(status, error, ex.getMessage(), request), status);
     }
-    
+
     @ExceptionHandler(Throwable.class)
     public @ResponseBody
     ResponseEntity<ErrorMessage> handleOther(HttpServletRequest request, Throwable ex) {
