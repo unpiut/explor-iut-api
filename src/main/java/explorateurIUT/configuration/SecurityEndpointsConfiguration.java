@@ -116,6 +116,7 @@ public class SecurityEndpointsConfiguration {
             @Qualifier("basicCORSConfiguration") CorsConfiguration basicCORSConfiguration,
             @Qualifier("devCORSConfiguration") Optional<CorsConfiguration> devCORSConfiguration) {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/v1/textes/**", basicCORSConfiguration);
         source.registerCorsConfiguration("/api/v1/iut/**", basicCORSConfiguration);
         source.registerCorsConfiguration("/api/v1/referentiel/**", basicCORSConfiguration);
         source.registerCorsConfiguration("/api/v1/mail/**", basicCORSConfiguration);
