@@ -68,6 +68,11 @@ public class AdminController {
         this.excelDataFileMgmtSvc = excelDataFileMgmtSvc;
     }
 
+    @GetMapping("check")
+    public ResponseEntity<?> verifyCredentials() {
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("data-sheets")
     public List<? extends ExcelDataFileManagementService.DataFileHistoryEntry> getDataHistoryEntries() throws IOException {
         return this.excelDataFileMgmtSvc.getHistory();
@@ -117,8 +122,11 @@ public class AdminController {
                 ContentDisposition.builder("attachement") // dit au navigateur que le fichier doit être téléchargé (et pas affiché dans une page)
                         .filename(filename) // précise le nom du fichier
                         .build());
+        // en-tête autorisation l'accès à Content-Disposition en JS
+        headers.setAccessControlExposeHeaders(List.of("Content-Disposition"));
         // en-tête content-type positioné sur "application/vnd.ms-excel » : un fichier excel
         headers.setContentType(MediaType.valueOf("application/vnd.ms-excel"));
+
         return headers;
     }
 }
