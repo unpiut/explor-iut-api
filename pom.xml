@@ -5,12 +5,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.3.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>fr.univ_lemans.iut_laval</groupId>
     <artifactId>ExplorateurIUT</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>Explorateur IUT</name>
     <description>Serveur de données d&apos;explorateur d&apos;IUT</description>
     <properties>
