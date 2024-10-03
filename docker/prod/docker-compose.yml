@@ -1,5 +1,3 @@
-version: '3.8'
-
 name: 'exploiut-prod'
 
 services:
@@ -10,7 +8,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: A9v6R4p2EtYF3r5HVUhZQe
       MONGO_INITDB_DATABASE: exploiut-db
     volumes:
-      - data:/data/db
+      - db-config:/data/configdb
+      - db-data:/data/db
       - ./mongoInit:/docker-entrypoint-initdb.d:ro
     networks:
       - db-net
@@ -24,7 +23,8 @@ services:
     command: --replSet my-rs
 
   api-server:
-    image: maven:3.9.5-amazoncorretto-21
+    image: exploriut/app
+    build: ../../
     depends_on:
       nosqldatabase:
         condition: service_healthy
@@ -38,21 +38,18 @@ services:
         target: /root/ehcache.xml
         mode: 0440
     volumes:
-      - ../../:/usr/src/app
-      - api-maven-cache:/root/.m2
-      - api-build-cache:/usr/src/app/target
+      - file-data:/data
       - api-server-cache:/var/spring-ehcache
-      - /my-path/data.xlsx:/root/data.xlsx:ro
     networks:
       - db-net
     ports:
       - 127.0.0.1:8080:8080
-    command: mvn spring-boot:run -Dspring-boot.run.arguments=--spring.config.location=/root/application.properties
+    command: --spring.config.location=/root/application.properties
 
 volumes:
-  data:
-  api-maven-cache:
-  api-build-cache:
+  db-config:
+  db-data:
+  file-data:
   api-server-cache:
 
 networks:
