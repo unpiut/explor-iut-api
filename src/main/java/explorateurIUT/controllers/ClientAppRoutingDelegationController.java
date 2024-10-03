@@ -29,15 +29,25 @@ public class ClientAppRoutingDelegationController {
     @RequestMapping(value = {
         "/",
         "/formation",
+        "/formation/",
         "/map",
+        "/map/",
         "/result",
+        "/result/",
         "/mail",
+        "/mail/",
         "/modifyMail",
+        "/modifyMail/",
         "/mailSend",
+        "/mailSend/",
         "/validate",
+        "/validate/",
         "/mentions",
+        "/mentions/",
         "/excelAccess",
-        "/admin"})
+        "/excelAccess/",
+        "/admin",
+        "/admin/"})
     public String index() {
         return "/index.html";
     }
