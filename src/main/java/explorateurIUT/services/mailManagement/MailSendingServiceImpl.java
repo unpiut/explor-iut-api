@@ -23,15 +23,13 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.ValidationException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.InputStreamSource;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.mail.MailException;
@@ -64,7 +62,7 @@ public class MailSendingServiceImpl implements MailSendingService {
     }
 
     @Override
-    public void sendMailToIUT(String recipient, String replyTo, String subject, String body, Stream<GridFSFile> attachements) throws ValidationException, MailException, MessagingException {
+    public void sendMailToIUT(String recipient, String replyTo, String subject, String body, List<GridFSFile> attachements) throws ValidationException, MailException, MessagingException {
         try {
             final MimeMessage message = this.createRawMessageForIUT(recipient, replyTo, subject, body, attachements);
             this.mailSender.send(message);
@@ -92,21 +90,21 @@ public class MailSendingServiceImpl implements MailSendingService {
     }
 
     private MimeMessage createRawMessageForIUT(String recipient, String replyTo, String subject,
-            String body, Stream<GridFSFile> attachements) throws MessagingException {
+            String body, List<GridFSFile> attachements) throws MessagingException {
         final MimeMessage message = this.mailSender.createMimeMessage();
-        final MimeMessageHelper helper = new MimeMessageHelper(message,true);
-        helper.setTo(recipient);    
+        final MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        helper.setTo(recipient);
         helper.setFrom(this.mailSendingProperties.getFromAddress());
         helper.setReplyTo(replyTo);
         helper.setSubject(subject);
         helper.setText(body, false); // set text as plain text
 
-        Optional<MessagingException> optEx = attachements.filter(f -> f != null).map(gridFSFile -> {
+        Optional<MessagingException> optEx = attachements.stream().filter(f -> f != null).map(gridFSFile -> {
             try {
                 final GridFsResource rsc = this.gfsOperations.getResource(gridFSFile);
                 ByteArrayResource bar = new ByteArrayResource(rsc.getContentAsByteArray());
                 helper.addAttachment(rsc.getFilename(), bar, rsc.getContentType());
-                LOG.debug("Attach files added "+rsc.getFilename());
+                LOG.debug("Attach files added " + rsc.getFilename());
                 return null;
             } catch (IOException ex) {
                 LOG.error("Cannot read resource to attach to mail", ex);
@@ -114,7 +112,7 @@ public class MailSendingServiceImpl implements MailSendingService {
             } catch (MessagingException ex) {
                 LOG.error("Cannot read resource to attach to mail", ex);
                 return ex;
-            } 
+            }
         }).filter(Objects::nonNull).findAny();
         if (optEx.isPresent()) {
             throw optEx.get();

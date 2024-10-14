@@ -46,7 +46,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.stream.Stream;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import explorateurIUT.services.mailManagement.MailSendingProperties;
 import java.net.URLEncoder;
@@ -189,7 +188,7 @@ public class MailManagementServiceImpl implements MailManagementService {
         }
         final PendingMail mail = possibleMail.get();
         // Retrieve all potential attachement related to the pending mail
-        final Stream<GridFSFile> attachements = attachementRepo.streamByPendingMailId(mail.getId());
+        final List<GridFSFile> attachements = attachementRepo.streamByPendingMailId(mail.getId()).toList();
         Collection<String> mailIUT = mail.getIUTMailRecipients().stream().map((mailIut) -> mailIut.getMailAddress()).toList();
         try {
             // send the mail to iuts

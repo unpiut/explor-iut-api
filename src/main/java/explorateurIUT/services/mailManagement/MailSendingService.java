@@ -24,7 +24,7 @@ import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.stream.Stream;
+import java.util.List;
 import org.springframework.mail.MailException;
 
 /**
@@ -36,7 +36,7 @@ public interface MailSendingService {
     /**
      * Send a mail to several IUT reciepients.
      *
-     * @param recipients mail address of one IUT
+     * @param recipient mail address of one IUT
      * @param replyTo mail address of contact
      * @param subject mail subject
      * @param body mail body
@@ -50,7 +50,7 @@ public interface MailSendingService {
             @NotNull @Email String replyTo,
             @NotBlank String subject,
             @NotBlank String body,
-            @NotNull Stream<GridFSFile> attachements) throws ValidationException, MailException, MessagingException;
+            @NotNull List<GridFSFile> attachements) throws ValidationException, MailException, MessagingException;
 
     /**
      * Send a mail to a particular contact.

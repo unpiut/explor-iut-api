@@ -22,7 +22,6 @@ import com.dumbster.smtp.SimpleSmtpServer;
 import com.dumbster.smtp.SmtpMessage;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import static org.assertj.core.api.Assertions.*;
@@ -90,7 +89,7 @@ public class MailSendingServiceImplTest {
 
         LOG.info("Send mail");
         for (String recipient : recipients) {
-            mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, Stream.empty());
+            mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, List.of());
         }
         LOG.info("Check if mail received");
         assertThat(server.getReceivedEmails()).hasSize(2);
@@ -127,7 +126,7 @@ public class MailSendingServiceImplTest {
 
         LOG.info("Send mail");
         for (String recipient : recipients) {
-            mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, Stream.empty());
+            mailSendingSvc.sendMailToIUT(recipient, replyTo, subject, body, List.of());
         }
         LOG.info("Check if mail received");
         assertThat(server.getReceivedEmails()).hasSize(2);
