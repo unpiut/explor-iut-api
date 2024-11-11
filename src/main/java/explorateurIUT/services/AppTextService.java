@@ -30,4 +30,8 @@ public interface AppTextService {
     Map<String, String> getAppTextsByCode(@NotBlank String language);
 
     Map<String, String> getDefaultAppTextsByCode();
+
+    Map<String, String> getMailTextsByCode(@NotBlank String language);
+
+    Map<String, String> getDefaultMailTextsByCode();
 }

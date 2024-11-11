@@ -146,7 +146,7 @@ public class DataUploadServiceTest {
         assertThat(this.mongoTemplate.count(everyDocQuery, ParcoursBUT.class)).as("Proper number of ParcoursBUT inserted").isEqualTo(25);
         assertThat(this.mongoTemplate.count(everyDocQuery, IUT.class)).as("Proper number of IUT inserted").isEqualTo(3);
         assertThat(this.mongoTemplate.count(everyDocQuery, Departement.class)).as("Proper number of departement inserted").isEqualTo(7);
-        assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Proper number of AppText inserted").isEqualTo(6);
+        assertThat(this.mongoTemplate.count(everyDocQuery, AppText.class)).as("Proper number of AppText (6) and MailText (13) inserted").isEqualTo(6 + 13);
     }
 
     @Test

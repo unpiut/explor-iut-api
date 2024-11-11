@@ -76,7 +76,9 @@ public class DataUploadServiceImpl implements DataUploadService {
 
             LOG.info("Re-populate database");
             try (InputStream dataExcel = dataExcelFile.getInputStream()) {
-                excelDataExtractor.extractFromInputStream(loader.getExcelAppTextConsumer(), loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), dataExcel);
+                excelDataExtractor.extractFromInputStream(loader.getExcelAppTextConsumer(),
+                        loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(),
+                        loader.getMailTextConsumer(), dataExcel);
             }
 
             LOG.info("Change excel");

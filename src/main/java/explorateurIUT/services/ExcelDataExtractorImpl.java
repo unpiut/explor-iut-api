@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import explorateurIUT.excelImport.consumers.AppTextConsumer;
 import explorateurIUT.excelImport.consumers.BUTConsumer;
 import explorateurIUT.excelImport.consumers.IUTConsumer;
+import explorateurIUT.excelImport.consumers.MailTextConsumer;
 import explorateurIUT.excelImport.extractors.AppTextExtractor;
 import explorateurIUT.excelImport.extractors.BUTExtractor;
 import explorateurIUT.excelImport.extractors.IUTExtractor;
@@ -61,26 +62,32 @@ public class ExcelDataExtractorImpl implements ExcelDataExtractor {
 
     @Override
     public void extractFromCurrentDataFile(@NotNull AppTextConsumer appTextConsumer, @NotNull IUTConsumer iutConsumer,
-            @NotNull BUTConsumer butConsumer) throws IOException {
+            @NotNull BUTConsumer butConsumer, @NotNull MailTextConsumer mailTextConsumer) throws IOException {
         try (InputStream fis = new FileInputStream(this.excelDataFileMgmtSvc.getCurrentFilePath().toFile())) {
-            this.extractFromInputStream(appTextConsumer, iutConsumer, butConsumer, fis);
+            this.extractFromInputStream(appTextConsumer, iutConsumer, butConsumer, mailTextConsumer, fis);
         }
     }
 
     @Override
     public void extractFromInputStream(@NotNull AppTextConsumer appTextConsumer, @NotNull IUTConsumer iutConsumer,
-            @NotNull BUTConsumer butConsumer, @NotNull InputStream inputStream) throws IOException {
+            @NotNull BUTConsumer butConsumer, @NotNull MailTextConsumer mailTextConsumer, @NotNull InputStream inputStream) throws IOException {
         LOG.info("ETL Excel data: start...");
         try (final XSSFWorkbook wb = new XSSFWorkbook(inputStream)) {
-            // First we process BUT
+            // Process BUT
+            LOG.debug("Process sheet " + this.appDataProperties.getButSheetName());
             final BUTExtractor butExtractor = new BUTExtractor();
             butExtractor.extractEntities(wb.getSheet(this.appDataProperties.getButSheetName()), butConsumer);
-            // Then we process DUT
+            // Process DUT
+            LOG.debug("Process sheet " + this.appDataProperties.getIutSheetName());
             final IUTExtractor iutExtractor = new IUTExtractor();
             iutExtractor.extractEntities(wb.getSheet(this.appDataProperties.getIutSheetName()), iutConsumer);
-            // And finally the text
+            // Process App texts
+            LOG.debug("Process sheet " + this.appDataProperties.getAppTextSheetName());
             final AppTextExtractor appTextExtractor = new AppTextExtractor();
             appTextExtractor.extractEntities(wb.getSheet(this.appDataProperties.getAppTextSheetName()), appTextConsumer);
+            // Process Mail Texts
+            LOG.debug("Process sheet " + this.appDataProperties.getMailTextSheetName());
+            appTextExtractor.extractEntities(wb.getSheet(this.appDataProperties.getMailTextSheetName()), mailTextConsumer);
         } catch (IOException | UnsupportedFileFormatException ex) {
             LOG.warn(String.format("Cannot complete etl", ex.getMessage()));
             throw ex;

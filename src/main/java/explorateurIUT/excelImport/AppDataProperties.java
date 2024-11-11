@@ -34,6 +34,7 @@ public class AppDataProperties {
     private String butSheetName = "but";
     private String iutSheetName = "iut";
     private String appTextSheetName = "textes";
+    private String mailTextSheetName = "textes_courriels";
 
     public AppDataProperties() {
     }
@@ -76,6 +77,14 @@ public class AppDataProperties {
 
     public void setAppTextSheetName(String appTextSheetName) {
         this.appTextSheetName = appTextSheetName;
+    }
+
+    public String getMailTextSheetName() {
+        return mailTextSheetName;
+    }
+
+    public void setMailTextSheetName(String mailTextSheetName) {
+        this.mailTextSheetName = mailTextSheetName;
     }
 
 }

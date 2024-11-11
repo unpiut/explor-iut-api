@@ -21,6 +21,7 @@ package explorateurIUT.excelImport;
 import explorateurIUT.excelImport.consumers.AppTextConsumer;
 import explorateurIUT.excelImport.consumers.BUTConsumer;
 import explorateurIUT.excelImport.consumers.IUTConsumer;
+import explorateurIUT.excelImport.consumers.MailTextConsumer;
 import explorateurIUT.model.AppText;
 import explorateurIUT.model.BUT;
 import explorateurIUT.model.Departement;
@@ -45,18 +46,21 @@ public class ExcelToMongoLoader {
     private BUTConsumer butConsumer;
     private IUTConsumer iutconsumer;
     private AppTextConsumer appTextconsumer;
+    private MailTextConsumer mailTextConsumer;
 
     public ExcelToMongoLoader(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
         this.butConsumer = new BUTConsumer(mongoTemplate);
         this.iutconsumer = new IUTConsumer(mongoTemplate, this.butConsumer.getParcoursButByCodeButParc());
         this.appTextconsumer = new AppTextConsumer(mongoTemplate);
+        this.mailTextConsumer = new MailTextConsumer(mongoTemplate);
     }
 
     public void reset() {
         this.butConsumer = new BUTConsumer(this.mongoTemplate);
         this.iutconsumer = new IUTConsumer(mongoTemplate, this.butConsumer.getParcoursButByCodeButParc());
         this.appTextconsumer = new AppTextConsumer(mongoTemplate);
+        this.mailTextConsumer = new MailTextConsumer(mongoTemplate);
     }
 
     public void clearDb() {
@@ -76,4 +80,9 @@ public class ExcelToMongoLoader {
     public AppTextConsumer getExcelAppTextConsumer() {
         return this.appTextconsumer;
     }
+
+    public MailTextConsumer getMailTextConsumer() {
+        return mailTextConsumer;
+    }
+
 }

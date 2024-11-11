@@ -41,6 +41,7 @@ public class CacheManagementServiceImpl implements CacheManagementService {
     @Caching(evict = {
         @CacheEvict(cacheNames = "butSummaries", allEntries = true, beforeInvocation = false),
         @CacheEvict(cacheNames = "iutSummaries", allEntries = true, beforeInvocation = false),
+        @CacheEvict(cacheNames = "textSummaries", allEntries = true, beforeInvocation = false),
         @CacheEvict(cacheNames = "cacheEtag", allEntries = true, beforeInvocation = false)
     })
     @Override

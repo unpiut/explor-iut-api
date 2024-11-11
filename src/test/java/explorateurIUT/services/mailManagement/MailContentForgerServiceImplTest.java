@@ -25,7 +25,9 @@ import explorateurIUT.model.DepartementRepository;
 import explorateurIUT.model.IUTRepository;
 import explorateurIUT.model.MailIUTRecipient;
 import explorateurIUT.model.TestDatasetGenerator;
+import explorateurIUT.services.AppTextService;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +61,8 @@ public class MailContentForgerServiceImplTest {
     @Autowired
     private TestDatasetGenerator testDataset;
 
+    private final AppTextService appTextService = new DumbAppTextService();
+
     private MailContentForgerServiceImpl testedSvc;
 
     public MailContentForgerServiceImplTest() {
@@ -77,7 +81,7 @@ public class MailContentForgerServiceImplTest {
         this.testDataset.createDataset();
         this.mailSendingProp = new MailSendingProperties();
         this.mailSendingProp.setTestingMailAddress("testaddr@mail.com");
-        this.testedSvc = new MailContentForgerServiceImpl(deptRepo, iutRepo, mailSendingProp);
+        this.testedSvc = new MailContentForgerServiceImpl(deptRepo, iutRepo, mailSendingProp, appTextService);
     }
 
     @AfterEach
@@ -119,4 +123,27 @@ public class MailContentForgerServiceImplTest {
 
     }
 
+    private static class DumbAppTextService implements AppTextService {
+
+        @Override
+        public Map<String, String> getAppTextsByCode(String language) {
+            return Map.of();
+        }
+
+        @Override
+        public Map<String, String> getDefaultAppTextsByCode() {
+            return Map.of();
+        }
+
+        @Override
+        public Map<String, String> getMailTextsByCode(String language) {
+            return Map.of();
+        }
+
+        @Override
+        public Map<String, String> getDefaultMailTextsByCode() {
+            return Map.of();
+        }
+
+    }
 }

@@ -49,13 +49,20 @@ public class AppText {
     @NotBlank
     private String content;
 
+    private boolean backendMailText;
+
     protected AppText() {
     }
 
-    public AppText(String code, String content, String language) {
+    public AppText(String code, String content, String language, boolean backendMailText) {
         this.code = code;
         this.content = content;
         this.language = language;
+        this.backendMailText = backendMailText;
+    }
+
+    public AppText(String code, String content, String language) {
+        this(code, content, language, false);
     }
 
     public String getId() {
@@ -88,6 +95,14 @@ public class AppText {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public boolean isBackendMailText() {
+        return backendMailText;
+    }
+
+    public void setBackendMailText(boolean backendMailText) {
+        this.backendMailText = backendMailText;
     }
 
     @Override

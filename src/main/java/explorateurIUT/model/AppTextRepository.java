@@ -27,5 +27,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
  */
 public interface AppTextRepository extends MongoRepository<AppText, String> {
 
-    Stream<AppText> streamByLanguage(String language);
+    Stream<AppText> streamByLanguageAndBackendMailTextFalse(String language);
+
+    Stream<AppText> streamByLanguageAndBackendMailTextTrue(String language);
 }

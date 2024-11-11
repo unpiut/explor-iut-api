@@ -66,7 +66,8 @@ public class DataLoader implements CommandLineRunner {
         loader.clearDb();
 
         LOG.info("Start ETL...");
-        excelDataExtractor.extractFromCurrentDataFile(loader.getExcelAppTextConsumer(), loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer());
+        excelDataExtractor.extractFromCurrentDataFile(loader.getExcelAppTextConsumer(),
+                loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(), loader.getMailTextConsumer());
         LOG.info("ETL end.");
 
         LOG.info("Clear cache");

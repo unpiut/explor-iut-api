@@ -50,6 +50,7 @@ MA 02110-1301  USA
     
     <cache alias="butSummaries" uses-template="defaultExplorateurIUTCaches"/>
     <cache alias="iutSummaries" uses-template="defaultExplorateurIUTCaches"/>
+    <cache alias="textSummaries" uses-template="defaultExplorateurIUTCaches"/>
     <cache alias="cacheEtag" uses-template="smallExplorateurIUTCaches"/>
 </config>
 

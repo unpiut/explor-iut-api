@@ -196,6 +196,9 @@ public class MailManagementServiceImpl implements MailManagementService {
                 // send the mail to iuts
                 for (MailIUTRecipient iut : mail.getIUTMailRecipients()) {
                     String specificBody = contentForgerSvc.createSpecificBody(mail.getBody(), iut.getDepartementCodes());
+                    LOG.debug("Mail to send subject: " + mail.getSubject());
+                    LOG.debug("Mail to send body: ");
+                    LOG.debug(specificBody);
                     sendingSvc.sendMailToIUT(iut.getMailAddress(), mail.getReplyTo(), mail.getSubject(), specificBody, attachements);
                 }
             } else {
@@ -206,6 +209,9 @@ public class MailManagementServiceImpl implements MailManagementService {
                         .map(code -> mailIUTRecipient.getMailAddress() + "#" + code))
                         .toList();
                 String specificBody = contentForgerSvc.createSpecificBody(mail.getBody(), testingDepartementCodes);
+                LOG.debug("Mail to send subject: " + mail.getSubject());
+                LOG.debug("Mail to send body: ");
+                LOG.debug(specificBody);
                 sendingSvc.sendMailToIUT(this.mailSendingProp.getTestingMailAddress(), mail.getReplyTo(), mail.getSubject(), specificBody, attachements);
             }
             // remove all attachements related to the pending mail
