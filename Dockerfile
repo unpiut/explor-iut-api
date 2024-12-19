@@ -16,7 +16,7 @@
 # MA 02110-1301  USA
 
 # Perform compilation in a separate builder container
-FROM maven:3.9.9-amazoncorretto-21 as compiler
+FROM maven:3.9.9-amazoncorretto-21 AS compiler
 WORKDIR /app
 # Copy only the pom.xml and download dependencies
 COPY ./pom.xml ./

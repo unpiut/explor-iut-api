@@ -1,0 +1,68 @@
+name: 'exploiut-demo'
+
+services:
+  nosqldatabase:
+    image: mongo:6.0
+    volumes:
+      - db-config:/data/configdb
+      - db-data:/data/db
+      - ./mongoInit:/docker-entrypoint-initdb.d:ro
+    networks:
+      - db-net
+    restart: always
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    command: --replSet my-rs
+
+  mailcatcher:
+    image: dockage/mailcatcher:0.9.0
+    networks:
+      - db-net
+    ports:
+      - 127.0.0.1:1080:1080/tcp
+
+  api-server:
+    image: exploriut/app
+    build: ../../
+    cpu_count: 2
+    mem_limit: 512m
+    depends_on:
+      nosqldatabase:
+        condition: service_healthy
+    environment:
+        VALIDATION_URL: http://localhost:3000/validate
+    restart: always
+    configs:
+      - source: spring
+        target: /root/application.properties
+        mode: 0440
+      - source: ehcache
+        target: /root/ehcache.xml
+        mode: 0440
+    volumes:
+      - /repertoire-donnees:/data
+      - api-server-cache:/var/spring-ehcache
+    networks:
+      - db-net
+    ports:
+      - 127.0.0.1:8080:8080
+    command: --spring.config.location=/root/application.properties
+
+volumes:
+  db-config:
+  db-data:
+  file-data:
+  api-server-cache:
+
+networks:
+  db-net:
+
+configs:
+  spring:
+    file: api-demo.properties
+  ehcache:
+    file: ehcache-demo.xml
