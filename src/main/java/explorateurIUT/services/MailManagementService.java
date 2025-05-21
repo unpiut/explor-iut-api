@@ -91,4 +91,13 @@ public interface MailManagementService {
      * confirmation token
      */
     void confirmMailSendingRequest(@NotBlank String confirmationToken) throws ValidationException, NoSuchElementException, MailException;
+
+    /**
+     * Send a test mail to a recipient.
+     *
+     * @param recipient the recipient mail address
+     * @throws ValidationException if given parameters are invalid
+     * @throws MailException
+     */
+    void sendTestMail(@NotBlank @Email String recipient) throws ValidationException, MailException;
 }

@@ -51,6 +51,7 @@ import explorateurIUT.services.mailManagement.MailSendingProperties;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailException;
 
 /**
  *
@@ -218,6 +219,19 @@ public class MailManagementServiceImpl implements MailManagementService {
             attachementRepo.deleteByPendingMailId(mail.getId());
             // remove the pending mail
             pendingMailRepo.delete(mail);
+        } catch (MessagingException ex) {
+            LOG.error("Unable to send the confirmation mail: ", ex);
+            throw new MailPreparationException(ex);
+        }
+    }
+
+    @Override
+    public void sendTestMail(String recipient) throws ValidationException, MailException {
+        try {
+            final String bodyTest = "Bonjour,\r\nCeci est un courriel de test.";
+            final String subjectTest = "Test Mail ExplorIUT";
+            LOG.debug("Sending a test mail to " + recipient);
+            this.sendingSvc.sendMailToContact(recipient, subjectTest, bodyTest);
         } catch (MessagingException ex) {
             LOG.error("Unable to send the confirmation mail: ", ex);
             throw new MailPreparationException(ex);

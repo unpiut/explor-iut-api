@@ -35,13 +35,16 @@ import org.springframework.web.multipart.MultipartFile;
 import explorateurIUT.excelImport.AppDataProperties;
 import explorateurIUT.services.DataUploadService;
 import explorateurIUT.services.ExcelDataFileManagementService;
+import explorateurIUT.services.MailManagementService;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.core.io.PathResource;
+import org.springframework.mail.MailException;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  *
@@ -60,12 +63,16 @@ public class AdminController {
     private final AppDataProperties appDataProperties;
 
     private final ExcelDataFileManagementService excelDataFileMgmtSvc;
+    
+    private final MailManagementService mailMgmtSvc;
 
     @Autowired
-    public AdminController(DataUploadService dataUploader, AppDataProperties appDataProperties, ExcelDataFileManagementService excelDataFileMgmtSvc) {
+    public AdminController(DataUploadService dataUploader, AppDataProperties appDataProperties, 
+            ExcelDataFileManagementService excelDataFileMgmtSvc, MailManagementService mailMgmtSvc) {
         this.dataUploader = dataUploader;
         this.appDataProperties = appDataProperties;
         this.excelDataFileMgmtSvc = excelDataFileMgmtSvc;
+        this.mailMgmtSvc = mailMgmtSvc;
     }
 
     @GetMapping("check")
@@ -109,6 +116,12 @@ public class AdminController {
             throws IOException {
         LOG.debug("Initialize update");
         dataUploader.uploadData(file);
+    }
+    
+    @PutMapping("send-test-mail")
+    public String sendTestMail(@RequestBody String recipient) throws MailException {
+        this.mailMgmtSvc.sendTestMail(recipient);
+        return "OK";
     }
 
     private HttpHeaders prepareDataResponseHttpHeaders(String fileVersion) {
