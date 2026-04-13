@@ -27,9 +27,12 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import explorateurIUT.model.GeoJsonPoint;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.jackson.JsonComponent;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 
 /**
  *
@@ -37,6 +40,13 @@ import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
  */
 @JsonComponent
 public class GeoJsonSerializationConfiguration {
+
+    private static final Log LOG = LogFactory.getLog(GeoJsonSerializationConfiguration.class);
+
+    @PostConstruct
+    public void init() {
+        LOG.info("INIT " + this.getClass().getSimpleName());
+    }
 
     public static class Serializer extends JsonSerializer<GeoJsonPoint> {
 

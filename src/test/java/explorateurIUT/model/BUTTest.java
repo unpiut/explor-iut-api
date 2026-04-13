@@ -18,7 +18,9 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.MongoConfiguration;
+import explorateurIUT.configuration.TestDatasetConfig;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModel;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManager;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
@@ -27,24 +29,30 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
  *
  * @author Remi Venant
  */
-@DataMongoTest
-@Import(MongoConfiguration.class)
-@ActiveProfiles({"test", "mongo-test"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(TestDatasetConfig.class)
+@ActiveProfiles("test")
 public class BUTTest {
 
+    @Configuration
+    public static class NoConfiguration {
+        // No automatic configuration
+    }
+
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private BUTIUTModelManager modelMgr;
+
+    private BUTIUTModel model;
 
     public BUTTest() {
     }
@@ -59,11 +67,12 @@ public class BUTTest {
 
     @BeforeEach
     public void setUp() {
+        this.model = this.modelMgr.startNewModelCreation();
     }
 
     @AfterEach
     public void tearDown() {
-        this.mongoTemplate.remove(new BasicQuery("{}"), BUT.class);
+        this.model.rollback();
     }
 
     /**
@@ -73,12 +82,12 @@ public class BUTTest {
     public void testBUTPersistence() {
         BUT but = new BUT("LEBUT", "le but", "la filiere", "les metiers",
                 "la description", "l'url", "l'url france competence", "l'univers metier");
-        BUT savedBut = this.mongoTemplate.save(but);
+        BUT savedBut = this.model.saveBUT(but);
         assertThat(savedBut.getId()).as("created but has an id").isNotNull();
 
-        BUT retrievedBut = this.mongoTemplate.findById(savedBut.getId(), BUT.class);
-        assertThat(retrievedBut).as("retrieve but not null and not same as savedBut")
-                .isNotNull().isNotSameAs(but);
+        BUT retrievedBut = this.model.getButsById().get(savedBut.getId());
+        assertThat(retrievedBut).as("retrieve but not null")
+                .isNotNull();
         assert retrievedBut != null;
         assertThat(retrievedBut).extracting("code", "nom", "filiere", "metiers", "description", "urlFiche", "urlFranceCompetence", "universMetiers")
                 .containsExactly(but.getCode(), but.getNom(), but.getFiliere(), but.getMetiers(),
@@ -92,73 +101,73 @@ public class BUTTest {
     @Test
     public void testBUTValidation() {
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT(null, "le but", "la filiere",
+                -> this.model.saveBUT(new BUT(null, "le but", "la filiere",
                         "les metiers", "la description", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Null code rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("  \t  \n ", "le but", "la filiere",
+                -> this.model.saveBUT(new BUT("  \t  \n ", "le but", "la filiere",
                         "les metiers", "la description", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Blank code rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", null, "la filiere",
+                -> this.model.saveBUT(new BUT("LEBUT", null, "la filiere",
                         "les metiers", "la description", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Null nom rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "  \t  \n ", "la filiere",
+                -> this.model.saveBUT(new BUT("LEBUT", "  \t  \n ", "la filiere",
                         "les metiers", "la description", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Blank nom rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but", null,
+                -> this.model.saveBUT(new BUT("LEBUT", "le but", null,
                         "les metiers", "la description", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Null filiere rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but", "  \t  \n ",
+                -> this.model.saveBUT(new BUT("LEBUT", "le but", "  \t  \n ",
                         "les metiers", "la description", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Blank filiere rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but", "la filiere",
+                -> this.model.saveBUT(new BUT("LEBUT", "le but", "la filiere",
                         null, "la description", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Null metiers rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but", "la filiere",
+                -> this.model.saveBUT(new BUT("LEBUT", "le but", "la filiere",
                         "  \t  \n ", "la description", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Blank metiers rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but", "la filiere",
+                -> this.model.saveBUT(new BUT("LEBUT", "le but", "la filiere",
                         "les metiers", null, "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Null description rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but", "la filiere",
+                -> this.model.saveBUT(new BUT("LEBUT", "le but", "la filiere",
                         "les metiers", "  \t  \n ", "l'url",
                         "l'url france competence", "l'univers metier")))
                 .as("Blank description rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but", "la filiere",
+                -> this.model.saveBUT(new BUT("LEBUT", "le but", "la filiere",
                         "les metiers", "la description", "l'url",
                         "l'url france competence", null)))
                 .as("Null universMetiers rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but", "la filiere",
+                -> this.model.saveBUT(new BUT("LEBUT", "le but", "la filiere",
                         "les metiers", "la description", "l'url",
                         "l'url france competence", "  \t  \n ")))
                 .as("Blank universMetiers rejected")
@@ -170,10 +179,10 @@ public class BUTTest {
      */
     @Test
     public void testUniqueCode() {
-        this.mongoTemplate.save(new BUT("LEBUT", "le but", "la filiere", "les metiers",
+        this.model.saveBUT(new BUT("LEBUT", "le but", "la filiere", "les metiers",
                 "la description", "l'url", "l'url france competence", "l'univers metier"));
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new BUT("LEBUT", "le but2", "la filiere2", "les metiers2",
+                -> this.model.saveBUT(new BUT("LEBUT", "le but2", "la filiere2", "les metiers2",
                         "la description2", "l'url2", "l'url france competence2", "l'univers metier2")))
                 .as("Duplicated code rejected")
                 .isInstanceOf(DuplicateKeyException.class);

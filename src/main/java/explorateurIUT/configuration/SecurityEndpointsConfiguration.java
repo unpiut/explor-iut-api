@@ -26,6 +26,7 @@ import explorateurIUT.security.mailQuota.IPQuotaPermissionEvaluator;
 import explorateurIUT.security.mailQuota.services.GlobalQuotaValidator;
 import explorateurIUT.security.mailQuota.services.IPQuotaValidator;
 import explorateurIUT.security.mailQuota.services.MongoQuotaValidator;
+import jakarta.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
@@ -66,6 +67,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityEndpointsConfiguration {
 
     private static final Log LOG = LogFactory.getLog(SecurityEndpointsConfiguration.class);
+
+    @PostConstruct
+    public void init() {
+        LOG.info("INIT " + this.getClass().getSimpleName());
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -188,7 +194,7 @@ public class SecurityEndpointsConfiguration {
                     // api/ configuration
                     .requestMatchers(HttpMethod.GET, "/api/v1/referentiel/**", "/api/v1/iut/**", "/api/v1/textes/**").permitAll() // Allow public access to data apis
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN") // admin endpoints
-                    .requestMatchers(HttpMethod.POST, "/api/v1/mail/request", "/api/v1/mail/resend-confirmation","/api/v1/mail/validate").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/v1/mail/request", "/api/v1/mail/resend-confirmation", "/api/v1/mail/validate").permitAll()
                     .requestMatchers("/api/**").denyAll() // default policy for api
                     // errors
                     .requestMatchers(HttpMethod.GET, "/error").permitAll()

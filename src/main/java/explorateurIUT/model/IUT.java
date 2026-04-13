@@ -23,27 +23,20 @@ import explorateurIUT.model.views.IUTViews;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.ReadOnlyProperty;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
-import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
+import java.util.UUID;
 
 /**
  *
  * @author Remi Venant
  */
-@Document(collection = "IUT", language = "french")
 public class IUT {
 
     @JsonView(IUTViews.Normal.class)
-    @Id
-    private String id;
+    private String id; // will use a fixed genereated id
 
     @JsonView(IUTViews.Normal.class)
     @NotBlank
@@ -71,12 +64,9 @@ public class IUT {
 
     @JsonView(IUTViews.Normal.class)
     @NotNull
-    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
     private GeoJsonPoint location;
 
     @JsonView(IUTViews.Normal.class)
-    @ReadOnlyProperty
-    @DocumentReference(lookup = "{'iut':?#{#self._id} }", lazy = true)
     private List<Departement> departements;
 
     protected IUT() {
@@ -87,6 +77,7 @@ public class IUT {
     }
 
     public IUT(String nom, String site, String region, String address, String tel, String mel, String urlWeb, GeoJsonPoint location) {
+        this.id = generateId(nom, site);
         this.nom = nom;
         this.site = site;
         this.region = region;
@@ -111,6 +102,7 @@ public class IUT {
 
     public void setNom(String nom) {
         this.nom = nom;
+        this.id = generateId(nom, site);
     }
 
     public String getSite() {
@@ -119,6 +111,7 @@ public class IUT {
 
     public void setSite(String site) {
         this.site = site;
+        this.id = generateId(nom, site);
     }
 
     public String getRegion() {
@@ -177,6 +170,27 @@ public class IUT {
         this.departements = departements;
     }
 
+    protected boolean addDepartement(Departement departement) {
+        if (departement == null) {
+            throw new NullPointerException("IUT cannot have a null departement");
+        }
+        if (this.departements == null) {
+            this.departements = new ArrayList<>();
+        }
+        if (this.departements.contains(departement)) {
+            return false;
+        }
+        this.departements.add(departement);
+        return true;
+    }
+
+    protected boolean removeDepartement(Departement departement) {
+        if (this.departements == null) {
+            return false;
+        }
+        return this.departements.remove(departement);
+    }
+
     @Override
     public int hashCode() {
         int hash = 5;
@@ -199,4 +213,22 @@ public class IUT {
         return Objects.equals(this.id, other.id);
     }
 
+    private static String generateId(String nom, String site) {
+        /*
+        If nom and site are given, use them first with a prefix.
+        Otherwise use nom only if given
+        Otherwise use random id
+         */
+        if (nom != null && !nom.isBlank()) {
+            String genId;
+            if (site != null && !site.isBlank()) {
+                genId = "NS#" + nom + "#" + site;
+            } else {
+                genId = "N#" + nom;
+            }
+            return UUID.nameUUIDFromBytes(genId.getBytes()).toString();
+        } else {
+            return UUID.randomUUID().toString();
+        }
+    }
 }

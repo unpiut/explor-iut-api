@@ -24,31 +24,24 @@ import explorateurIUT.model.views.DefaultView;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Objects;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
+import java.util.UUID;
 
 /**
  *
  * @author Remi Venant
  */
-@Document(collection = "ParcoursBUT", language = "french")
 public class ParcoursBUT {
 
     @JsonView(BUTViews.Normal.class)
-    @Id
-    private String id;
+    private String id; // will contain a ref to code
 
     @JsonView(DefaultView.Never.class)
     @NotNull
-    @DocumentReference(lazy = true)
     private BUT but;
 
     @JsonView(BUTViews.Normal.class)
     @NotBlank
-    @Indexed(unique = true)
-    private String code;
+    private String code; // Unique, will be used at id
 
     @JsonView(BUTViews.Normal.class)
     @NotBlank
@@ -57,15 +50,22 @@ public class ParcoursBUT {
     protected ParcoursBUT() {
     }
 
-    public ParcoursBUT(BUT but, String code) {
-        this.but = but;
-        this.code = code;
-    }
-
     public ParcoursBUT(BUT but, String code, String nom) {
-        this.but = but;
+        this.id = generateId(code);
         this.code = code;
         this.nom = nom;
+        this.initBUT(but);
+    }
+
+    public ParcoursBUT(BUT but, String code) {
+        this(but, code, null);
+    }
+
+    private void initBUT(BUT but) {
+        this.but = but;
+        if (but != null) {
+            this.but.addParcours(this);
+        }
     }
 
     public String getId() {
@@ -80,16 +80,28 @@ public class ParcoursBUT {
         return but;
     }
 
-    public void setBut(BUT but) {
+    protected final void setBut(BUT but) {
+        if (but == null) {
+            throw new NullPointerException("Parcours must have a BUT");
+        }
+        if (but.equals(this.but)) {
+            return;
+        }
+        BUT oldBut = this.but;
         this.but = but;
+        if (oldBut != null) {
+            oldBut.removeParcours(this);
+        }
+        this.but.addParcours(this);
     }
 
     public String getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    protected void setCode(String code) {
         this.code = code;
+        this.id = generateId(code);
     }
 
     public String getNom() {
@@ -122,4 +134,9 @@ public class ParcoursBUT {
         return Objects.equals(this.id, other.id);
     }
 
+    private static String generateId(String code) {
+        return code != null
+                ? UUID.nameUUIDFromBytes(code.getBytes()).toString()
+                : UUID.randomUUID().toString();
+    }
 }

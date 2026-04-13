@@ -21,14 +21,16 @@ package explorateurIUT.model;
 import explorateurIUT.model.projections.IUTMailOnly;
 import explorateurIUT.model.projections.IUTSummary;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Stream;
-import org.springframework.data.mongodb.repository.MongoRepository;
 
 /**
  *
  * @author Remi Venant
  */
-public interface IUTRepository extends MongoRepository<IUT, String>, IUTRepositoryCustom {
+public interface IUTRepository {
+
+    public Optional<IUT> findById(String id);
 
     Stream<IUTSummary> streamSummariesBy();
 

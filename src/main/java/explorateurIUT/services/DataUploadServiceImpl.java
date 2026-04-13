@@ -18,17 +18,19 @@
  */
 package explorateurIUT.services;
 
-import explorateurIUT.DataLoader;
-import explorateurIUT.excelImport.ExcelToMongoLoader;
-import explorateurIUT.services.ExcelDataFileManagementService.ExcelChangeSession;
+import explorateurIUT.services.butIUTModelMgmt.ExcelDataFileManagementService;
+import explorateurIUT.CacheCleaner;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModel;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManager;
+import explorateurIUT.services.butIUTModelMgmt.ExcelDataFileLoader;
+import explorateurIUT.services.butIUTModelMgmt.ExcelDataFileManagementService.ExcelChangeSession;
+import explorateurIUT.services.butIUTModelMgmt.excelToMemoryConsumers.ConsumersHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,45 +42,42 @@ import org.springframework.web.multipart.MultipartFile;
 @Validated
 public class DataUploadServiceImpl implements DataUploadService {
 
-    private static final Log LOG = LogFactory.getLog(DataLoader.class);
+    private static final Log LOG = LogFactory.getLog(CacheCleaner.class);
 
-    private final MongoTemplate mongoTemplate;
+    private final BUTIUTModelManager modelManager;
 
     private final CacheManagementService cacheMgmtSvc;
 
-    private final ExcelDataExtractor excelDataExtractor;
+    private final ExcelDataFileLoader excelDataFileLoader;
 
-    private final ExcelDataFileManagementService excelChangeSvc;
+    private final ExcelDataFileManagementService excelDateFileMgr;
 
     @Autowired
-    public DataUploadServiceImpl(MongoTemplate mongoTemplate, CacheManagementService cacheMgmtSvc,
-            ExcelDataExtractor excelDataExtractor, ExcelDataFileManagementService excelChangeSvc) {
-        this.mongoTemplate = mongoTemplate;
+    public DataUploadServiceImpl(BUTIUTModelManager modelManager, CacheManagementService cacheMgmtSvc,
+            ExcelDataFileLoader excelDataFileLoader, ExcelDataFileManagementService excelDataFileMgr) {
+        this.modelManager = modelManager;
         this.cacheMgmtSvc = cacheMgmtSvc;
-        this.excelDataExtractor = excelDataExtractor;
-        this.excelChangeSvc = excelChangeSvc;
+        this.excelDataFileLoader = excelDataFileLoader;
+        this.excelDateFileMgr = excelDataFileMgr;
     }
 
     @Override
-    @Transactional
     public void uploadData(MultipartFile dataExcelFile) throws IOException {
         LOG.info("START DATA UPLOADING");
 
-        LOG.info("Prepare mongo loader");
-        ExcelToMongoLoader loader = new ExcelToMongoLoader(mongoTemplate);
+        LOG.info("Prepare new model and consumers");
+        BUTIUTModel newModel = this.modelManager.startNewModelCreation();
+        ConsumersHandler consHandler = new ConsumersHandler(newModel);
 
         LOG.info("Prepare File Change Session");
-        ExcelChangeSession changeSession = this.excelChangeSvc.getChangeExcelSession();
+        ExcelChangeSession changeSession = this.excelDateFileMgr.getChangeExcelSession();
 
         try {
-            LOG.info("Clear database");
-            loader.clearDb();
-
-            LOG.info("Re-populate database");
-            try (InputStream dataExcel = dataExcelFile.getInputStream()) {
-                excelDataExtractor.extractFromInputStream(loader.getExcelAppTextConsumer(),
-                        loader.getExcelIUTConsumer(), loader.getExcelBUTConsumer(),
-                        loader.getMailTextConsumer(), dataExcel);
+            LOG.info("Forge model");
+            try (InputStream excelInputStream = dataExcelFile.getInputStream()) {
+                excelDataFileLoader.extractFromInputStream(consHandler.getExcelAppTextConsumer(),
+                        consHandler.getExcelIUTConsumer(), consHandler.getExcelBUTConsumer(),
+                        consHandler.getMailTextConsumer(), excelInputStream);
             }
 
             LOG.info("Change excel");
@@ -94,9 +93,12 @@ public class DataUploadServiceImpl implements DataUploadService {
 
             // Commit file change
             changeSession.commit();
+            // Commit model
+            newModel.commit();
             LOG.info("END DATA UPLOADING");
         } catch (Throwable ex) {
             changeSession.rollback();
+            newModel.rollback();
             throw ex;
         }
     }

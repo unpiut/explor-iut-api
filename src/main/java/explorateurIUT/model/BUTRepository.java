@@ -21,15 +21,16 @@ package explorateurIUT.model;
 import explorateurIUT.model.projections.BUTSummary;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.springframework.data.mongodb.repository.MongoRepository;
 
 /**
  *
  * @author Remi Venant
  */
-public interface BUTRepository extends MongoRepository<BUT, String> {
+public interface BUTRepository {
 
     Stream<BUTSummary> streamSummariesBy();
+
+    public Optional<BUT> findById(String id);
 
     Optional<BUT> findByCodeIgnoreCase(String code);
 }

@@ -18,8 +18,8 @@
  */
 package explorateurIUT.model.projections;
 
+import explorateurIUT.model.GeoJsonPoint;
 import java.util.List;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 
 /**
  *
@@ -32,7 +32,7 @@ public interface IUTSummary {
     String getNom();
 
     String getSite();
-    
+
     String getRegion();
 
     GeoJsonPoint getLocation();

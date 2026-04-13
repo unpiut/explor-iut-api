@@ -31,11 +31,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -59,23 +57,17 @@ public class IUTController {
     }
 
     @GetMapping
-    public ResponseEntity<Stream<IUTSummary>> getIUTSummaries(@RequestParam MultiValueMap<String, String> params) {
-        if (params == null || params.isEmpty()) {
-            List<IUTSummary> iutSummaries = this.iutSvc.findIUTSummaries();
-            return ResponseEntity
-                    .ok()
-                    .cacheControl(CacheControl.maxAge(this.etagAccessSvc.getCacheEtagDuration()))
-                    .eTag(this.etagAccessSvc.getCacheEtag())
-                    .body(iutSummaries.stream());
-        }
+    public ResponseEntity<Stream<IUTSummary>> getIUTSummaries() {
+        List<IUTSummary> iutSummaries = this.iutSvc.findIUTSummaries();
         return ResponseEntity
                 .ok()
-                .cacheControl(CacheControl.noStore())
-                .body(this.iutSvc.streamFilteredIUTSummaries(this.iutSvc.generateFilterFromQueryParams(params)));
+                .cacheControl(CacheControl.maxAge(this.etagAccessSvc.getCacheEtagDuration()))
+                .eTag(this.etagAccessSvc.getCacheEtag())
+                .body(iutSummaries.stream());
     }
 
     @JsonView(IUTViews.Details.class)
-    @GetMapping("{iutId:[abcdef0-9]{24}}")
+    @GetMapping("{iutId:[abcdef0-9-]{36}}")
     public ResponseEntity<IUT> getIUT(@PathVariable String iutId) {
         return ResponseEntity
                 .ok()

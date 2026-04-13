@@ -19,13 +19,12 @@
 package explorateurIUT.model;
 
 import java.util.stream.Stream;
-import org.springframework.data.mongodb.repository.MongoRepository;
 
 /**
  *
  * @author Julien Fourdan
  */
-public interface AppTextRepository extends MongoRepository<AppText, String> {
+public interface AppTextRepository {
 
     Stream<AppText> streamByLanguageAndBackendMailTextFalse(String language);
 

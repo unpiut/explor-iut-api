@@ -18,13 +18,14 @@
  */
 package explorateurIUT.services;
 
+import explorateurIUT.services.butIUTModelMgmt.ExcelDataFileManagementService;
 import explorateurIUT.configuration.MongoTestConfig;
 import explorateurIUT.model.AppText;
 import explorateurIUT.model.BUT;
 import explorateurIUT.model.Departement;
 import explorateurIUT.model.IUT;
 import explorateurIUT.model.ParcoursBUT;
-import explorateurIUT.services.ExcelDataFileManagementService.ExcelChangeSession;
+import explorateurIUT.services.butIUTModelMgmt.ExcelDataFileManagementService.ExcelChangeSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

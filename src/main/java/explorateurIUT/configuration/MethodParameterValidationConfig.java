@@ -18,6 +18,9 @@
  */
 package explorateurIUT.configuration;
 
+import jakarta.annotation.PostConstruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
@@ -28,6 +31,13 @@ import org.springframework.validation.beanvalidation.MethodValidationPostProcess
  */
 @Configuration
 public class MethodParameterValidationConfig {
+    
+    private static final Log LOG = LogFactory.getLog(MethodParameterValidationConfig.class);
+
+    @PostConstruct
+    public void init() {
+        LOG.info("INIT " + this.getClass().getSimpleName());
+    }
 
     @Bean
     public MethodValidationPostProcessor validationPostProcessor() {

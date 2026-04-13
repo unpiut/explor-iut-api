@@ -18,10 +18,22 @@
  */
 package explorateurIUT.configuration;
 
+import explorateurIUT.model.AppTextRepository;
+import explorateurIUT.model.BUTRepository;
+import explorateurIUT.model.DepartementRepository;
+import explorateurIUT.model.IUTRepository;
 import explorateurIUT.model.TestDatasetGenerator;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManager;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManagerImpl;
+import explorateurIUT.services.butIUTModelMgmt.repositories.AppTextRepoImpl;
+import explorateurIUT.services.butIUTModelMgmt.repositories.BUTRepoImpl;
+import explorateurIUT.services.butIUTModelMgmt.repositories.DepartementRepoImpl;
+import explorateurIUT.services.butIUTModelMgmt.repositories.IUTRepoImpl;
+import jakarta.validation.Validator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 /**
  *
@@ -30,8 +42,40 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 @TestConfiguration
 public class TestDatasetConfig {
 
+    @ConditionalOnMissingBean
     @Bean
-    public TestDatasetGenerator testDatasetGenerator(MongoTemplate mongoTemplate) {
-        return new TestDatasetGenerator(mongoTemplate);
+    public LocalValidatorFactoryBean localValidatorFactoryBean() {
+        //a common bean to enforce javax validation constraints
+        return new LocalValidatorFactoryBean();
+    }
+
+    @Bean
+    public BUTIUTModelManager butIUTModelManager(Validator validator) {
+        return new BUTIUTModelManagerImpl(validator);
+    }
+
+    @Bean
+    public TestDatasetGenerator testDatasetGenerator(BUTIUTModelManager butIUTModelManager) {
+        return new TestDatasetGenerator(butIUTModelManager);
+    }
+
+    @Bean
+    public AppTextRepository appTextRepository(BUTIUTModelManager butIUTModelManager) {
+        return new AppTextRepoImpl(butIUTModelManager);
+    }
+
+    @Bean
+    public BUTRepository butRepository(BUTIUTModelManager butIUTModelManager) {
+        return new BUTRepoImpl(butIUTModelManager);
+    }
+
+    @Bean
+    public DepartementRepository departementRepository(BUTIUTModelManager butIUTModelManager) {
+        return new DepartementRepoImpl(butIUTModelManager);
+    }
+
+    @Bean
+    public IUTRepository iutRepository(BUTIUTModelManager butIUTModelManager) {
+        return new IUTRepoImpl(butIUTModelManager);
     }
 }

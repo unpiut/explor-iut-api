@@ -21,10 +21,7 @@ package explorateurIUT.services;
 import explorateurIUT.model.BUT;
 import explorateurIUT.model.BUTRepository;
 import explorateurIUT.model.IUT;
-import explorateurIUT.model.IUTFormationFilter;
 import explorateurIUT.model.IUTRepository;
-import explorateurIUT.model.cacheUtils.SerializableBUTSummary;
-import explorateurIUT.model.cacheUtils.SerializableIUTSummary;
 import explorateurIUT.model.projections.BUTSummary;
 import explorateurIUT.model.projections.IUTSummary;
 import jakarta.validation.ConstraintViolationException;
@@ -33,11 +30,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
@@ -62,10 +57,9 @@ public class BUTIUTServiceImpl implements BUTService, IUTService {
         this.iutRepo = iutRepo;
     }
 
-    @Cacheable(cacheNames = "butSummaries", unless = "#result == null || #result.isEmpty()")
     @Override
     public List<BUTSummary> findBUTSummaries() {
-        return this.butRepo.streamSummariesBy().map(SerializableBUTSummary::fromBUTSummary).toList();
+        return this.butRepo.streamSummariesBy().toList();
     }
 
     @Override
@@ -80,21 +74,15 @@ public class BUTIUTServiceImpl implements BUTService, IUTService {
                 .orElseThrow(() -> new NoSuchElementException("BUT introuvable"));
     }
 
-    @Cacheable(cacheNames = "iutSummaries", unless = "#result == null || #result.isEmpty()")
     @Override
     public List<IUTSummary> findIUTSummaries() {
-        return this.iutRepo.streamSummariesBy().map(SerializableIUTSummary::fromIUTSummary).toList();
+        return this.iutRepo.streamSummariesBy().toList();
     }
 
     @Override
     public IUT findIUT(String iutId) throws ConstraintViolationException, NoSuchElementException {
         return this.iutRepo.findById(iutId)
                 .orElseThrow(() -> new NoSuchElementException("IUT introuvable"));
-    }
-
-    @Override
-    public Stream<IUTSummary> streamFilteredIUTSummaries(IUTFormationFilter filter) throws ConstraintViolationException {
-        return this.iutRepo.streamSummariesByFilter(filter).stream();
     }
 
     private static void checkUniqueParamPresence(MultiValueMap<String, String> params, String param, String exMessage) {
@@ -127,39 +115,6 @@ public class BUTIUTServiceImpl implements BUTService, IUTService {
                 throw new IllegalArgumentException(exMessage + " (" + pName + ")");
             }
         }
-    }
-
-    @Override
-    public IUTFormationFilter generateFilterFromQueryParams(MultiValueMap<String, String> params) throws IllegalArgumentException {
-        /*
-        q: unique, str, trimed, not blanck
-        lat: unique, double,
-        lon: unique, double,
-        rad: unique, double, stricly positive,
-        region: multiple, each trimed, not blanck
-        but: multiple, each trimed, not blanck
-        all-depts: unique, true if not equals to 0, false, no (case ignored) false otherwise
-         */
-        // Check all params are allowed
-        checkParamsAccepted(params, "Paramètre de recherche invalide");
-        // Start checking params unicity
-        checkUniqueParamPresence(params, "q", "Une seule recherche textuelle doit être fournie au maximum");
-        checkUniqueParamPresence(params, "lat", "Une seule latitude de zone géographique de filtrage doit être fournie au maximum");
-        checkUniqueParamPresence(params, "lon", "Une seule longitude de zone géographique de filtrage textuelle doit être fournie au maximum");
-        checkUniqueParamPresence(params, "rad", "Un seule rayon de zone géographique de filtrage textuelle doit être fournie au maximum");
-        checkUniqueParamPresence(params, "all-depts", "Un seul indicateur d'inclusion de tous les départements doit être fourni au maximum");
-
-        final IUTFormationFilter.Builder builder = new IUTFormationFilter.Builder();
-
-        builder.withFreeTextQuery(params.getFirst("q"));
-        builder.withGPSFilter(
-                checkAndConvertRawParamToDoubleOrNull(params.getFirst("lat"), "Valeur numérique de latitude invalide."),
-                checkAndConvertRawParamToDoubleOrNull(params.getFirst("lon"), "Valeur numérique de longitude invalide."),
-                checkAndConvertRawParamToDoubleOrNull(params.getFirst("rad"), "Valeur numérique de rayon invalide."));
-        builder.withRegions(params.get("region"));
-        builder.withButs(params.get("but"));
-        builder.withIncludeAllDepts(convertBoolParams(params.getFirst("all-depts")));
-        return builder.build();
     }
 
 }

@@ -18,7 +18,6 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.MongoConfiguration;
 import explorateurIUT.configuration.TestDatasetConfig;
 import explorateurIUT.model.projections.BUTSummary;
 import explorateurIUT.model.projections.ParcoursBUTSummary;
@@ -32,7 +31,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -40,10 +40,15 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * @author Remi Venant
  */
-@DataMongoTest
-@Import({MongoConfiguration.class, TestDatasetConfig.class})
-@ActiveProfiles({"test", "mongo-test"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(TestDatasetConfig.class)
+@ActiveProfiles("test")
 public class BUTRepositoryTest {
+
+    @Configuration
+    public static class NoConfiguration {
+        // No automatic configuration
+    }
 
     @Autowired
     private BUTRepository testedRepo;

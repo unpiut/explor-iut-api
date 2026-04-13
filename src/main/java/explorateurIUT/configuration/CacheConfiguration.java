@@ -18,6 +18,9 @@
  */
 package explorateurIUT.configuration;
 
+import jakarta.annotation.PostConstruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,4 +32,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CacheConfiguration {
 
+    private static final Log LOG = LogFactory.getLog(CacheConfiguration.class);
+
+    @PostConstruct
+    public void init() {
+        LOG.info("INIT " + this.getClass().getSimpleName());
+    }
 }

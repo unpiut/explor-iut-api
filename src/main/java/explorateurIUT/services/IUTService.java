@@ -19,15 +19,12 @@
 package explorateurIUT.services;
 
 import explorateurIUT.model.IUT;
-import explorateurIUT.model.IUTFormationFilter;
 import explorateurIUT.model.projections.IUTSummary;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Stream;
-import org.springframework.util.MultiValueMap;
 
 /**
  *
@@ -35,17 +32,9 @@ import org.springframework.util.MultiValueMap;
  */
 public interface IUTService {
 
-    IUTFormationFilter generateFilterFromQueryParams(
-            @NotNull MultiValueMap<String, String> params
-    ) throws IllegalArgumentException;
-
     List<IUTSummary> findIUTSummaries();
 
-    Stream<IUTSummary> streamFilteredIUTSummaries(
-            @NotNull IUTFormationFilter filter
-    ) throws ConstraintViolationException;
-
     IUT findIUT(
-            @NotNull @Pattern(regexp = "[abcdef0-9]{24}", flags = Pattern.Flag.CASE_INSENSITIVE) String iutId
+            @NotNull @Pattern(regexp = "[abcdef0-9-]{36}", flags = Pattern.Flag.CASE_INSENSITIVE) String iutId
     ) throws ConstraintViolationException, NoSuchElementException;
 }

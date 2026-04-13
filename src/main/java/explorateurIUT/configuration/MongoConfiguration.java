@@ -18,6 +18,7 @@
  */
 package explorateurIUT.configuration;
 
+import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
@@ -38,10 +39,9 @@ public class MongoConfiguration {
 
     private static final Log LOG = LogFactory.getLog(MongoConfiguration.class);
 
-    @Bean
-    public LocalValidatorFactoryBean localValidatorFactoryBean() {
-        //a common bean to enforce javax validation constraints
-        return new LocalValidatorFactoryBean();
+    @PostConstruct
+    public void init() {
+        LOG.info("INIT " + this.getClass().getSimpleName());
     }
 
     @Bean
