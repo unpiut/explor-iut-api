@@ -52,7 +52,7 @@ public class SimulatedBUTIUTModelManagerAndRepoConfig {
     @ConditionalOnMissingBean
     @Bean
     public BUTIUTModelManager butIUTModelManager(Validator validator) {
-        return new BUTIUTModelManagerImpl(validator);
+        return new BUTIUTModelManagerImpl(validator, null);
     }
 
     @ConditionalOnMissingBean

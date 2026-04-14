@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package explorateurIUT.configuration;
+package explorateurIUT.model.jsonSerDe;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import explorateurIUT.model.GeoJsonPoint;
-import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,14 +38,9 @@ import org.springframework.boot.jackson.JsonComponent;
  * @author Remi Venant
  */
 @JsonComponent
-public class GeoJsonSerializationConfiguration {
+public class GeoJsonSerialization {
 
-    private static final Log LOG = LogFactory.getLog(GeoJsonSerializationConfiguration.class);
-
-    @PostConstruct
-    public void init() {
-        LOG.info("INIT " + this.getClass().getSimpleName());
-    }
+    private static final Log LOG = LogFactory.getLog(GeoJsonSerialization.class);
 
     public static class Serializer extends JsonSerializer<GeoJsonPoint> {
 

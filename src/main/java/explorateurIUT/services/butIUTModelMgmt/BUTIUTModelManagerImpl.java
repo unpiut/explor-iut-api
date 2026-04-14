@@ -18,8 +18,13 @@
  */
 package explorateurIUT.services.butIUTModelMgmt;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.validation.Validator;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 
@@ -30,14 +35,42 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class BUTIUTModelManagerImpl implements BUTIUTModelManager {
 
+    private static final Log LOG = LogFactory.getLog(BUTIUTModelManagerImpl.class);
+
     private final Validator validator;
+
+    private final Consumer<BUTIUTModel> modelLoader;
 
     private final AtomicReference<BUTIUTModel> activeModel;
 
     @Autowired
-    public BUTIUTModelManagerImpl(Validator validator) {
+    public BUTIUTModelManagerImpl(Validator validator, Consumer<BUTIUTModel> modelLoader) {
         this.validator = validator;
+        this.modelLoader = modelLoader;
         this.activeModel = new AtomicReference<>();
+    }
+
+    @PostConstruct
+    protected void loadInitialModel() {
+        if (this.modelLoader == null) {
+            LOG.warn("No model loader given for BUTIUTModelManager.");
+            return;
+        }
+        BUTIUTModel newModel = this.startNewModelCreation();
+        try {
+            this.modelLoader.andThen((mdl) -> {
+                mdl.commit();
+            }).accept(newModel);
+        } catch (Exception ex) {
+            LOG.warn("Unable to load initial model");
+            ex.printStackTrace(System.err);
+            newModel.rollback();
+        }
+    }
+
+    @PreDestroy
+    protected void unloadModel() {
+        this.activeModel.set(null);
     }
 
     @Override

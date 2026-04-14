@@ -70,7 +70,7 @@ public class SecurityEndpointsConfiguration {
 
     @PostConstruct
     public void init() {
-        LOG.info("INIT " + this.getClass().getSimpleName());
+        LOG.info("INIT Security Endpoints Configuration");
     }
 
     @Bean

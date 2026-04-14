@@ -30,13 +30,13 @@ import org.springframework.validation.beanvalidation.MethodValidationPostProcess
  * @author Remi Venant
  */
 @Configuration
-public class MethodParameterValidationConfig {
-    
-    private static final Log LOG = LogFactory.getLog(MethodParameterValidationConfig.class);
+public class MethodParameterValidationConfiguration {
+
+    private static final Log LOG = LogFactory.getLog(MethodParameterValidationConfiguration.class);
 
     @PostConstruct
     public void init() {
-        LOG.info("INIT " + this.getClass().getSimpleName());
+        LOG.info("INIT Method Parameter Validation Configuration");
     }
 
     @Bean

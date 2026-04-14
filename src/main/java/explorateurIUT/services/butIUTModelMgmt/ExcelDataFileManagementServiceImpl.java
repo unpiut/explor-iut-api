@@ -46,8 +46,8 @@ import org.springframework.validation.annotation.Validated;
  *
  * @author Rémi Venant
  */
-@Service
 @Validated
+@Service
 public class ExcelDataFileManagementServiceImpl implements ExcelDataFileManagementService {
 
     public final static Set<String> MANAGED_FILE_EXTENSIONS = Set.of("xls", "xlsx");
@@ -124,7 +124,7 @@ public class ExcelDataFileManagementServiceImpl implements ExcelDataFileManageme
     }
 
     @Override
-    public boolean hasCurrentFilePath() {
+    public boolean hasKnownCurrentFilePath() {
         try {
             final List<DataFileHistoryEntryImpl> history = this.getHistory();
             return history.stream().filter(DataFileHistoryEntryImpl::isUsed).findAny().isPresent();
@@ -144,7 +144,7 @@ public class ExcelDataFileManagementServiceImpl implements ExcelDataFileManageme
     }
 
     @Override
-    public Path getFilePath(LocalDateTime version) throws NoSuchElementException, IOException {
+    public Path getFilePath(LocalDateTime version) throws IOException, NoSuchElementException {
         final List<DataFileHistoryEntryImpl> history = this.getHistory();
         return history.stream().filter(e -> e.getVersion().equals(version))
                 .findFirst()

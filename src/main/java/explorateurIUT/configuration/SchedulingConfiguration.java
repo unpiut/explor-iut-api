@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -36,16 +35,15 @@ import org.springframework.scheduling.annotation.Scheduled;
  * @author rvenant
  */
 @Configuration
-@Order(2)
 @EnableAsync
 @EnableScheduling
-public class SchedulingConfig {
+public class SchedulingConfiguration {
 
-    private static final Log LOG = LogFactory.getLog(SchedulingConfig.class);
+    private static final Log LOG = LogFactory.getLog(SchedulingConfiguration.class);
 
     @PostConstruct
     protected void init() {
-        LOG.info("INIT SCHEDULING CONFIG FOR InMemoryQuotaValidator");
+        LOG.info("INIT Scheduling Configuration");
     }
 
     @Bean
@@ -53,7 +51,7 @@ public class SchedulingConfig {
         LOG.info("Create clear cron");
         return new ClearCacheCron(ipQuotaValidator);
     }
-    
+
     @Bean
     public ClearPendingMailCron clearPendingMailCron(MailManagementService mailManagementService) {
         LOG.info("Create clear pendingMail");
@@ -74,7 +72,7 @@ public class SchedulingConfig {
             this.ipQuotaValidator.cleanOutdatedQuotas();
         }
     }
-    
+
     public static class ClearPendingMailCron {
 
         private final MailManagementService mailManagementService;

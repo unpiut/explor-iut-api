@@ -36,6 +36,6 @@ public class CacheConfiguration {
 
     @PostConstruct
     public void init() {
-        LOG.info("INIT " + this.getClass().getSimpleName());
+        LOG.info("INIT Cache Configuration");
     }
 }

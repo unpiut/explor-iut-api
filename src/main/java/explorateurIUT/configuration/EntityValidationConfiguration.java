@@ -22,21 +22,22 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 /**
  *
  * @author Rémi Venant
  */
-@Configuration
+// Not use anymore, default local validator can be used
+@Deprecated
+//@Configuration
 public class EntityValidationConfiguration {
-    
+
     private static final Log LOG = LogFactory.getLog(EntityValidationConfiguration.class);
 
     @PostConstruct
     public void init() {
-        LOG.info("INIT " + this.getClass().getSimpleName());
+        LOG.info("INIT Entity Validation Configuration");
     }
 
     @Bean

@@ -30,7 +30,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,30 +43,41 @@ public class MemoryModelConfiguration {
 
     private static final Log LOG = LogFactory.getLog(MemoryModelConfiguration.class);
 
+    @Autowired
+    private ExcelDataFileLoader excelDataFileLoader;
+
+    @Autowired
+    private ExcelDataFileManagementService excelDataFileMgr;
+
     @PostConstruct
     public void init() {
-        LOG.info("INIT " + this.getClass().getSimpleName());
+        LOG.info("INIT Memory Model Configuration");
     }
 
     //@ConditionalOnMissingBean // since overidden in some unit tests
     @Bean
-    public BUTIUTModelManager butIUTModelManager(Validator validator, ExcelDataFileLoader excelDataFileLoader, ExcelDataFileManagementService excelDataFileMgr) {
+    public BUTIUTModelManager butIUTModelManager(Validator validator) {
         LOG.info("Initiate but iut model manager...");
-        final BUTIUTModelManagerImpl modelManager = new BUTIUTModelManagerImpl(validator);
-        BUTIUTModel newModel = modelManager.startNewModelCreation();
+        final BUTIUTModelManagerImpl modelManager = new BUTIUTModelManagerImpl(validator, this::initModelManager);
+        return modelManager;
+    }
+
+    protected void initModelManager(BUTIUTModel newModel) {
         ConsumersHandler consHandler = new ConsumersHandler(newModel);
-        if (excelDataFileMgr.hasCurrentFilePath()) {
+
+        LOG.info("Load initial data...");
+        if (excelDataFileMgr.hasKnownCurrentFilePath()) {
+            LOG.info("Load initial data...");
             try (InputStream excelInputStream = new FileInputStream(excelDataFileMgr.getCurrentFilePath().toFile())) {
                 excelDataFileLoader.extractFromInputStream(consHandler.getExcelAppTextConsumer(),
                         consHandler.getExcelIUTConsumer(), consHandler.getExcelBUTConsumer(),
                         consHandler.getMailTextConsumer(), excelInputStream);
             } catch (Exception ex) {
                 LOG.error("Cannot initiate model manager with current excel data file: " + ex.getMessage());
+                ex.printStackTrace(System.err);
             }
         } else {
             LOG.error("No current data file to fill the BUT IUT model !");
         }
-        newModel.commit();
-        return modelManager;
     }
 }
