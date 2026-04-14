@@ -25,8 +25,9 @@ import explorateurIUT.security.mailQuota.GlobalQuotaFilter;
 import explorateurIUT.security.mailQuota.IPQuotaPermissionEvaluator;
 import explorateurIUT.security.mailQuota.services.GlobalQuotaValidator;
 import explorateurIUT.security.mailQuota.services.IPQuotaValidator;
-import explorateurIUT.security.mailQuota.services.MongoQuotaValidator;
+import explorateurIUT.security.mailQuota.services.JPAQuotaValidator;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
@@ -36,7 +37,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
@@ -134,8 +134,8 @@ public class SecurityEndpointsConfiguration {
     }
 
     @Bean
-    public MongoQuotaValidator mongoQuotaValidator(AppSecurityProperties appSecurityProperties, MongoTemplate mongoTemplate) {
-        MongoQuotaValidator mqv = new MongoQuotaValidator(mongoTemplate);
+    public JPAQuotaValidator jpaQuotaValidator(AppSecurityProperties appSecurityProperties, EntityManager entityManager) {
+        JPAQuotaValidator mqv = new JPAQuotaValidator(entityManager);
         mqv.setMaxRequestPerMinute(appSecurityProperties.getMaxMailRequestsMinute());
         mqv.setMaxIpRequestPerHour(appSecurityProperties.getMaxMailIpRequestsHour());
         mqv.setMaxIpRequestPerDeptPerHour(appSecurityProperties.getMaxMailIpRequestsDeptHour());

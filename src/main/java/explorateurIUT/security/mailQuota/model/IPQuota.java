@@ -18,38 +18,44 @@
  */
 package explorateurIUT.security.mailQuota.model;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  *
  * @author rvenant
  */
-@Document(collection = "ipQuota")
+@Entity
 public class IPQuota {
 
     @Id
-    private String id;
+    private Long id;
 
     @NotBlank
-    @Indexed(unique = true)
+    @Column(length = 39, nullable = false, unique = true)
     private String ip;
 
     @NotNull
+    @Column(nullable = false)
     private LocalDateTime started;
 
     @Min(1)
     private int counter;
 
-    private Set<IPDepartementQuota> departementQuotas;
+    @OneToMany(mappedBy = "ipQuota", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<IPDepartementQuota> departementQuotas = new HashSet<>();
 
     protected IPQuota() {
     }
@@ -60,11 +66,11 @@ public class IPQuota {
         this.counter = globalCounter;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    protected void setId(String id) {
+    protected void setId(Long id) {
         this.id = id;
     }
 
@@ -123,7 +129,7 @@ public class IPQuota {
         }
         // If no quota, create a new one and add it to the set
         if (quota == null) {
-            quota = new IPDepartementQuota(departementId, newTime, counter);
+            quota = new IPDepartementQuota(this, departementId, newTime, counter);
             this.departementQuotas.add(quota);
         } else {
             // if quota exist, update it
@@ -135,6 +141,34 @@ public class IPQuota {
             }
         }
         return quota;
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.id == null) {
+            return super.hashCode();
+        }
+        int hash = 7;
+        hash = 23 * hash + Objects.hashCode(this.id);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final IPQuota other = (IPQuota) obj;
+        if (this.id == null || other.id == null) {
+            return false;
+        }
+        return Objects.equals(this.id, other.id);
     }
 
 }

@@ -19,23 +19,30 @@
 package explorateurIUT.model;
 
 import java.util.List;
-import org.springframework.data.geo.Point;
 
 /**
  *
  * @author Rémi Venant
  */
-public class GeoJsonPoint extends Point {
+public class GeoJsonPoint {
 
     private static final long serialVersionUID = -8026303425147474002L;
     private static final String TYPE = "Point";
 
+    private final double x;
+    private final double y;
+
     public GeoJsonPoint(double x, double y) {
-        super(x, y);
+        this.x = x;
+        this.y = y;
     }
 
-    public GeoJsonPoint(Point point) {
-        super(point);
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
     }
 
     public String getType() {

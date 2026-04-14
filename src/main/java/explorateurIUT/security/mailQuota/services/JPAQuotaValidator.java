@@ -20,27 +20,32 @@ package explorateurIUT.security.mailQuota.services;
 
 import explorateurIUT.security.mailQuota.model.IPDepartementQuota;
 import explorateurIUT.security.mailQuota.model.IPQuota;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaDelete;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
+import jakarta.transaction.Transactional;
 import jakarta.validation.ValidationException;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 
 /**
  *
  * @author rvenant
  */
-public class MongoQuotaValidator implements GlobalQuotaValidator, IPQuotaValidator {
+public class JPAQuotaValidator implements GlobalQuotaValidator, IPQuotaValidator {
 
-    private static final Log LOG = LogFactory.getLog(MongoQuotaValidator.class);
+    private static final Log LOG = LogFactory.getLog(JPAQuotaValidator.class);
 
-    private final MongoTemplate mongoTemplate;
+    private final EntityManager entityManager;
     private int maxRequestPerMinute = 100;
     private int maxIpRequestPerHour = 10;
     private int maxIpRequestPerDeptPerHour = 5;
@@ -48,8 +53,8 @@ public class MongoQuotaValidator implements GlobalQuotaValidator, IPQuotaValidat
     // An atomic reference to the global counter to allow concurrent access
     private final AtomicReference<GlobalCounter> globalCounter;
 
-    public MongoQuotaValidator(MongoTemplate mongoTemplate) {
-        this.mongoTemplate = mongoTemplate;
+    public JPAQuotaValidator(EntityManager entityManager) {
+        this.entityManager = entityManager;
         this.globalCounter = new AtomicReference<>(new GlobalCounter(LocalDateTime.MIN, 0));
     }
 
@@ -134,6 +139,7 @@ public class MongoQuotaValidator implements GlobalQuotaValidator, IPQuotaValidat
     }
 
     @Override
+    @Transactional
     public void updateIPRequestCounter(String clientIP, Collection<String> deptIds) throws ValidationException {
         LOG.debug("Update IP request with clientIP " + clientIP + " and deptIds: " + (deptIds == null ? "null" : deptIds.toString()));
         // Retrieve the IPQuota is it exists
@@ -152,21 +158,91 @@ public class MongoQuotaValidator implements GlobalQuotaValidator, IPQuotaValidat
             }
         }
         // Save the updated quota
-        this.mongoTemplate.save(ipQuota);
+        this.entityManager.persist(ipQuota);
     }
 
     @Override
+    @Transactional
     public void cleanOutdatedQuotas() {
+        LOG.info("Clean outdate quotas");
         /*
-        Remove all IPQuot mongo documents whose all counters (global and depts) are outdated
-        Raw query is { started: {$lt: MINGLOBALTIME}, $not: { departementQuotas: { $elemMatch: {started: { $gte: MINDEPTTIME } } } } }
+        Remove all IPQuota documents whose all counters (global and depts) are outdated
+        
+        -- QUERY 1
+        delete from IPDepartementQuota ipdq
+        where ipdq.ipQuota in (
+            select ipq from IPQuota ipq 
+            where ipq.started < MINGLOBALTIME
+            and not exists (
+                select 1 from IPDepartementQuota ipdq
+                where ipdq.ipQuota = ipq
+                and ipdq.started >= MINGLOBALTIME
+            )
+        )
+        
+        -- QUERY 2
+        delete from IPQuota ipq 
+        where ipq.started < MINGLOBALTIME
+        and not exists (
+            select 1 from IPDepartementQuota ipdq
+            where ipdq.ipQuota = ipq
+            and ipdq.started >= MINGLOBALTIME
+        )
          */
         final LocalDateTime minDt = LocalDateTime.now().minusMinutes(1);
-        Criteria crit = Criteria.where("started").lt(minDt).and("departementQuotas").not().elemMatch(Criteria.where("started").gte(minDt));
-        Query query = Query.query(crit);
-        this.mongoTemplate.remove(query, IPQuota.class);
+        final CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
 
-        // Do nothing for the global quota, no cleaning needed
+        // QUERY 1
+        // 1.1. Root Delete operation on IPDepartementQuota
+        CriteriaDelete<IPDepartementQuota> deleteIPDQ = cb.createCriteriaDelete(IPDepartementQuota.class);
+        Root<IPDepartementQuota> rootIPDQ = deleteIPDQ.from(IPDepartementQuota.class);
+        // 1.2. The outer Subquery: select ipq from IPQuota ipq ...
+        Subquery<IPQuota> outerSubquery = deleteIPDQ.subquery(IPQuota.class);
+        Root<IPQuota> rootIPQ = outerSubquery.from(IPQuota.class);
+        // 1.3. The inner Subquery: select 1 from IPDepartementQuota where ...
+        Subquery<Integer> innerSubquery = outerSubquery.subquery(Integer.class);
+        Root<IPDepartementQuota> rootIPDQInner = innerSubquery.from(IPDepartementQuota.class);
+        innerSubquery.select(cb.literal(1))
+                .where(
+                        cb.equal(rootIPDQInner.get("ipQuota"), rootIPQ),
+                        cb.greaterThanOrEqualTo(rootIPDQInner.get("started"), minDt)
+                );
+        // 1.4. Combine conditions for the outer Subquery
+        outerSubquery.select(rootIPQ)
+                .where(
+                        cb.lessThan(rootIPQ.get("started"), minDt),
+                        cb.not(cb.exists(innerSubquery))
+                );
+        // 1.5. Apply the final WHERE clause to the Delete statement
+        deleteIPDQ.where(rootIPDQ.get("ipQuota").in(outerSubquery));
+        // 1.6. Execute
+        int nbRowsDelete = entityManager.createQuery(deleteIPDQ).executeUpdate();
+        LOG.info(String.format("- %d IPDepartementQuota deleted", nbRowsDelete));
+
+        // QUERY 2
+        // 2.1. Root Delete operation on IPQuota
+        CriteriaDelete<IPQuota> deleteIPQ = cb.createCriteriaDelete(IPQuota.class);
+        rootIPQ = deleteIPQ.from(IPQuota.class);
+        // 2.2.  Create the Subquery for the "NOT EXISTS" clause
+        Subquery<Integer> subquery = deleteIPQ.subquery(Integer.class);
+        rootIPDQ = subquery.from(IPDepartementQuota.class);
+
+        // SELECT 1 FROM IPDepartementQuota ipdq WHERE ipdq.ipQuota = ipq AND ipdq.started >= MINGLOBALTIME
+        subquery.select(cb.literal(1))
+                .where(
+                        cb.equal(rootIPDQ.get("ipQuota"), rootIPQ),
+                        cb.greaterThanOrEqualTo(rootIPQ.get("started"), minDt)
+                );
+
+        // 2.3. Assemble the top-level WHERE clause
+        // WHERE ipq.started < MINGLOBALTIME AND NOT EXISTS (...)
+        deleteIPQ.where(
+                cb.lessThan(rootIPQ.get("started"), minDt),
+                cb.not(cb.exists(subquery))
+        );
+        // 4. Execute the update
+        nbRowsDelete = entityManager.createQuery(deleteIPQ).executeUpdate();
+        LOG.info(String.format("- %d IPQuota deleted", nbRowsDelete));
     }
 
     private static record GlobalCounter(LocalDateTime creation, int count) {
@@ -174,7 +250,21 @@ public class MongoQuotaValidator implements GlobalQuotaValidator, IPQuotaValidat
     }
 
     private IPQuota findByIP(String ip) {
-        Query query = Query.query(Criteria.where("ip").is(ip));
-        return this.mongoTemplate.findOne(query, IPQuota.class);
+        /*
+         SELECT IPQuota ipq WHERE ipq.ip = ip LIMIT 1 
+         */
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        // 1. Create the Query
+        CriteriaQuery<IPQuota> query = cb.createQuery(IPQuota.class);
+        Root<IPQuota> ipq = query.from(IPQuota.class);
+        // 2. Add the WHERE clause: WHERE ipq.ip = :myIP
+        query.select(ipq)
+                .where(cb.equal(ipq.get("ip"), ip));
+        // 3. Apply the LIMIT 1 on the TypedQuery instance
+        List<IPQuota> results = entityManager.createQuery(query)
+                .setMaxResults(1)
+                .getResultList();
+        // 4. Return the result safely
+        return results.isEmpty() ? null : results.get(0);
     }
 }

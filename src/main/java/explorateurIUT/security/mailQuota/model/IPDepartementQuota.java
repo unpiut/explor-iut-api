@@ -18,6 +18,13 @@
  */
 package explorateurIUT.security.mailQuota.model;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -25,26 +32,49 @@ import java.util.Objects;
  *
  * @author rvenant
  */
+@Entity
 public class IPDepartementQuota {
 
-    private String deptId;
+    @EmbeddedId
+    private IPDepartementQuotaPK id;
+
+    @MapsId("ipQuotaId")
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.EAGER)
+    @JoinColumn(insertable = false, updatable = false)
+    private IPQuota ipQuota;
 
     private LocalDateTime started;
 
     private int counter;
 
-    public IPDepartementQuota(String deptId, LocalDateTime started, int counter) {
-        this.deptId = deptId;
+    public IPDepartementQuota(IPQuota ipQuota, String deptId, LocalDateTime started, int counter) {
+        this.id = new IPDepartementQuotaPK(ipQuota.getId(), deptId);
         this.started = started;
         this.counter = counter;
     }
 
+    public IPDepartementQuotaPK getId() {
+        return id;
+    }
+
+    protected void setId(IPDepartementQuotaPK id) {
+        this.id = id;
+    }
+
+    public IPQuota getIpQuota() {
+        return ipQuota;
+    }
+
+    protected void setIpQuota(IPQuota ipQuota) {
+        this.ipQuota = ipQuota;
+    }
+
     public String getDeptId() {
-        return deptId;
+        return this.id.getDeptId();
     }
 
     protected void setDeptId(String deptId) {
-        this.deptId = deptId;
+        this.id.setDeptId(deptId);
     }
 
     public LocalDateTime getStarted() {
@@ -70,8 +100,11 @@ public class IPDepartementQuota {
 
     @Override
     public int hashCode() {
+        if (this.id == null) {
+            return super.hashCode();
+        }
         int hash = 3;
-        hash = 13 * hash + Objects.hashCode(this.deptId);
+        hash = 79 * hash + Objects.hashCode(this.id);
         return hash;
     }
 
@@ -87,7 +120,10 @@ public class IPDepartementQuota {
             return false;
         }
         final IPDepartementQuota other = (IPDepartementQuota) obj;
-        return Objects.equals(this.deptId, other.deptId);
+        if (this.id == null || other.id == null) {
+            return false;
+        }
+        return Objects.equals(this.id, other.id);
     }
 
 }

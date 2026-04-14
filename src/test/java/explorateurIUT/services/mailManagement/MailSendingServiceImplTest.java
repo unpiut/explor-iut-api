@@ -20,6 +20,7 @@ package explorateurIUT.services.mailManagement;
 
 import com.dumbster.smtp.SimpleSmtpServer;
 import com.dumbster.smtp.SmtpMessage;
+import explorateurIUT.configuration.EmptyMemoryModelTestConfiguration;
 import java.io.IOException;
 import java.util.List;
 import org.apache.commons.logging.Log;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -39,8 +41,9 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * @author Remi Venant
  */
-@ActiveProfiles({"development", "app-test", "mail-test", "mongo-test"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(EmptyMemoryModelTestConfiguration.class)
+@ActiveProfiles({"test", "ext-data", "db-hsqldb", "mail-test"})
 public class MailSendingServiceImplTest {
 
     private static final Log LOG = LogFactory.getLog(MailSendingServiceImplTest.class);
@@ -80,7 +83,7 @@ public class MailSendingServiceImplTest {
         MailSendingProperties msp = new MailSendingProperties();
         msp.setFromAddress("from@mail.com");
 
-        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp, null);
+        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp);
 
         String replyTo = "reply@mail.com";
         String subject = "The subject";
@@ -117,7 +120,7 @@ public class MailSendingServiceImplTest {
         MailSendingProperties msp = new MailSendingProperties();
         msp.setFromAddress("from@mail.com");
         msp.setTestingMailAddress("test@mail.com");
-        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp, null);
+        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp);
 
         String replyTo = "reply@mail.com";
         String subject = "The subject";

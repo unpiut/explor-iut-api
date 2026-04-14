@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 IUT Laval - Le Mans Université.
+ * Copyright (C) 2026 IUT Laval - Le Mans Université.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,37 +21,23 @@ package explorateurIUT.configuration;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.MongoDatabaseFactory;
-import org.springframework.data.mongodb.MongoTransactionManager;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
-import org.springframework.data.mongodb.core.mapping.event.ValidatingMongoEventListener;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  *
  * @author Rémi Venant
  */
 @Configuration
-@EnableMongoAuditing
-public class MongoConfiguration {
+@EnableJpaRepositories(basePackages = {"explorateurIUT.security.mailQuota.model", "explorateurIUT.model"})
+@EnableJpaAuditing
+public class JPAConfiguration {
 
-    private static final Log LOG = LogFactory.getLog(MongoConfiguration.class);
+    private static final Log LOG = LogFactory.getLog(JPAConfiguration.class);
 
     @PostConstruct
     public void init() {
         LOG.info("INIT " + this.getClass().getSimpleName());
-    }
-
-    @Bean
-    public MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
-        return new MongoTransactionManager(dbFactory);
-    }
-
-    @Bean
-    public ValidatingMongoEventListener validatingMongoEventListener(LocalValidatorFactoryBean localValidatorFactoryBean) {
-        //a mongo listener to validate data based on javax validation constraints
-        return new ValidatingMongoEventListener(localValidatorFactoryBean);
     }
 }

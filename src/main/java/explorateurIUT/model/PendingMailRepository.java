@@ -20,19 +20,22 @@ package explorateurIUT.model;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Update;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 
 /**
  *
  * @author Julien Fourdan
  */
-public interface PendingMailRepository extends MongoRepository<PendingMail, String> {
+public interface PendingMailRepository extends CrudRepository<PendingMail, Long>, PendingMailRepositoryCustom {
 
     Optional<PendingMail> findByCreationDateTimeAndReplyTo(LocalDateTime creationDateTime, String replyTo);
 
-    void deleteByCreationDateTimeBefore(LocalDateTime creationDateTime);
-
-    @Update("{ '$set' : { 'lastConfirmationMail' : ?1 } }")
-    long findAndSetLastConfirmationMailById(String id, LocalDateTime lastConfirmationMail);
+    @Modifying
+    @Query("update PendingMail pm set pm.lastConfirmationMail = ?2 where pm.id = ?1")
+    long findAndSetLastConfirmationMailById(Long id, LocalDateTime lastConfirmationMail);
+    
+    @Override
+    int clearMailsByCreationDateTimeBefore(LocalDateTime creationDateTime);
 }

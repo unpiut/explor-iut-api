@@ -26,7 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * @author Remi Venant
  */
-@ActiveProfiles({"mongo-test"})
+@ActiveProfiles({"db-hsqldb"})
 @SpringBootTest
 class ExplorateurIutApplicationTests {
 

@@ -30,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -47,6 +48,7 @@ public class MemoryModelConfiguration {
         LOG.info("INIT " + this.getClass().getSimpleName());
     }
 
+    @ConditionalOnMissingBean // since overidden in some unit tests
     @Bean
     public BUTIUTModelManager butIUTModelManager(Validator validator, ExcelDataFileLoader excelDataFileLoader, ExcelDataFileManagementService excelDataFileMgr) {
         LOG.info("Initiate but iut model manager...");

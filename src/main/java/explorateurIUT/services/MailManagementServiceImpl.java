@@ -18,9 +18,8 @@
  */
 package explorateurIUT.services;
 
-import explorateurIUT.model.MailIUTRecipient;
+import explorateurIUT.model.PendingMailIUTRecipient;
 import explorateurIUT.model.PendingMail;
-import explorateurIUT.model.PendingMailAttachementRepository;
 import explorateurIUT.model.PendingMailRepository;
 import explorateurIUT.services.mailManagement.MailContentForgerService;
 import explorateurIUT.services.mailManagement.MailContentValidationService;
@@ -32,7 +31,6 @@ import jakarta.validation.ValidationException;
 import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -46,10 +44,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.mongodb.client.gridfs.model.GridFSFile;
+import explorateurIUT.model.PendingMailAttachement;
+import explorateurIUT.services.mailManagement.MailRequestAttachement;
 import explorateurIUT.services.mailManagement.MailSendingProperties;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
 
@@ -70,33 +71,24 @@ public class MailManagementServiceImpl implements MailManagementService {
     private final MailSendingRequestTokenService tokenSvc;
     private final MailSendingService sendingSvc;
     private final PendingMailRepository pendingMailRepo;
-    private final PendingMailAttachementRepository attachementRepo;
     private final MailSendingProperties mailSendingProp;
 
     @Autowired
     public MailManagementServiceImpl(MailContentForgerService contentForgerSvc,
             MailContentValidationService validationSvc, MailSendingRequestTokenService tokenSvc,
-            MailSendingService sendingSvc, PendingMailRepository pendingMailRepo, PendingMailAttachementRepository attachementRepo, MailSendingProperties mailSendingProp) {
+            MailSendingService sendingSvc, PendingMailRepository pendingMailRepo,
+            MailSendingProperties mailSendingProp) {
         this.contentForgerSvc = contentForgerSvc;
         this.validationSvc = validationSvc;
         this.tokenSvc = tokenSvc;
         this.sendingSvc = sendingSvc;
         this.pendingMailRepo = pendingMailRepo;
-        this.attachementRepo = attachementRepo;
         this.mailSendingProp = mailSendingProp;
     }
 
     @Transactional
     @Override
     public LocalDateTime requestMailSending(MailSendingRequest sendingRequest, URI serverBaseURI) throws ValidationException, IOException {
-        LOG.debug("Extract mailing list of iut");
-        // Extract the mailing list
-        final List<MailIUTRecipient> iutMailingList = this.contentForgerSvc.createIUTMailingList(sendingRequest);
-        // if list is empty -> exception
-        if (iutMailingList.isEmpty()) {
-            throw new IllegalArgumentException("No contact mail to send mail"); // TODO: precise the exception
-        }
-
         // Forge the body
         LOG.debug("Forge body");
         String body = this.contentForgerSvc.createGeneralBody(sendingRequest);
@@ -111,26 +103,46 @@ public class MailManagementServiceImpl implements MailManagementService {
             throw new IllegalArgumentException("Invalid mail attachement");
         }
 
-        // Create and save pending mail repository
+        // Create initial pending mail 
         LOG.debug("Save pending mail in database");
-        final PendingMail pendingMail = this.pendingMailRepo.save(
-                new PendingMail(iutMailingList, sendingRequest.subject(), body, sendingRequest.contactMail(), sendingRequest.contactIdentity()));
+        PendingMail pendingMail = new PendingMail(sendingRequest.subject(), body,
+                sendingRequest.contactMail(), sendingRequest.contactIdentity());
+        LOG.debug("Extract mailing list of iut");
+        // Extract the mailing list
+        final List<PendingMailIUTRecipient> iutMailingList = this.contentForgerSvc.createIUTMailingList(pendingMail, sendingRequest);
+        // if list is empty -> exception
+        if (iutMailingList.isEmpty()) {
+            throw new IllegalArgumentException("No contact mail to send mail"); // TODO: precise the exception
+        }
+        // Add list to pending mail
+        pendingMail.setRecipients(new HashSet<>(iutMailingList));
+
+        // Add attachements if any
+        LOG.debug("Add potential attachements");
+        if (sendingRequest.attachements() != null) {
+            final HashSet<PendingMailAttachement> attachements = new HashSet<>();
+            for (MailRequestAttachement rqAtt : sendingRequest.attachements()) {
+                PendingMailAttachement pma = new PendingMailAttachement(pendingMail, rqAtt.fileName(), rqAtt.file().getContentType(), rqAtt.file().getBytes());
+                attachements.add(pma);
+            }
+            pendingMail.setAttachements(attachements);
+        }
+
+        // save pending mail repository
+        LOG.debug("Save pending mail in database");
+        pendingMail = this.pendingMailRepo.save(pendingMail);
+
         // Prepare validation token
         LOG.debug("Create validation token");
-        final String validationToken = this.tokenSvc.createValidationToken(pendingMail.getId());
-        // Save attachement
-        LOG.debug("Save potential attachements");
-        if (!(sendingRequest.attachements() == null)) {
-            sendingRequest.attachements().forEach((a) -> this.attachementRepo.save(a, pendingMail));
-        }
+        TokenClearInfo tci = new TokenClearInfo(pendingMail.getId(), pendingMail.getCreationDateTime());
+        final String validationToken = this.tokenSvc.createValidationToken(tci.getRepresentation());
+
         // Create and send confirmation mail
         LOG.debug("Create and send confirmation mail");
         try {
             this.createAndSendConfirmationMail(sendingRequest.contactIdentity(), sendingRequest.contactMail(), serverBaseURI, validationToken);
-
             // Update pending mail lastConfirmationMail
             this.pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(), LocalDateTime.now());
-
             // return the create datetime of the pending mail
             return pendingMail.getCreationDateTime();
         } catch (MessagingException ex) {
@@ -141,7 +153,6 @@ public class MailManagementServiceImpl implements MailManagementService {
 
     @Override
     public void resendConfirmationMail(LocalDateTime creationDatetime, String contactMail, URI serverBaseURI) throws ValidationException, NoSuchElementException {
-        LOG.debug("resendConfirmationMail: TO IMPLEMENT!");
         final Optional<PendingMail> mail = pendingMailRepo.findByCreationDateTimeAndReplyTo(creationDatetime, contactMail);
         if (!mail.isPresent()) {
             throw new NoSuchElementException("Pending mail not found");
@@ -153,7 +164,8 @@ public class MailManagementServiceImpl implements MailManagementService {
         pendingMailRepo.findAndSetLastConfirmationMailById(pendingMail.getId(), LocalDateTime.now());
         // Prepare validation token
         LOG.debug("Create validation token");
-        final String validationToken = this.tokenSvc.createValidationToken(pendingMail.getId());
+        TokenClearInfo tci = new TokenClearInfo(pendingMail.getId(), pendingMail.getCreationDateTime());
+        final String validationToken = this.tokenSvc.createValidationToken(tci.getRepresentation());
         // Save attachement
         // Create and send confirmation mail
         LOG.debug("Create and send confirmation mail");
@@ -172,40 +184,36 @@ public class MailManagementServiceImpl implements MailManagementService {
     @Transactional
     @Override
     public int removeOutdatedPendingMailRequest() {
-        pendingMailRepo.deleteByCreationDateTimeBefore(LocalDateTime.now().minusHours(MAX_HOURS));
-        attachementRepo.deleteByCreationDateTimeBefore(LocalDateTime.now().minusHours(MAX_HOURS));
-        // remove all outdate pending Mail
-        return 0;
+        return this.pendingMailRepo.clearMailsByCreationDateTimeBefore(LocalDateTime.now().minusHours(MAX_HOURS));
     }
 
     @Transactional
     @Override
     public void confirmMailSendingRequest(String confirmationToken) throws ValidationException, NoSuchElementException {
-        final String mailId = tokenSvc.decodeToken(confirmationToken);
+        final String clearToken = tokenSvc.decodeToken(confirmationToken);
+        final TokenClearInfo tkInfo = TokenClearInfo.fromRepresentation(clearToken);
         // Retrieve the pending mail
-        final Optional<PendingMail> possibleMail = pendingMailRepo.findById(mailId);
+        final Optional<PendingMail> possibleMail = pendingMailRepo.findById(tkInfo.pendingMailId());
         if (!possibleMail.isPresent()) {
             throw new NoSuchElementException("Mail not found");
         }
         final PendingMail mail = possibleMail.get();
         // Retrieve all potential attachement related to the pending mail
-        final List<GridFSFile> attachements = attachementRepo.streamByPendingMailId(mail.getId()).toList();
-        Collection<String> mailIUT = mail.getIUTMailRecipients().stream().map((mailIut) -> mailIut.getMailAddress()).toList();
         try {
             // send the mail to iuts
             if (this.mailSendingProp.getTestingMailAddress() == null || this.mailSendingProp.getTestingMailAddress().isEmpty()) {
                 // send the mail to iuts
-                for (MailIUTRecipient iut : mail.getIUTMailRecipients()) {
+                for (PendingMailIUTRecipient iut : mail.getRecipients()) {
                     String specificBody = contentForgerSvc.createSpecificBody(mail.getBody(), iut.getDepartementCodes());
                     LOG.debug("Mail to send subject: " + mail.getSubject());
                     LOG.debug("Mail to send body: ");
                     LOG.debug(specificBody);
-                    sendingSvc.sendMailToIUT(iut.getMailAddress(), mail.getReplyTo(), mail.getSubject(), specificBody, attachements);
+                    sendingSvc.sendMailToIUT(iut.getMailAddress(), mail.getReplyTo(), mail.getSubject(), specificBody, mail.getAttachements());
                 }
             } else {
                 LOG.info("Sending mail to testing adress");
                 // Compute list of fake departement codes that include IUT mail adresse and site for testing the mail
-                List<String> testingDepartementCodes = mail.getIUTMailRecipients().stream()
+                List<String> testingDepartementCodes = mail.getRecipients().stream()
                         .flatMap((mailIUTRecipient) -> mailIUTRecipient.getDepartementCodes().stream()
                         .map(code -> mailIUTRecipient.getMailAddress() + "#" + code))
                         .toList();
@@ -213,11 +221,9 @@ public class MailManagementServiceImpl implements MailManagementService {
                 LOG.debug("Mail to send subject: " + mail.getSubject());
                 LOG.debug("Mail to send body: ");
                 LOG.debug(specificBody);
-                sendingSvc.sendMailToIUT(this.mailSendingProp.getTestingMailAddress(), mail.getReplyTo(), mail.getSubject(), specificBody, attachements);
+                sendingSvc.sendMailToIUT(this.mailSendingProp.getTestingMailAddress(), mail.getReplyTo(), mail.getSubject(), specificBody, mail.getAttachements());
             }
-            // remove all attachements related to the pending mail
-            attachementRepo.deleteByPendingMailId(mail.getId());
-            // remove the pending mail
+            // remove the pending mail with all its recipient and its attachements
             pendingMailRepo.delete(mail);
         } catch (MessagingException ex) {
             LOG.error("Unable to send the confirmation mail: ", ex);
@@ -256,5 +262,19 @@ public class MailManagementServiceImpl implements MailManagementService {
         final String mailSubject = this.contentForgerSvc.createConfirmationMailSubject();
         final String mailBody = this.contentForgerSvc.createConfirmationMailBody(contactIdentity, validationURI);
         this.sendingSvc.sendMailToContact(recipientMailAddress, mailSubject, mailBody);
+    }
+
+    private static record TokenClearInfo(Long pendingMailId, LocalDateTime creationDateTime) {
+
+        public String getRepresentation() {
+            return Long.toString(this.pendingMailId) + "##" + creationDateTime.format(DateTimeFormatter.ISO_DATE_TIME);
+        }
+
+        public static TokenClearInfo fromRepresentation(String repr) {
+            String[] splits = repr.split("##");
+            Long id = Long.valueOf(splits[0]);
+            LocalDateTime cdt = LocalDateTime.parse(splits[1], DateTimeFormatter.ISO_DATE_TIME);
+            return new TokenClearInfo(id, cdt);
+        }
     }
 }

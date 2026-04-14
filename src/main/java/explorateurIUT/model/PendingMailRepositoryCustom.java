@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 IUT Laval - Le Mans Université.
+ * Copyright (C) 2026 IUT Laval - Le Mans Université.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,23 +18,13 @@
  */
 package explorateurIUT.model;
 
-import com.mongodb.client.gridfs.model.GridFSFile;
-import explorateurIUT.services.mailManagement.MailRequestAttachement;
 import java.time.LocalDateTime;
-import java.util.stream.Stream;
 
 /**
  *
- * @author Remi Venant
+ * @author Rémi Venant
  */
-public interface PendingMailAttachementRepository {
+public interface PendingMailRepositoryCustom {
 
-    void save(MailRequestAttachement attachement, PendingMail pendingMail);
-
-    Stream<GridFSFile> streamByPendingMailId(String pendingMailId);
-
-    void deleteByCreationDateTimeBefore(LocalDateTime creationDateTime);
-
-    void deleteByPendingMailId(String pendingMailId);
-
+    int clearMailsByCreationDateTimeBefore(LocalDateTime creationDateTime);
 }

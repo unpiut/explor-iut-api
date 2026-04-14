@@ -18,39 +18,50 @@
  */
 package explorateurIUT.model;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
-import java.util.List;
-
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  *
  * @author Julien Fourdan
  */
-@Document(collection = "PendingMails")
+@Entity
 public class PendingMail {
 
     @Id
-    private String id;
+    @GeneratedValue
+    private Long id;
 
     @NotEmpty
-    private List<MailIUTRecipient> IUTMailRecipients;
+    @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<PendingMailIUTRecipient> recipients = new HashSet<>();
 
     @NotBlank
+    @Column(nullable = false)
     private String subject;
 
     @NotBlank
+    @Column(nullable = false)
     private String body;
 
     @NotBlank
+    @Column(nullable = false)
     private String replyTo;
 
     @NotBlank
+    @Column(nullable = false)
     private String contactName;
 
     @CreatedDate
@@ -58,31 +69,33 @@ public class PendingMail {
 
     private LocalDateTime lastConfirmationMail;
 
+    @OneToMany(mappedBy = "mail", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<PendingMailAttachement> attachements = new HashSet<>();
+
     protected PendingMail() {
     }
 
-    public PendingMail(List<MailIUTRecipient> IUTMailRecipients, String subject, String body, String replyTo, String contactName) {
-        this.IUTMailRecipients = IUTMailRecipients;
+    public PendingMail(String subject, String body, String replyTo, String contactName) {
         this.subject = subject;
         this.body = body;
         this.replyTo = replyTo;
         this.contactName = contactName;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    protected void setId(String id) {
+    protected void setId(Long id) {
         this.id = id;
     }
 
-    public List<MailIUTRecipient> getIUTMailRecipients() {
-        return this.IUTMailRecipients;
+    public Set<PendingMailIUTRecipient> getRecipients() {
+        return recipients;
     }
 
-    public void setIUTMailRecipients(List<MailIUTRecipient> IUTMailRecipients) {
-        this.IUTMailRecipients = IUTMailRecipients;
+    public void setRecipients(Set<PendingMailIUTRecipient> recipients) {
+        this.recipients = recipients;
     }
 
     public String getSubject() {
@@ -131,6 +144,42 @@ public class PendingMail {
 
     public void setContactName(String contactName) {
         this.contactName = contactName;
+    }
+
+    public Set<PendingMailAttachement> getAttachements() {
+        return attachements;
+    }
+
+    public void setAttachements(Set<PendingMailAttachement> attachements) {
+        this.attachements = attachements;
+    }
+
+    @Override
+    public int hashCode() {
+        if (this.id == null) {
+            return super.hashCode();
+        }
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(this.id);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final PendingMail other = (PendingMail) obj;
+        if (this.id == null || other.id == null) {
+            return false;
+        }
+        return Objects.equals(this.id, other.id);
     }
 
 }
