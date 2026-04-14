@@ -62,7 +62,7 @@ public class PendingMailRepositoryImpl implements PendingMailRepositoryCustom {
             Root<PendingMail> rootPendingMail = subquery.from(PendingMail.class);
             // Define the subquery selection: SELECT a.id FROM A a WHERE a.creationDate < :dateLimit
             subquery.select(rootPendingMail.get("id"))
-                    .where(cb.lessThan(rootPendingMail.get("creationTime"), creationDateTime));
+                    .where(cb.lessThan(rootPendingMail.get("creationDateTime"), creationDateTime));
             // 1.3. Set the WHERE clause for the delete: WHERE b.a.id IN (subquery)
             pmaDelete.where(rootPendingMailAttachement.get("mail").get("id").in(subquery));
             // 1.4. Execute
@@ -78,7 +78,7 @@ public class PendingMailRepositoryImpl implements PendingMailRepositoryCustom {
             Root<PendingMail> rootPendingMail = subquery.from(PendingMail.class);
             // Define the subquery selection: SELECT a.id FROM A a WHERE a.creationDate < :dateLimit
             subquery.select(rootPendingMail.get("id"))
-                    .where(cb.lessThan(rootPendingMail.get("creationTime"), creationDateTime));
+                    .where(cb.lessThan(rootPendingMail.get("creationDateTime"), creationDateTime));
             // 2.3. Set the WHERE clause for the delete: WHERE b.a.id IN (subquery)
             pmrDelete.where(rootPendingMailIUTRecipient.get("mail").get("id").in(subquery));
             // 2.4. Execute
@@ -90,7 +90,7 @@ public class PendingMailRepositoryImpl implements PendingMailRepositoryCustom {
             CriteriaDelete<PendingMail> pmDelete = cb.createCriteriaDelete(PendingMail.class);
             Root<PendingMail> rootPendingMail = pmDelete.from(PendingMail.class);
             // 3.2. Set the WHERE clause for the delete: WHERE a.creationDate < :dateLimit
-            pmDelete.where(cb.lessThan(rootPendingMail.get("creationTime"), creationDateTime));
+            pmDelete.where(cb.lessThan(rootPendingMail.get("creationDateTime"), creationDateTime));
             // 3.3. Execute
             totalRowRemoved += this.entityManager.createQuery(pmDelete).executeUpdate();
         }
