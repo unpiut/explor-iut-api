@@ -68,7 +68,7 @@ public class ExcelDataFileManagementServiceImpl implements ExcelDataFileManageme
     @PostConstruct
     public void init() throws IOException, IllegalStateException {
         // We list all files in the data dir that start with the prefix and whom extensions is handled
-        // if none of them: throw exception
+        // if none of them: show warning, do nothing
         // if several without proper pattern: throw exception
         // If only without proper pattern, rename it with the current datetime
 
@@ -83,10 +83,12 @@ public class ExcelDataFileManagementServiceImpl implements ExcelDataFileManageme
                             (dfs1, dfs2) -> dfs1.accumulate(dfs2));
 
             if (fileStats.getNbFiles() == 0) {
-                throw new IllegalStateException("No data file found");
+                LOG.warn("No data excel file found.");
+                return;
             }
             if (fileStats.getNbUnpatterned() > 1) {
-                throw new IllegalStateException("Too many data file without history marker");
+                LOG.warn("Too many data file without history marker. Will no use them.");
+                return;
             }
             // Rename the unpatterned file with the current datetime
             if (fileStats.nbUnpatterned == 1) {
@@ -118,6 +120,17 @@ public class ExcelDataFileManagementServiceImpl implements ExcelDataFileManageme
                 entries.getFirst().setUsed(true);
             }
             return entries;
+        }
+    }
+
+    @Override
+    public boolean hasCurrentFilePath() {
+        try {
+            final List<DataFileHistoryEntryImpl> history = this.getHistory();
+            return history.stream().filter(DataFileHistoryEntryImpl::isUsed).findAny().isPresent();
+        } catch (IOException ex) {
+            LOG.warn("Unable to list data file history: " + ex.getMessage());
+            return false;
         }
     }
 

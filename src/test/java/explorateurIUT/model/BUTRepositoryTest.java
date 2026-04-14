@@ -18,7 +18,7 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.TestDatasetConfig;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
 import explorateurIUT.model.projections.BUTSummary;
 import explorateurIUT.model.projections.ParcoursBUTSummary;
 import java.util.List;
@@ -41,7 +41,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @author Remi Venant
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@Import(TestDatasetConfig.class)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
 @ActiveProfiles("test")
 public class BUTRepositoryTest {
 

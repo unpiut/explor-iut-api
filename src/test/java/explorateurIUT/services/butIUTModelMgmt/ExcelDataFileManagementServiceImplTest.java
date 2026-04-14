@@ -135,7 +135,7 @@ public class ExcelDataFileManagementServiceImplTest {
     }
 
     @Test
-    public void testInitFailOnNoFile() throws Exception {
+    public void testInitNoFailOnNoFile() throws Exception {
         // Mock Files iteration to generate 2 files with timestamp, 1 file without
         try (MockedStatic<Files> fileMock = Mockito.mockStatic(Files.class)) {
             // Prepare Mock
@@ -149,9 +149,10 @@ public class ExcelDataFileManagementServiceImplTest {
             BDDMockito.given(Files.isReadable(ArgumentMatchers.any())).willReturn(false, true);
 
             //Call init
-            assertThatThrownBy(() -> {
-                this.testedSvc.init();
-            }).isInstanceOf(IllegalStateException.class);
+            this.testedSvc.init();
+//            assertThatThrownBy(() -> {
+//                this.testedSvc.init();
+//            }).isInstanceOf(IllegalStateException.class);
 
             //Check methods calls on init
             fileMock.verify(() -> Files.list(Paths.get(this.appDataProperties.getDataDir())));
@@ -165,7 +166,7 @@ public class ExcelDataFileManagementServiceImplTest {
     }
 
     @Test
-    public void testInitFailTooManyNoLdtFile() throws Exception {
+    public void testInitNoFailTooManyNoLdtFile() throws Exception {
         // Mock Files iteration to generate 2 files with timestamp, 1 file without
         try (MockedStatic<Files> fileMock = Mockito.mockStatic(Files.class)) {
             // Prepare Mock
@@ -179,9 +180,10 @@ public class ExcelDataFileManagementServiceImplTest {
             BDDMockito.given(Files.isReadable(ArgumentMatchers.any())).willReturn(true);
 
             //Call init
-            assertThatThrownBy(() -> {
-                this.testedSvc.init();
-            }).isInstanceOf(IllegalStateException.class);
+            this.testedSvc.init();
+//            assertThatThrownBy(() -> {
+//                this.testedSvc.init();
+//            }).isInstanceOf(IllegalStateException.class);
 
             //Check methods calls on init
             fileMock.verify(() -> Files.list(Paths.get(this.appDataProperties.getDataDir())));

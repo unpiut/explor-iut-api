@@ -20,7 +20,6 @@ package explorateurIUT.services.mailManagement;
 
 import com.dumbster.smtp.SimpleSmtpServer;
 import com.dumbster.smtp.SmtpMessage;
-import explorateurIUT.configuration.EmptyMemoryModelTestConfiguration;
 import java.io.IOException;
 import java.util.List;
 import org.apache.commons.logging.Log;
@@ -33,7 +32,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -42,7 +40,6 @@ import org.springframework.test.context.ActiveProfiles;
  * @author Remi Venant
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@Import(EmptyMemoryModelTestConfiguration.class)
 @ActiveProfiles({"test", "ext-data", "db-hsqldb", "mail-test"})
 public class MailSendingServiceImplTest {
 

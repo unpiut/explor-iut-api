@@ -40,7 +40,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
  * @author Remi Venant
  */
 @TestConfiguration
-public class TestDatasetConfig {
+public class SimulatedBUTIUTModelManagerAndRepoConfig {
 
     @ConditionalOnMissingBean
     @Bean

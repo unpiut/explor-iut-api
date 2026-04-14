@@ -18,7 +18,7 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.TestDatasetConfig;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
 import explorateurIUT.services.butIUTModelMgmt.BUTIUTModel;
 import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManager;
 import jakarta.validation.ConstraintViolationException;
@@ -40,7 +40,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @author Remi Venant
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@Import(TestDatasetConfig.class)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
 @ActiveProfiles("test")
 public class DepartementTest {
 

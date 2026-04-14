@@ -35,6 +35,8 @@ public interface ExcelDataFileManagementService {
     String DEFAULT_FILE_EXTENSION = "xlsx";
 
     List<? extends DataFileHistoryEntry> getHistory() throws IOException;
+    
+    boolean hasCurrentFilePath();
 
     Path getCurrentFilePath() throws IOException, NoSuchElementException;
 

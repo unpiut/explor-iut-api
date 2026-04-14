@@ -18,7 +18,7 @@
  */
 package explorateurIUT.services.butIUTModelMgmt;
 
-import explorateurIUT.configuration.TestDatasetConfig;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
 import explorateurIUT.model.BUT;
 import explorateurIUT.model.TestDatasetGenerator;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +38,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @author Rémi Venant
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@Import(TestDatasetConfig.class)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
 @ActiveProfiles("test")
 public class BUTIUTModelManagerImplTest {
 

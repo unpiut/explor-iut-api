@@ -18,7 +18,6 @@
  */
 package explorateurIUT.services;
 
-import explorateurIUT.configuration.EmptyMemoryModelTestConfiguration;
 import explorateurIUT.services.butIUTModelMgmt.ExcelDataFileManagementService;
 import explorateurIUT.services.butIUTModelMgmt.BUTIUTModel;
 import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManager;
@@ -41,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
@@ -51,7 +49,6 @@ import org.springframework.test.context.ActiveProfiles;
  * @author rvenant
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@Import(EmptyMemoryModelTestConfiguration.class)
 @ActiveProfiles({"test", "ext-data", "db-hsqldb"})
 public class DataUploadServiceTest {
 

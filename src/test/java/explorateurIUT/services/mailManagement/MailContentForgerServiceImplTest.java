@@ -18,7 +18,7 @@
  */
 package explorateurIUT.services.mailManagement;
 
-import explorateurIUT.configuration.TestDatasetConfig;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
 import explorateurIUT.model.Departement;
 import explorateurIUT.model.DepartementRepository;
 import explorateurIUT.model.IUTRepository;
@@ -44,7 +44,7 @@ import org.springframework.test.context.ActiveProfiles;
  * @author Remi Venant
  */
 @DataJpaTest
-@Import(TestDatasetConfig.class)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
 @ActiveProfiles({"test", "db-hsqldb"})
 public class MailContentForgerServiceImplTest {
 

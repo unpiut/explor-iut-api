@@ -48,21 +48,25 @@ public class MemoryModelConfiguration {
         LOG.info("INIT " + this.getClass().getSimpleName());
     }
 
-    @ConditionalOnMissingBean // since overidden in some unit tests
+    //@ConditionalOnMissingBean // since overidden in some unit tests
     @Bean
     public BUTIUTModelManager butIUTModelManager(Validator validator, ExcelDataFileLoader excelDataFileLoader, ExcelDataFileManagementService excelDataFileMgr) {
         LOG.info("Initiate but iut model manager...");
         final BUTIUTModelManagerImpl modelManager = new BUTIUTModelManagerImpl(validator);
         BUTIUTModel newModel = modelManager.startNewModelCreation();
         ConsumersHandler consHandler = new ConsumersHandler(newModel);
-        try (InputStream excelInputStream = new FileInputStream(excelDataFileMgr.getCurrentFilePath().toFile())) {
-            excelDataFileLoader.extractFromInputStream(consHandler.getExcelAppTextConsumer(),
-                    consHandler.getExcelIUTConsumer(), consHandler.getExcelBUTConsumer(),
-                    consHandler.getMailTextConsumer(), excelInputStream);
-            newModel.commit();
-        } catch (Exception ex) {
-            LOG.error("Cannot initiate model manager with current excel data file: " + ex.getMessage());
+        if (excelDataFileMgr.hasCurrentFilePath()) {
+            try (InputStream excelInputStream = new FileInputStream(excelDataFileMgr.getCurrentFilePath().toFile())) {
+                excelDataFileLoader.extractFromInputStream(consHandler.getExcelAppTextConsumer(),
+                        consHandler.getExcelIUTConsumer(), consHandler.getExcelBUTConsumer(),
+                        consHandler.getMailTextConsumer(), excelInputStream);
+            } catch (Exception ex) {
+                LOG.error("Cannot initiate model manager with current excel data file: " + ex.getMessage());
+            }
+        } else {
+            LOG.error("No current data file to fill the BUT IUT model !");
         }
+        newModel.commit();
         return modelManager;
     }
 }

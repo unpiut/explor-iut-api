@@ -18,7 +18,7 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.TestDatasetConfig;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
 import explorateurIUT.model.projections.DepartementCodesOfIUTId;
 import java.util.List;
 import java.util.function.Function;
@@ -40,7 +40,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Remi Venant
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@Import(TestDatasetConfig.class)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
 @ActiveProfiles("test")
 public class DepartementRepositoryTest {
 
