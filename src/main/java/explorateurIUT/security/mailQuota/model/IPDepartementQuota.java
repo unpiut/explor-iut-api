@@ -25,6 +25,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -38,8 +39,9 @@ public class IPDepartementQuota {
     @EmbeddedId
     private IPDepartementQuotaPK id;
 
+    @NotNull
     @MapsId("ipQuotaId")
-    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.EAGER)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.LAZY, optional = false)
     @JoinColumn(insertable = false, updatable = false)
     private IPQuota ipQuota;
 
@@ -47,8 +49,12 @@ public class IPDepartementQuota {
 
     private int counter;
 
-    public IPDepartementQuota(IPQuota ipQuota, String deptId, LocalDateTime started, int counter) {
+    protected IPDepartementQuota() {
+    }
+
+    protected IPDepartementQuota(IPQuota ipQuota, String deptId, LocalDateTime started, int counter) {
         this.id = new IPDepartementQuotaPK(ipQuota.getId(), deptId);
+        this.ipQuota = ipQuota;
         this.started = started;
         this.counter = counter;
     }

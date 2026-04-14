@@ -21,11 +21,13 @@ package explorateurIUT.services.butIUTModelMgmt;
 import jakarta.validation.Validator;
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 
 /**
  *
  * @author Rémi Venant
  */
+@Validated
 public class BUTIUTModelManagerImpl implements BUTIUTModelManager {
 
     private final Validator validator;

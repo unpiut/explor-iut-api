@@ -49,31 +49,37 @@ public class SimulatedBUTIUTModelManagerAndRepoConfig {
         return new LocalValidatorFactoryBean();
     }
 
+    @ConditionalOnMissingBean
     @Bean
     public BUTIUTModelManager butIUTModelManager(Validator validator) {
         return new BUTIUTModelManagerImpl(validator);
     }
 
+    @ConditionalOnMissingBean
     @Bean
     public TestDatasetGenerator testDatasetGenerator(BUTIUTModelManager butIUTModelManager) {
         return new TestDatasetGenerator(butIUTModelManager);
     }
 
+    @ConditionalOnMissingBean
     @Bean
     public AppTextRepository appTextRepository(BUTIUTModelManager butIUTModelManager) {
         return new AppTextRepoImpl(butIUTModelManager);
     }
 
+    @ConditionalOnMissingBean
     @Bean
     public BUTRepository butRepository(BUTIUTModelManager butIUTModelManager) {
         return new BUTRepoImpl(butIUTModelManager);
     }
 
+    @ConditionalOnMissingBean
     @Bean
     public DepartementRepository departementRepository(BUTIUTModelManager butIUTModelManager) {
         return new DepartementRepoImpl(butIUTModelManager);
     }
 
+    @ConditionalOnMissingBean
     @Bean
     public IUTRepository iutRepository(BUTIUTModelManager butIUTModelManager) {
         return new IUTRepoImpl(butIUTModelManager);

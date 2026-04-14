@@ -20,6 +20,7 @@ package explorateurIUT.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -27,7 +28,8 @@ import java.util.Objects;
  * @author Rémi Venant
  */
 @Embeddable
-public class PendingMailIUTRecipientPK {
+public class PendingMailIUTRecipientPK implements Serializable {
+    private static final Long serialVersionUID = 1L;
 
     @Column(nullable = false)
     private Long mailId;

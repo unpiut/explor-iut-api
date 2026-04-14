@@ -34,7 +34,7 @@ public interface PendingMailRepository extends CrudRepository<PendingMail, Long>
 
     @Modifying
     @Query("update PendingMail pm set pm.lastConfirmationMail = ?2 where pm.id = ?1")
-    long findAndSetLastConfirmationMailById(Long id, LocalDateTime lastConfirmationMail);
+    int findAndSetLastConfirmationMailById(Long id, LocalDateTime lastConfirmationMail);
     
     @Override
     int clearMailsByCreationDateTimeBefore(LocalDateTime creationDateTime);
