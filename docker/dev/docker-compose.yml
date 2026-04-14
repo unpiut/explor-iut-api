@@ -1,29 +1,49 @@
 name: 'exploiut-dev'
 
 services:
-  nosqldatabase:
-    image: mongo:6.0
+  database:
+    image: mariadb:11.8
     environment:
-      - MONGO_INITDB_DATABASE=exploiut-db
+      - MARIADB_ROOT_PASSWORD=LRNSriqNtuvomX6
+      - MARIADB_USER=exploriutuser
+      - MARIADB_PASSWORD=A35Jfzeghh23
+      - MARIADB_DATABASE=exploriut
     volumes:
-      - data:/data/db
-      - ./mongoInit:/docker-entrypoint-initdb.d:ro
+      - data:/var/lib/mysql
+    networks:
+      - db-net
     ports:
-      - 127.0.0.1:27017:27017/tcp
+      - 127.0.0.1:3307:3306
     restart: always
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 10s
       retries: 10
-      start_period: 20s
-    command: --replSet my-rs
-  
+      start_period: 20s 
+      
+  phpmyadmin:
+    image: phpmyadmin:5.2.2
+    environment:
+      - PMA_HOST=database
+      - PMA_PORT=3306
+      - PMA_USER=exploriutuser
+      - PMA_PASSWORD=A35Jfzeghh23
+    networks:
+      - db-net
+    ports:
+      - 127.0.0.1:8998:80
+    restart: always
+          
   mailcatcher:
     image: dockage/mailcatcher:0.9.0
+    network_mode: bridge
     ports:
       - 127.0.0.1:1080:1080/tcp
       - 127.0.0.1:1025:1025/tcp
 
 volumes:
   data:
+
+networks:
+  db-net:

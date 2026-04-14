@@ -24,18 +24,6 @@ MA 02110-1301  USA
 
     <persistence directory="/var/spring-ehcache/cache" />
     
-    <cache-template name="defaultExplorateurIUTCaches"> 
-        <key-type>org.springframework.cache.interceptor.SimpleKey</key-type>
-        <expiry>
-            <ttl unit="hours">24</ttl> 
-        </expiry>
-        <resources>
-            <heap unit="entries">2</heap>
-            <offheap unit="MB">10</offheap>
-            <disk persistent="true" unit="MB">20</disk>
-        </resources>
-    </cache-template>
-    
     <cache-template name="smallExplorateurIUTCaches"> 
         <key-type>org.springframework.cache.interceptor.SimpleKey</key-type>
         <expiry>
@@ -48,9 +36,6 @@ MA 02110-1301  USA
         </resources>
     </cache-template>
     
-    <cache alias="butSummaries" uses-template="defaultExplorateurIUTCaches"/>
-    <cache alias="iutSummaries" uses-template="defaultExplorateurIUTCaches"/>
-    <cache alias="textSummaries" uses-template="defaultExplorateurIUTCaches"/>
     <cache alias="cacheEtag" uses-template="smallExplorateurIUTCaches"/>
 </config>
 
