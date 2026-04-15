@@ -74,7 +74,7 @@ public class MemoryModelConfiguration {
                         consHandler.getMailTextConsumer(), excelInputStream);
             } catch (Exception ex) {
                 LOG.error("Cannot initiate model manager with current excel data file: " + ex.getMessage());
-                ex.printStackTrace(System.err);
+                throw new IllegalStateException("Error while saving model from excel file: " + ex.getMessage(), ex);
             }
         } else {
             LOG.error("No current data file to fill the BUT IUT model !");

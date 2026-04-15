@@ -62,8 +62,7 @@ public class BUTIUTModelManagerImpl implements BUTIUTModelManager {
                 mdl.commit();
             }).accept(newModel);
         } catch (Exception ex) {
-            LOG.warn("Unable to load initial model");
-            ex.printStackTrace(System.err);
+            LOG.error("Unable to load initial model: " + ex.getMessage());
             newModel.rollback();
         }
     }
