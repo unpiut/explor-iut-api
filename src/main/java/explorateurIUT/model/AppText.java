@@ -19,30 +19,24 @@
 package explorateurIUT.model;
 
 import java.util.Objects;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.annotation.JsonView;
 import explorateurIUT.model.views.AppTextViews;
 import jakarta.validation.constraints.NotBlank;
+import java.util.UUID;
 
 /**
  *
  * @author Julien Fourdan
  */
-@Document(collection = "Texte")
 public class AppText {
 
     @JsonView(AppTextViews.Details.class)
-    @Id
-    private String id;
+    private String id; // will contain a ref to code
 
     @JsonView(AppTextViews.Normal.class)
     @NotBlank
-    @Indexed(unique = true)
-    private String code;
+    private String code; // Unique for a language, will be used at id
 
-    @Indexed
     private String language;
 
     @JsonView(AppTextViews.Normal.class)
@@ -55,6 +49,7 @@ public class AppText {
     }
 
     public AppText(String code, String content, String language, boolean backendMailText) {
+        this.id = generateId(code, language);
         this.code = code;
         this.content = content;
         this.language = language;
@@ -77,8 +72,9 @@ public class AppText {
         return code;
     }
 
-    public void setCode(String code) {
+    protected void setCode(String code) {
         this.code = code;
+        this.id = generateId(this.code, this.language);
     }
 
     public String getContent() {
@@ -95,6 +91,7 @@ public class AppText {
 
     public void setLanguage(String language) {
         this.language = language;
+        this.id = generateId(this.code, this.language);
     }
 
     public boolean isBackendMailText() {
@@ -127,4 +124,16 @@ public class AppText {
         return Objects.equals(this.id, other.id);
     }
 
+    private static String generateId(String code, String language) {
+        if (code == null) {
+            return UUID.randomUUID().toString();
+        }
+        String ref;
+        if (language != null && !language.isBlank()) {
+            ref = "txt#" + language + "#" + code;
+        } else {
+            ref = "txt#default#" + code;
+        }
+        return UUID.nameUUIDFromBytes(ref.getBytes()).toString();
+    }
 }

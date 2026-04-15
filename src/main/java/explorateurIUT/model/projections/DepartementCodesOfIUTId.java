@@ -33,6 +33,11 @@ public class DepartementCodesOfIUTId {
     public DepartementCodesOfIUTId() {
     }
 
+    public DepartementCodesOfIUTId(String iut, List<String> codes) {
+        this.iut = iut;
+        this.codes = codes;
+    }
+
     public String getIut() {
         return iut;
     }

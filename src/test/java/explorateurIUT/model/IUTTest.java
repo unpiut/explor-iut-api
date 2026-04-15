@@ -18,7 +18,9 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.MongoConfiguration;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModel;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManager;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
@@ -27,24 +29,29 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
  *
  * @author Remi Venant
  */
-@DataMongoTest
-@Import(MongoConfiguration.class)
-@ActiveProfiles({"test", "mongo-test"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
+@ActiveProfiles("test")
 public class IUTTest {
 
+    @Configuration
+    public static class NoConfiguration {
+        // No automatic configuration
+    }
+
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private BUTIUTModelManager modelMgr;
+
+    private BUTIUTModel model;
 
     public IUTTest() {
     }
@@ -59,11 +66,12 @@ public class IUTTest {
 
     @BeforeEach
     public void setUp() {
+        this.model = this.modelMgr.startNewModelCreation();
     }
 
     @AfterEach
     public void tearDown() {
-        this.mongoTemplate.remove(new BasicQuery("{}"), IUT.class);
+        this.model.rollback();
     }
 
     /**
@@ -74,12 +82,12 @@ public class IUTTest {
         IUT iut = new IUT("nomIUT", "siteIUT", "region", "address", "0102030405",
                 "iut.iut@iut.fr", "https://iut.fr", new GeoJsonPoint(42.1, 43.5));
 
-        IUT savedIut = this.mongoTemplate.save(iut);
+        IUT savedIut = model.saveIUT(iut);
         assertThat(savedIut.getId()).as("created iut has an id").isNotNull();
 
-        IUT retrievedIut = this.mongoTemplate.findById(savedIut.getId(), IUT.class);
-        assertThat(retrievedIut).as("retrieve but not null and not same as savedBut")
-                .isNotNull().isNotSameAs(iut);
+        IUT retrievedIut = model.getIutsById().get(savedIut.getId());
+        assertThat(retrievedIut).as("retrieve but not null")
+                .isNotNull();
         assert retrievedIut != null;
         assertThat(retrievedIut).extracting("nom", "site", "region", "address", "tel", "mel", "urlWeb", "location")
                 .containsExactly(iut.getNom(), iut.getSite(), iut.getRegion(), iut.getAddress(), iut.getTel(),
@@ -93,32 +101,32 @@ public class IUTTest {
     @Test
     public void testIUTValidation() {
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new IUT(null, "siteIUT", "region",
+                -> this.model.saveIUT(new IUT(null, "siteIUT", "region",
                         "address", "0102030405", "iut.iut@iut.fr", "https://iut.fr", new GeoJsonPoint(42.1, 43.5))))
                 .as("Null nom rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new IUT("  \t  \n ", "siteIUT", "region",
+                -> model.saveIUT(new IUT("  \t  \n ", "siteIUT", "region",
                         "address", "0102030405", "iut.iut@iut.fr", "https://iut.fr", new GeoJsonPoint(42.1, 43.5))))
                 .as("Blank nom rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new IUT("nomIUT", null, "region",
+                -> model.saveIUT(new IUT("nomIUT", null, "region",
                         "address", "0102030405", "iut.iut@iut.fr", "https://iut.fr", new GeoJsonPoint(42.1, 43.5))))
                 .as("Null site rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new IUT("nomIUT", "  \t  \n ", "region",
+                -> model.saveIUT(new IUT("nomIUT", "  \t  \n ", "region",
                         "address", "0102030405", "iut.iut@iut.fr", "https://iut.fr", new GeoJsonPoint(42.1, 43.5))))
                 .as("Blank site rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new IUT("nomIUT", "siteIUT", "region",
+                -> model.saveIUT(new IUT("nomIUT", "siteIUT", "region",
                         "address", "0102030405", "invalid-email", "https://iut.fr", new GeoJsonPoint(42.1, 43.5))))
                 .as("Invalid email rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new IUT("nomIUT", "siteIUT", "region",
+                -> model.saveIUT(new IUT("nomIUT", "siteIUT", "region",
                         "address", "0102030405", "iut.iut@iut.fr", "https://iut.fr", null)))
                 .as("Null location rejected")
                 .isInstanceOf(ConstraintViolationException.class);

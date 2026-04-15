@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import org.springframework.data.mongodb.core.index.Indexed;
 
 /**
  *
@@ -34,7 +33,6 @@ import org.springframework.data.mongodb.core.index.Indexed;
 public class ButAndParcoursDispenses implements Serializable {
 
     @NotBlank
-    @Indexed
     private String codeBut;
 
     @NotEmpty

@@ -27,31 +27,24 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
+import java.util.UUID;
 
 /**
  *
  * @author Remi Venant
  */
-@Document(collection = "Departements", language = "french")
 public class Departement {
 
     @JsonView(IUTViews.Normal.class)
-    @Id
-    private String id;
+    private String id; // will use iut.id - code as id
 
     @JsonView(DefaultView.Never.class)
     @NotNull
-    @DocumentReference(lazy = true)
     private IUT iut;
 
     @JsonView(IUTViews.Normal.class)
     @NotBlank
-    @Indexed
-    private String code;
+    private String code; // not unique in general but unique per iut
 
     @JsonView(IUTViews.Details.class)
     private Set<ButAndParcoursDispenses> butDispenses = new HashSet<>();
@@ -60,8 +53,17 @@ public class Departement {
     }
 
     public Departement(IUT iut, String code) {
-        this.iut = iut;
+        this.id = generateId(iut, code);
         this.code = code;
+        this.initIUT(iut);
+    }
+
+    private void initIUT(IUT iut) {
+        this.iut = iut;
+        this.id = generateId(iut, this.code);
+        if (iut != null) {
+            this.iut.addDepartement(this);
+        }
     }
 
     public String getId() {
@@ -76,16 +78,29 @@ public class Departement {
         return iut;
     }
 
-    public void setIut(IUT iut) {
+    protected final void setIut(IUT iut) {
+        if (iut == null) {
+            throw new NullPointerException("departement must have an IUT");
+        }
+        if (iut.equals(this.iut)) {
+            return;
+        }
+        IUT oldIut = this.iut;
         this.iut = iut;
+        this.id = generateId(iut, this.code);
+        if (oldIut != null) {
+            oldIut.removeDepartement(this);
+        }
+        this.iut.addDepartement(this);
     }
 
     public String getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    protected void setCode(String code) {
         this.code = code;
+        this.id = generateId(this.iut, code);
     }
 
     public Set<ButAndParcoursDispenses> getButDispenses() {
@@ -118,4 +133,8 @@ public class Departement {
         return Objects.equals(this.id, other.id);
     }
 
+    private static String generateId(IUT iut, String code) {
+        String ref = (iut != null ? iut.getId() : "NO_IUT") + "#" + code;
+        return UUID.nameUUIDFromBytes(ref.getBytes()).toString();
+    }
 }

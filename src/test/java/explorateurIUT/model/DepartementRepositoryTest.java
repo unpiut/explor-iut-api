@@ -18,8 +18,7 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.MongoConfiguration;
-import explorateurIUT.configuration.TestDatasetConfig;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
 import explorateurIUT.model.projections.DepartementCodesOfIUTId;
 import java.util.List;
 import java.util.function.Function;
@@ -30,46 +29,48 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import static org.assertj.core.api.Assertions.*;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
 
 /**
  *
  * @author Remi Venant
  */
-@DataMongoTest
-@Import({MongoConfiguration.class, TestDatasetConfig.class})
-@ActiveProfiles({"test", "mongo-test"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
+@ActiveProfiles("test")
 public class DepartementRepositoryTest {
-    
-    @Autowired
-    private MongoTemplate mongoTemplate;
-    
+
+    @Configuration
+    public static class NoConfiguration {
+        // No automatic configuration
+    }
+
     @Autowired
     private DepartementRepository testedRepo;
-    
+
     @Autowired
     private TestDatasetGenerator testDataset;
-    
+
     public DepartementRepositoryTest() {
     }
-    
+
     @BeforeAll
     public static void setUpClass() {
     }
-    
+
     @AfterAll
     public static void tearDownClass() {
     }
-    
+
     @BeforeEach
     public void setUp() {
         this.testDataset.createDataset();
     }
-    
+
     @AfterEach
     public void tearDown() {
         this.testDataset.clear();
@@ -88,11 +89,11 @@ public class DepartementRepositoryTest {
                 .flatMap(Function.identity())
                 .map(Departement::getId)
                 .toList();
-        
+
         List<DepartementCodesOfIUTId> iutIds = this.testedRepo.streamIUTIdByIdIn(allDeptsId).toList();
         assertThat(iutIds).as("Two iut id retrieves").hasSize(2)
                 .map(DepartementCodesOfIUTId::getIut)
                 .containsExactlyInAnyOrder(ti.getIutLannion().getId(), ti.getIutLaval().getId());
     }
-    
+
 }

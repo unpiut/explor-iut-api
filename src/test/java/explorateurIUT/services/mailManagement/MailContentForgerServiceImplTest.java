@@ -18,12 +18,12 @@
  */
 package explorateurIUT.services.mailManagement;
 
-import explorateurIUT.configuration.MongoConfiguration;
-import explorateurIUT.configuration.TestDatasetConfig;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
 import explorateurIUT.model.Departement;
 import explorateurIUT.model.DepartementRepository;
 import explorateurIUT.model.IUTRepository;
-import explorateurIUT.model.MailIUTRecipient;
+import explorateurIUT.model.PendingMail;
+import explorateurIUT.model.PendingMailIUTRecipient;
 import explorateurIUT.model.TestDatasetGenerator;
 import explorateurIUT.services.AppTextService;
 import java.util.List;
@@ -35,7 +35,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -43,9 +43,9 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * @author Remi Venant
  */
-@DataMongoTest
-@Import({MongoConfiguration.class, TestDatasetConfig.class})
-@ActiveProfiles({"test", "mongo-test"})
+@DataJpaTest
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
+@ActiveProfiles({"test", "db-hsqldb"})
 public class MailContentForgerServiceImplTest {
 
     private AutoCloseable mocks;
@@ -115,8 +115,10 @@ public class MailContentForgerServiceImplTest {
         List<String> allLavalDeptIds = ti.getIutLaval().getDepartements().stream().map(Departement::getId).toList();
         MailSendingRequest mailSendingRequest = new MailSendingRequest(allLavalDeptIds,
                 "contactIdentity", "contactCompany", "contactFunction", "contactMail", "subject", "body", null);
+        PendingMail pendingMail = new PendingMail(mailSendingRequest.subject(), mailSendingRequest.body(),
+                mailSendingRequest.contactMail(), mailSendingRequest.contactIdentity());
 
-        List<MailIUTRecipient> mailContact = this.testedSvc.createIUTMailingList(mailSendingRequest);
+        List<PendingMailIUTRecipient> mailContact = this.testedSvc.createIUTMailingList(pendingMail, mailSendingRequest);
 
         assertThat(mailContact).as("Only one mail contact: iut laval").hasSize(1);
         assertThat(mailContact.get(0).getMailAddress()).as("mail is iut laval").isEqualTo(ti.getIutLaval().getMel());

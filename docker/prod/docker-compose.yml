@@ -1,26 +1,24 @@
 name: 'exploiut-prod'
 
 services:
-  nosqldatabase:
-    image: mongo:6.0
+  database:
+    image: mariadb:11.8
     environment:
-      MONGO_INITDB_ROOT_USERNAME: exploit-usr
-      MONGO_INITDB_ROOT_PASSWORD: A9v6R4p2EtYF3r5HVUhZQe
-      MONGO_INITDB_DATABASE: exploiut-db
+      - MARIADB_ROOT_PASSWORD=iwxgPRZPvFFWESGNYRKTTFL3
+      - MARIADB_USER=exploit-usr
+      - MARIADB_PASSWORD=A9v6R4p2EtYF3r5HVUhZQe
+      - MARIADB_DATABASE=exploriut
     volumes:
-      - db-config:/data/configdb
-      - db-data:/data/db
-      - ./mongoInit:/docker-entrypoint-initdb.d:ro
+      - db-data:/var/lib/mysql
     networks:
       - db-net
     restart: always
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 10s
       retries: 10
-      start_period: 20s
-    command: --replSet my-rs
+      start_period: 20s 
 
   api-server:
     image: exploriut/app
@@ -47,7 +45,6 @@ services:
     command: --spring.config.location=/root/application.properties
 
 volumes:
-  db-config:
   db-data:
   file-data:
   api-server-cache:

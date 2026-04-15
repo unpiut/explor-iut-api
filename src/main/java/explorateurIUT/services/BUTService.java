@@ -35,7 +35,7 @@ public interface BUTService {
     List<BUTSummary> findBUTSummaries();
 
     BUT findBUT(
-            @NotNull @Pattern(regexp = "[abcdef0-9]{24}", flags = Pattern.Flag.CASE_INSENSITIVE) String butId
+            @NotNull @Pattern(regexp = "[abcdef0-9-]{36}", flags = Pattern.Flag.CASE_INSENSITIVE) String butId
     ) throws ConstraintViolationException, NoSuchElementException;
 
     BUT findBUTByCode(

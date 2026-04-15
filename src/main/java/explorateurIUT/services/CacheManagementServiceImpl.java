@@ -39,9 +39,6 @@ public class CacheManagementServiceImpl implements CacheManagementService {
     private static final Log LOG = LogFactory.getLog(CacheManagementServiceImpl.class);
 
     @Caching(evict = {
-        @CacheEvict(cacheNames = "butSummaries", allEntries = true, beforeInvocation = false),
-        @CacheEvict(cacheNames = "iutSummaries", allEntries = true, beforeInvocation = false),
-        @CacheEvict(cacheNames = "textSummaries", allEntries = true, beforeInvocation = false),
         @CacheEvict(cacheNames = "cacheEtag", allEntries = true, beforeInvocation = false)
     })
     @Override
@@ -58,7 +55,7 @@ public class CacheManagementServiceImpl implements CacheManagementService {
     @Cacheable(cacheNames = "cacheEtag", unless = "#result == null")
     @Override
     public String getCacheEtag() {
-        return null;
+        return UUID.randomUUID().toString();
     }
 
     @Override

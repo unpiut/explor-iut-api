@@ -24,7 +24,6 @@ import explorateurIUT.model.AppText;
 import explorateurIUT.model.AppTextRepository;
 import jakarta.validation.constraints.NotBlank;
 import java.util.stream.Collectors;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -55,7 +54,6 @@ public class AppTextServiceImpl implements AppTextService {
         return getAppTextsByCode(DEFAULT_LANGUAGE);
     }
 
-    @Cacheable(cacheNames = "textSummaries", unless = "#result == null || #result.isEmpty()", key = "#language")
     @Override
     public Map<String, String> getMailTextsByCode(String language) {
         return this.textRepo.streamByLanguageAndBackendMailTextTrue(language)

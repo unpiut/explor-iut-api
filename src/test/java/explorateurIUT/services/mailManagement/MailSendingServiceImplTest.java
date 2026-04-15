@@ -39,8 +39,8 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * @author Remi Venant
  */
-@ActiveProfiles({"development", "app-test", "mail-test", "mongo-test"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ActiveProfiles({"test", "ext-data", "db-hsqldb", "mail-test"})
 public class MailSendingServiceImplTest {
 
     private static final Log LOG = LogFactory.getLog(MailSendingServiceImplTest.class);
@@ -80,7 +80,7 @@ public class MailSendingServiceImplTest {
         MailSendingProperties msp = new MailSendingProperties();
         msp.setFromAddress("from@mail.com");
 
-        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp, null);
+        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp);
 
         String replyTo = "reply@mail.com";
         String subject = "The subject";
@@ -117,7 +117,7 @@ public class MailSendingServiceImplTest {
         MailSendingProperties msp = new MailSendingProperties();
         msp.setFromAddress("from@mail.com");
         msp.setTestingMailAddress("test@mail.com");
-        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp, null);
+        MailSendingServiceImpl mailSendingSvc = new MailSendingServiceImpl(javaMailSender, msp);
 
         String replyTo = "reply@mail.com";
         String subject = "The subject";

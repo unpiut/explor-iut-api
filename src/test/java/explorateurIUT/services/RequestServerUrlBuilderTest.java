@@ -18,7 +18,6 @@
  */
 package explorateurIUT.services;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.net.URI;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
@@ -33,22 +32,22 @@ import org.springframework.mock.web.MockHttpServletRequest;
  * @author Remi Venant
  */
 public class RequestServerUrlBuilderTest {
-    
+
     public RequestServerUrlBuilderTest() {
     }
-    
+
     @BeforeAll
     public static void setUpClass() {
     }
-    
+
     @AfterAll
     public static void tearDownClass() {
     }
-    
+
     @BeforeEach
     public void setUp() {
     }
-    
+
     @AfterEach
     public void tearDown() {
     }
@@ -64,14 +63,14 @@ public class RequestServerUrlBuilderTest {
         rq.setServerPort(443);
         RequestServerUrlBuilder instance = new RequestServerUrlBuilder(rq);
         assertThat(instance.buildServerBaseURI()).as("Generated URI from request is ok").isEqualTo(URI.create("https://paul.com"));
-        
+
         rq = new MockHttpServletRequest("GET", "http://pilou.paul.com:80/mail/send");
         rq.setScheme("http");
         rq.setServerName("pilou.paul.com");
         rq.setServerPort(80);
         instance = new RequestServerUrlBuilder(rq);
         assertThat(instance.buildServerBaseURI()).as("Generated URI from request with explicit default port is ok").isEqualTo(URI.create("http://pilou.paul.com"));
-        
+
         rq = new MockHttpServletRequest("GET", "https://pilou.paul.com:8181/mail/send");
         rq.setScheme("https");
         rq.setServerName("pilou.paul.com");
@@ -97,5 +96,5 @@ public class RequestServerUrlBuilderTest {
         result = instance.buildBaseURI("http", "paul.com", 8080);
         assertThat(result).as("Generated URI with non default port does not show the port").isEqualTo(URI.create("http://paul.com:8080"));
     }
-    
+
 }

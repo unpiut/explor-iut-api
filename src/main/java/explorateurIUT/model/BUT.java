@@ -21,46 +21,35 @@ package explorateurIUT.model;
 import com.fasterxml.jackson.annotation.JsonView;
 import explorateurIUT.model.views.BUTViews;
 import jakarta.validation.constraints.NotBlank;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.ReadOnlyProperty;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.index.TextIndexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DocumentReference;
+import java.util.UUID;
 
 /**
  *
  * @author Remi Venant
  */
-@Document(collection = "BUT", language = "french")
 public class BUT {
 
     @JsonView(BUTViews.Normal.class)
-    @Id
-    private String id;
+    private String id; // will contain a ref to code
 
     @JsonView(BUTViews.Normal.class)
     @NotBlank
-    @Indexed(unique = true)
-    @TextIndexed(weight = 3.0f)
-    private String code;
+    private String code; // unique, will be used at id
 
     @JsonView(BUTViews.Normal.class)
     @NotBlank
-    @TextIndexed(weight = 2.0f)
     private String nom;
 
     @JsonView(BUTViews.Normal.class)
     @NotBlank
-    @TextIndexed(weight = 2.0f)
     private String filiere;
 
     @JsonView(BUTViews.Details.class)
     @NotBlank
-    @TextIndexed(weight = 1.0f)
     private String metiers;
 
     @JsonView(BUTViews.Details.class)
@@ -75,12 +64,9 @@ public class BUT {
 
     @JsonView(BUTViews.Normal.class)
     @NotBlank
-    @TextIndexed(weight = 1.0f)
     private String universMetiers;
 
     @JsonView(BUTViews.Details.class)
-    @ReadOnlyProperty
-    @DocumentReference(lookup = "{'but':?#{#self._id} }", lazy = true)
     private List<ParcoursBUT> parcours;
 
     protected BUT() {
@@ -91,6 +77,7 @@ public class BUT {
     }
 
     public BUT(String code, String nom, String filiere, String metiers, String description, String urlFiche, String urlFranceCompetence, String universMetiers) {
+        this.id = generateId(code);
         this.code = code;
         this.nom = nom;
         this.filiere = filiere;
@@ -113,8 +100,9 @@ public class BUT {
         return code;
     }
 
-    public void setCode(String code) {
+    protected void setCode(String code) {
         this.code = code;
+        this.id = generateId(code);
     }
 
     public String getNom() {
@@ -181,6 +169,27 @@ public class BUT {
         this.parcours = parcours;
     }
 
+    protected boolean addParcours(ParcoursBUT parcours) {
+        if (parcours == null) {
+            throw new NullPointerException("BUT cannot have a null parcours");
+        }
+        if (this.parcours == null) {
+            this.parcours = new ArrayList<>();
+        }
+        if (this.parcours.contains(parcours)) {
+            return false;
+        }
+        this.parcours.add(parcours);
+        return true;
+    }
+
+    protected boolean removeParcours(ParcoursBUT parcours) {
+        if (this.parcours == null) {
+            return false;
+        }
+        return this.parcours.remove(parcours);
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
@@ -208,4 +217,9 @@ public class BUT {
         return "BUT{" + "id=" + id + ", code=" + code + ", nom=" + nom + '}';
     }
 
+    private static String generateId(String code) {
+        return code != null
+                ? UUID.nameUUIDFromBytes(code.getBytes()).toString()
+                : UUID.randomUUID().toString();
+    }
 }

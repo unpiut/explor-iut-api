@@ -18,7 +18,9 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.MongoConfiguration;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModel;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManager;
 import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -28,24 +30,29 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
-import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
  *
  * @author Remi Venant
  */
-@DataMongoTest
-@Import(MongoConfiguration.class)
-@ActiveProfiles({"test", "mongo-test"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
+@ActiveProfiles("test")
 public class DepartementTest {
 
+    @Configuration
+    public static class NoConfiguration {
+        // No automatic configuration
+    }
+
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private BUTIUTModelManager modelMgr;
+
+    private BUTIUTModel model;
 
     private IUT iut1;
     private IUT iut2;
@@ -55,6 +62,7 @@ public class DepartementTest {
 
     @BeforeAll
     public static void setUpClass() {
+
     }
 
     @AfterAll
@@ -63,29 +71,30 @@ public class DepartementTest {
 
     @BeforeEach
     public void setUp() {
-        this.iut1 = this.mongoTemplate.save(new IUT("IUT1", "siteIUT1", "region",
+//        this.modelMgr = new BUTIUTModelManagerImpl(validator);
+        this.model = this.modelMgr.startNewModelCreation();
+
+        this.iut1 = this.model.saveIUT(new IUT("IUT1", "siteIUT1", "region",
                 "address1", "0102030405", "iut1.iut@iut.fr", "https://iut.fr", new GeoJsonPoint(42.1, 43.5)));
-        this.iut2 = this.mongoTemplate.save(new IUT("IUT2", "siteIUT", "region",
+        this.iut2 = this.model.saveIUT(new IUT("IUT2", "siteIUT", "region",
                 "address2", "0102030405", "iut2.iut@iut.fr", "https://iut.fr", new GeoJsonPoint(44.1, 44.5)));
     }
 
     @AfterEach
     public void tearDown() {
-        this.mongoTemplate.remove(new BasicQuery("{}"), Departement.class);
-        this.mongoTemplate.remove(new BasicQuery("{}"), IUT.class);
-
+        this.model.rollback();
     }
 
     @Test
     public void testDepartementPersistence() {
         Departement dept = new Departement(iut1, "DEPT");
-        Departement savedDept = this.mongoTemplate.save(dept);
+        Departement savedDept = this.model.saveDepartement(dept);
         assertThat(savedDept).as("Saved dept not null").isNotNull();
         assertThat(savedDept.getId()).as("Saved dept has a not null id").isNotNull();
 
-        Departement retrievedDept = this.mongoTemplate.findById(savedDept.getId(), Departement.class);
-        assertThat(retrievedDept).as("Retrieved dept not null and not same as savedDept")
-                .isNotNull().isNotSameAs(savedDept);
+        Departement retrievedDept = this.model.getDepartementsById().get(savedDept.getId());
+        assertThat(retrievedDept).as("Retrieved dept not null")
+                .isNotNull();
         assert retrievedDept != null;
 
         assertThat(retrievedDept).extracting("iut", "code").as("Retrieved dept has valid properties")
@@ -94,11 +103,11 @@ public class DepartementTest {
 
     @Test
     public void testDepartementExtractionFromIut() {
-        Departement dept1 = this.mongoTemplate.save(new Departement(iut1, "DEPT1"));
-        Departement dept2 = this.mongoTemplate.save(new Departement(iut1, "DEPT2"));
-        this.mongoTemplate.save(new Departement(iut2, "DEPT3"));
+        Departement dept1 = this.model.saveDepartement(new Departement(iut1, "DEPT1"));
+        Departement dept2 = this.model.saveDepartement(new Departement(iut1, "DEPT2"));
+        this.model.saveDepartement(new Departement(iut2, "DEPT3"));
 
-        IUT iut = this.mongoTemplate.findById(this.iut1.getId(), IUT.class);
+        IUT iut = this.model.getIutsById().get(this.iut1.getId());
         assert iut != null;
         List<Departement> deptIut = iut.getDepartements();
         assertThat(deptIut).as("Departements not null and size 2").isNotNull().hasSize(2);
@@ -108,15 +117,15 @@ public class DepartementTest {
     @Test
     public void testDepartementValidation() {
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new Departement(null, "DEPT1")))
+                -> this.model.saveDepartement(new Departement(null, "DEPT1")))
                 .as("Null iut rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new Departement(iut1, null)))
+                -> this.model.saveDepartement(new Departement(iut1, null)))
                 .as("Null code rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new Departement(iut1, "  \t  \n ")))
+                -> this.model.saveDepartement(new Departement(iut1, "  \t  \n ")))
                 .as("Blank nom rejected")
                 .isInstanceOf(ConstraintViolationException.class);
     }

@@ -38,7 +38,7 @@ import org.springframework.test.context.ActiveProfiles;
  *
  * @author Remi Venant
  */
-@ActiveProfiles({"development", "app-test", "mongo-test"})
+@ActiveProfiles({"development", "app-test", "db-hsqldb"})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class MailManagementServiceTest {
 

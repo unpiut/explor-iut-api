@@ -18,7 +18,9 @@
  */
 package explorateurIUT.model;
 
-import explorateurIUT.configuration.MongoConfiguration;
+import explorateurIUT.configuration.SimulatedBUTIUTModelManagerAndRepoConfig;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModel;
+import explorateurIUT.services.butIUTModelMgmt.BUTIUTModelManager;
 import jakarta.validation.ConstraintViolationException;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -28,24 +30,30 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
  *
  * @author Remi Venant
  */
-@DataMongoTest
-@Import(MongoConfiguration.class)
-@ActiveProfiles({"test", "mongo-test"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Import(SimulatedBUTIUTModelManagerAndRepoConfig.class)
+@ActiveProfiles("test")
 public class ParcoursBUTTest {
 
+    @Configuration
+    public static class NoConfiguration {
+        // No automatic configuration
+    }
+
     @Autowired
-    private MongoTemplate mongoTemplate;
+    private BUTIUTModelManager modelMgr;
+
+    private BUTIUTModel model;
 
     private BUT but1;
     private BUT but2;
@@ -63,16 +71,17 @@ public class ParcoursBUTTest {
 
     @BeforeEach
     public void setUp() {
-        this.but1 = this.mongoTemplate.save(new BUT("BUT1", "le but 1", "la filiere", "les metiers",
+        this.model = this.modelMgr.startNewModelCreation();
+
+        this.but1 = this.model.saveBUT(new BUT("BUT1", "le but 1", "la filiere", "les metiers",
                 "la description", "l'url", "l'url france competence", "l'univers metier"));
-        this.but2 = this.mongoTemplate.save(new BUT("BUT2", "le but 2", "la filiere", "les metiers",
+        this.but2 = this.model.saveBUT(new BUT("BUT2", "le but 2", "la filiere", "les metiers",
                 "la description", "l'url", "l'url france competence", "l'univers metier"));
     }
 
     @AfterEach
     public void tearDown() {
-        this.mongoTemplate.remove(new BasicQuery("{}"), BUT.class);
-        this.mongoTemplate.remove(new BasicQuery("{}"), ParcoursBUT.class);
+        this.model.rollback();
     }
 
     /**
@@ -81,13 +90,13 @@ public class ParcoursBUTTest {
     @Test
     public void testParcoursBUTPersistence() {
         ParcoursBUT pb = new ParcoursBUT(but1, "PARC1", "Parcours 1");
-        ParcoursBUT savedPb = this.mongoTemplate.save(pb);
+        ParcoursBUT savedPb = this.model.saveParcours(pb);
         assertThat(savedPb).as("Saved pb not null").isNotNull();
         assertThat(savedPb.getId()).as("Saved pb has a not null id").isNotNull();
 
-        ParcoursBUT retrievedPb = this.mongoTemplate.findById(savedPb.getId(), ParcoursBUT.class);
-        assertThat(retrievedPb).as("Retrieved pb not null and not same as savedPB")
-                .isNotNull().isNotSameAs(savedPb);
+        ParcoursBUT retrievedPb = this.model.getParcoursById().get(savedPb.getId());
+        assertThat(retrievedPb).as("Retrieved pb not null")
+                .isNotNull();
         assert retrievedPb != null;
 
         assertThat(retrievedPb).extracting("but", "code", "nom").as("Retrieved pb has valid properties")
@@ -96,11 +105,11 @@ public class ParcoursBUTTest {
 
     @Test
     public void testParcoursExtractionFromBut() {
-        ParcoursBUT pb1 = this.mongoTemplate.save(new ParcoursBUT(but1, "PARC1", "Parcours 1"));
-        ParcoursBUT pb2 = this.mongoTemplate.save(new ParcoursBUT(but1, "PARC2", "Parcours 2"));
-        this.mongoTemplate.save(new ParcoursBUT(but2, "PARC3", "Parcours 3"));
+        ParcoursBUT pb1 = this.model.saveParcours(new ParcoursBUT(but1, "PARC1", "Parcours 1"));
+        ParcoursBUT pb2 = this.model.saveParcours(new ParcoursBUT(but1, "PARC2", "Parcours 2"));
+        this.model.saveParcours(new ParcoursBUT(but2, "PARC3", "Parcours 3"));
 
-        BUT retrievedBut1 = this.mongoTemplate.findById(this.but1.getId(), BUT.class);
+        BUT retrievedBut1 = this.model.getButsById().get(this.but1.getId());
         assert retrievedBut1 != null;
         List<ParcoursBUT> parcoursBut = retrievedBut1.getParcours();
         assertThat(parcoursBut).as("Parcours but not null with size 2").isNotNull().hasSize(2);
@@ -113,23 +122,23 @@ public class ParcoursBUTTest {
     @Test
     public void testParcoursBUTValidation() {
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new ParcoursBUT(null, "PARC1", "Parcours 1")))
+                -> this.model.saveParcours(new ParcoursBUT(null, "PARC1", "Parcours 1")))
                 .as("Null but rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new ParcoursBUT(but1, null, "Parcours 1")))
+                -> this.model.saveParcours(new ParcoursBUT(but1, null, "Parcours 1")))
                 .as("Null code rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new ParcoursBUT(but1, "  \t  \n ", "Parcours 1")))
+                -> this.model.saveParcours(new ParcoursBUT(but1, "  \t  \n ", "Parcours 1")))
                 .as("Blank code rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new ParcoursBUT(but1, "PARC1", null)))
+                -> this.model.saveParcours(new ParcoursBUT(but1, "PARC1", null)))
                 .as("Null nom rejected")
                 .isInstanceOf(ConstraintViolationException.class);
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new ParcoursBUT(but1, "PARC1", "  \t  \n ")))
+                -> this.model.saveParcours(new ParcoursBUT(but1, "PARC1", "  \t  \n ")))
                 .as("Blank nom rejected")
                 .isInstanceOf(ConstraintViolationException.class);
     }
@@ -139,9 +148,9 @@ public class ParcoursBUTTest {
      */
     @Test
     public void testUniqueCode() {
-        this.mongoTemplate.save(new ParcoursBUT(but1, "PARC1", "Parcours 1"));
+        this.model.saveParcours(new ParcoursBUT(but1, "PARC1", "Parcours 1"));
         assertThatThrownBy(()
-                -> this.mongoTemplate.save(new ParcoursBUT(but2, "PARC1", "Parcours 2")))
+                -> this.model.saveParcours(new ParcoursBUT(but2, "PARC1", "Parcours 2")))
                 .as("Duplicated code rejected")
                 .isInstanceOf(DuplicateKeyException.class);
     }

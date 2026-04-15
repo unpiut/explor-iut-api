@@ -18,13 +18,13 @@
  */
 package explorateurIUT.services.mailManagement;
 
-import com.mongodb.client.gridfs.model.GridFSFile;
+import explorateurIUT.model.PendingMailAttachement;
 import jakarta.mail.MessagingException;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
+import java.util.Collection;
 import org.springframework.mail.MailException;
 
 /**
@@ -50,7 +50,7 @@ public interface MailSendingService {
             @NotNull @Email String replyTo,
             @NotBlank String subject,
             @NotBlank String body,
-            @NotNull List<GridFSFile> attachements) throws ValidationException, MailException, MessagingException;
+            @NotNull Collection<PendingMailAttachement> attachements) throws ValidationException, MailException, MessagingException;
 
     /**
      * Send a mail to a particular contact.

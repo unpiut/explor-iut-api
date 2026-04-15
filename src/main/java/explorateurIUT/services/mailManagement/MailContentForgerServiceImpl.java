@@ -1,10 +1,11 @@
 package explorateurIUT.services.mailManagement;
 
 import explorateurIUT.model.IUTRepository;
-import explorateurIUT.model.MailIUTRecipient;
+import explorateurIUT.model.PendingMailIUTRecipient;
 import explorateurIUT.model.projections.DepartementCodesOfIUTId;
 import explorateurIUT.model.projections.IUTMailOnly;
 import explorateurIUT.model.DepartementRepository;
+import explorateurIUT.model.PendingMail;
 import explorateurIUT.services.AppTextService;
 import explorateurIUT.services.CacheManagementServiceImpl;
 import java.util.HashMap;
@@ -88,7 +89,7 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
     }
 
     @Override
-    public List<MailIUTRecipient> createIUTMailingList(MailSendingRequest mailSendingRequest) {
+    public List<PendingMailIUTRecipient> createIUTMailingList(PendingMail pendingMail, MailSendingRequest mailSendingRequest) {
         // Extract iutId related to deptId : the request ensure uniqueness of 
         LOG.debug("Creation de la liste des codes départements");
         List<DepartementCodesOfIUTId> codesDeptByIUT = this.deptRepo.streamIUTIdByIdIn(mailSendingRequest.deptIds())
@@ -109,7 +110,7 @@ public class MailContentForgerServiceImpl implements MailContentForgerService {
         LOG.debug("Renvoi des differents recipient");
         return codesDeptByIUT.stream()
                 .filter((dep) -> fMailsByIUTid.containsKey(dep.getIut()))
-                .map((dep) -> new MailIUTRecipient(fMailsByIUTid.get(dep.getIut()), dep.getCodes()))
+                .map((dep) -> new PendingMailIUTRecipient(pendingMail, fMailsByIUTid.get(dep.getIut()), dep.getCodes()))
                 .toList();
     }
 
