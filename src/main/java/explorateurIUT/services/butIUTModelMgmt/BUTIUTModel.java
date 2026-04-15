@@ -107,7 +107,7 @@ public class BUTIUTModel {
         this.checkIfWritable();
         this.validateEntity(but);
         if (this.butsById.putIfAbsent(but.getId(), but) != null) {
-            throw new DuplicateKeyException("BUT already known in model: " + but.getId());
+            throw new DuplicateKeyException("BUT already known in model: " + but.getCode() + " (id: " + but.getId() + ")");
         }
         return but;
     }
@@ -116,7 +116,7 @@ public class BUTIUTModel {
         this.checkIfWritable();
         this.validateEntity(parcours);
         if (this.parcoursById.putIfAbsent(parcours.getId().toLowerCase(), parcours) != null) {
-            throw new DuplicateKeyException("Parcours already known in model: " + parcours.getId());
+            throw new DuplicateKeyException("Parcours already known in model: " + parcours.getCode() + " (id: " + parcours.getId() + ")");
         }
         return parcours;
     }
@@ -125,7 +125,7 @@ public class BUTIUTModel {
         this.checkIfWritable();
         this.validateEntity(iut);
         if (this.iutsById.putIfAbsent(iut.getId().toLowerCase(), iut) != null) {
-            throw new DuplicateKeyException("IUT already known in model: " + iut.getId());
+            throw new DuplicateKeyException("IUT already known in model: " + iut.getNom() + " (id: " + iut.getId() + ")");
         }
         return iut;
     }
@@ -134,7 +134,7 @@ public class BUTIUTModel {
         this.checkIfWritable();
         this.validateEntity(departement);
         if (this.departementsById.putIfAbsent(departement.getId().toLowerCase(), departement) != null) {
-            throw new DuplicateKeyException("Departement already known in model: " + departement.getId());
+            throw new DuplicateKeyException("Departement already known in model: " + departement.getCode() + " (id: " + departement.getId() + ")");
         }
         return departement;
     }
@@ -143,14 +143,14 @@ public class BUTIUTModel {
         this.checkIfWritable();
         this.validateEntity(appText);
         if (this.appTextsById.putIfAbsent(appText.getId().toLowerCase(), appText) != null) {
-            throw new DuplicateKeyException("AppText already known in model");
+            throw new DuplicateKeyException("AppText already known in model: " + appText.getCode() + " (id: " + appText.getId() + ")");
         }
         return appText;
     }
 
     private void checkIfWritable() {
         if (this.readOnly) {
-            throw new IllegalStateException("Cannot save an entity in a readonly model");
+            throw new IllegalStateException("Cannot save an entity in a read-only model");
         }
     }
 
