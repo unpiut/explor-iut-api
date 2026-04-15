@@ -24,7 +24,7 @@ RUN mvn dependency:resolve
 
 # Copy the source code then perform the build
 COPY . .
-RUN mvn clean package -Dmaven.test.skip
+RUN --mount=type=cache,target=/root/.m2,sharing=locked mvn clean package -Dmaven.test.skip
 
 # Perform the extraction in a separate builder container
 FROM bellsoft/liberica-openjre-debian:21-cds AS builder
