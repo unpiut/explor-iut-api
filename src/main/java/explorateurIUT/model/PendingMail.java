@@ -25,6 +25,7 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import org.springframework.data.annotation.CreatedDate;
@@ -56,7 +57,8 @@ public class PendingMail {
     private String subject;
 
     @NotBlank
-    @Column(nullable = false)
+    @Lob
+    @Column(length = 2048, nullable = false)
     private String body;
 
     @NotBlank

@@ -35,7 +35,7 @@ import java.util.List;
  */
 public record MailSendingRequest(
         @NotEmpty
-        Collection<@NotNull @Pattern(regexp = "[abcdef0-9]{24}", flags = Pattern.Flag.CASE_INSENSITIVE) String> deptIds,
+        Collection<@NotNull @Pattern(regexp = "[abcdef0-9-]{36}", flags = Pattern.Flag.CASE_INSENSITIVE) String> deptIds,
         @NotBlank
         @Size(max = 200)
         String contactIdentity,
